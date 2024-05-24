@@ -1,5 +1,3 @@
-import { QueryFunctionContext } from "@tanstack/react-query"
-
 // TODO: use local storage to store and retrive token so user don't have to pass it every time
 export const TOKEN = "twp_nOjjGPwvTnGLdsMx7tDW8LmR9Fm9"
 

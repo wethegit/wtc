@@ -7,5 +7,5 @@
 		"noUnusedParameters": false,
 		"noUnusedLocals": false
 	},
-	"include": ["source"]
+	"include": ["source", "types"]
 }

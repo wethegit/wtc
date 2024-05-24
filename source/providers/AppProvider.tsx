@@ -1,12 +1,7 @@
 import React, { createContext, useContext } from "react"
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query"
-import { teamwork } from "../utilities/index.js"
 
-interface AppError {
-	id: string
-	title: string
-	detail: string
-}
+import { teamwork } from "../utilities/index.js"
 
 interface User {
 	id: number

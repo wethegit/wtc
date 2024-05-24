@@ -1,11 +1,13 @@
-import React, { useState } from "react"
-import { Box, Text, useApp, useInput } from "ink"
+import React from "react"
+import { Box, Text } from "ink"
+import SelectInput from "ink-select-input"
 
 import { Header } from "../header/index.js"
+import { SelectIndicator } from "../select-indicator/index.js"
+import { SelectItem } from "../select-item/index.js"
 
 export interface Item {
-	title: string
-	detail: string
+	label: string
 	value: string
 }
 
@@ -17,29 +19,6 @@ export interface HomeScreenProps {
 }
 
 export function HomeScreen({ items, onSelectItem }: HomeScreenProps) {
-	const [cursor, setCursor] = useState<number>(0)
-
-	useInput((input, key) => {
-		if (key.downArrow) {
-			setCursor((prev) => (prev + 1) % 2)
-			return
-		}
-
-		if (key.upArrow) {
-			setCursor((prev) => (prev - 1 + 2) % 2)
-			return
-		}
-
-		const inputNumber = parseInt(input)
-		let item
-
-		if (inputNumber > 0 && inputNumber <= items.length) item = items[inputNumber - 1]
-
-		if (key.return || input === " ") item = items[cursor]
-
-		if (item) onSelectItem(item)
-	})
-
 	return (
 		<Box paddingBottom={2} flexDirection="column">
 			<Box flexDirection="column" alignItems="center">
@@ -49,17 +28,17 @@ export function HomeScreen({ items, onSelectItem }: HomeScreenProps) {
 			</Box>
 
 			<Box marginTop={2} flexDirection="column">
-				<Text>What would you like to do?:</Text>
+				<Box marginLeft={1}>
+					<Text>What would you like to do?:</Text>
+				</Box>
 
 				<Box marginTop={1} flexDirection="column">
-					{items.map((item, index) => (
-						<Box key={item.value + index}>
-							<Text color={cursor === index ? "green" : "white"}>
-								{index + 1}. {item.title}
-							</Text>
-							<Text color="gray"> - {item.detail}</Text>
-						</Box>
-					))}
+					<SelectInput
+						items={items}
+						onSelect={onSelectItem}
+						indicatorComponent={SelectIndicator}
+						itemComponent={SelectItem}
+					/>
 				</Box>
 			</Box>
 		</Box>

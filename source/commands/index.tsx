@@ -2,8 +2,18 @@ import React, { useState } from "react"
 
 import { HomeScreen } from "../components/index.js"
 import type { OnSelectItem } from "../components/home-screen/index.js"
+import { default as TwTasksCommand } from "../commands/tw/tasks.js"
 
-import { default as TwCommand } from "../commands/tw/index.js"
+const COMMANDS = [
+	{
+		label: "tw || Interact with Teamwork",
+		value: "tw",
+	},
+	{
+		label: "q || Quit the program",
+		value: "q",
+	},
+]
 
 export default function Index() {
 	const [screen, setScreen] = useState("home")
@@ -12,25 +22,9 @@ export default function Index() {
 	}
 
 	if (screen === "home")
-		return (
-			<HomeScreen
-				items={[
-					{
-						title: "tw",
-						detail: "Interact with Teamwork",
-						value: "tw",
-					},
-					{
-						title: "q",
-						detail: "Quit the program",
-						value: "q",
-					},
-				]}
-				onSelectItem={handleSelectItem}
-			/>
-		)
+		return <HomeScreen items={COMMANDS} onSelectItem={handleSelectItem} />
 
-	if (screen === "tw") return <TwCommand />
+	if (screen === "tw") return <TwTasksCommand />
 
 	return
 }
