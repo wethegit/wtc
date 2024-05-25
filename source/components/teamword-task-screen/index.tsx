@@ -7,6 +7,7 @@ import Spinner from "ink-spinner"
 import { teamwork } from "../../utilities/index.js"
 import { Breadcrumbs } from "../breadcrumbs/index.js"
 import { Markdown } from "../markdown/index.js"
+import { MainContent } from "../main-content/index.js"
 
 export function TeamworkTaskScreen({ id }: { id: number }) {
 	const { data, error } = useQuery({
@@ -19,16 +20,24 @@ export function TeamworkTaskScreen({ id }: { id: number }) {
 
 	if (isLoading) return <Spinner type="dots" />
 
-	console.log({ d: data.description })
+	console.log({ data })
+
+	// createdBy
+	// createdAt
+	// parentTaskId
+	// taskListId
+	// assigneeUsers
+	// createdByUser
 
 	return (
 		<Box flexDirection="column">
 			<Breadcrumbs items={["tw", "task", "" + id]} title={data.name} />
 
-			<Text>{data.description}</Text>
-			<Box overflow="hidden" borderStyle="single">
-				<Markdown body={data.description} />
-			</Box>
+			{data.description && (
+				<MainContent>
+					<Text>{data.description}</Text>
+				</MainContent>
+			)}
 
 			<SelectInput
 				items={[

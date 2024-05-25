@@ -4,14 +4,27 @@ import { Box, Text } from "ink"
 const COLOR = "gray"
 const COLOR_ACTIVE = "green"
 
-export function SelectItem({
-	isSelected,
-	label,
-}: {
+interface SelectItemPropsBase {
 	isSelected?: boolean
+}
+
+interface SelectItemPropsWithLabel extends SelectItemPropsBase {
 	label: string
-}) {
-	const [dimmed, ...rest] = label.split("||")
+	item?: never
+}
+
+interface SelectItemPropsWithItem extends SelectItemPropsBase {
+	item: { label: string }
+	label?: never
+}
+
+type SelectItemProps = SelectItemPropsWithLabel | SelectItemPropsWithItem
+
+export function SelectItem({ isSelected, ...props }: SelectItemProps) {
+	const [dimmed, ...rest] =
+		typeof props.label === "string"
+			? props.label.split("||")
+			: props.item.label.split("||")
 
 	return (
 		<Box

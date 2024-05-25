@@ -6,7 +6,7 @@ import { Header } from "../header/index.js"
 import { SelectIndicator } from "../select-indicator/index.js"
 import { SelectItem } from "../select-item/index.js"
 
-export interface Item {
+interface Item {
 	label: string
 	value: string
 }
