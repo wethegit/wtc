@@ -5,7 +5,7 @@ import { TeamworkTaskScreen, TeamworkTasksScreen } from "../../components/index.
 export default function Index() {
 	const [task, setTask] = useState<number>(0)
 
-	if (task > 0) return <TeamworkTaskScreen id={task} />
+	if (task > 0) return <TeamworkTaskScreen onSelectBack={() => setTask(0)} id={task} />
 
 	return <TeamworkTasksScreen onSelectTask={setTask} />
 }

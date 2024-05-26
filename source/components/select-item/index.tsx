@@ -30,6 +30,7 @@ export function SelectItem({ isSelected, ...props }: SelectItemProps) {
 		<Box
 			flexGrow={1}
 			gap={1}
+			alignItems="center"
 			paddingLeft={1}
 			paddingRight={1}
 			borderColor={isSelected ? COLOR_ACTIVE : COLOR}

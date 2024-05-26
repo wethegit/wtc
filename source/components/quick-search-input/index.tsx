@@ -158,6 +158,12 @@ export function QuickSearch(props: QuickSearchProps) {
 		if (onHighlight) onHighlight(items[0]!)
 	}, [items])
 
+	const getMatchIndex = (label: string, query: string) => {
+		return props.caseSensitive
+			? label.indexOf(query)
+			: label.toLowerCase().indexOf(query.toLowerCase())
+	}
+
 	const getMatchingItems = (alternateQuery?: string) => {
 		const matchQuery = alternateQuery || query
 		if (matchQuery === "") return items
@@ -172,12 +178,6 @@ export function QuickSearch(props: QuickSearchProps) {
 
 	const getValue = () => {
 		return matchingItems[windowIndices.selection] || defaultValue
-	}
-
-	const getMatchIndex = (label: string, query: string) => {
-		return props.caseSensitive
-			? label.indexOf(query)
-			: label.toLowerCase().indexOf(query.toLowerCase())
 	}
 
 	const removeCharFromQuery = () => {
