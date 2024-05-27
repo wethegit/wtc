@@ -19,20 +19,21 @@ export function Breadcrumbs({ items, title }: { items: string[]; title?: string 
 			justifyContent="space-between"
 		>
 			<Box gap={1}>
-				<Text color={COLOR}>$:</Text>
 				{items.map((n, i) => {
 					const isLast = i === items.length - 1
 					return (
 						<Box gap={1} key={n + i}>
 							<Text color={isLast ? COLOR_ACTIE : COLOR}>{n}</Text>
-							{!isLast && <Text color={COLOR}>/</Text>}
+							{(!isLast || title) && <Text color={COLOR}>/</Text>}
 						</Box>
 					)
 				})}
+				{title && (
+					<Text color="yellow" bold>
+						{title}
+					</Text>
+				)}
 			</Box>
-			<Text color="yellow" bold>
-				{title}
-			</Text>
 			<Box gap={1}>
 				<Text color={COLOR}>Hello,</Text>
 				<Text color={COLOR_ACTIE}>{user?.firstName}</Text>

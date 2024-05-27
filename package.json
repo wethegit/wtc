@@ -21,6 +21,7 @@
 		"cfonts": "~3.2.0",
 		"has-ansi": "^5.0.1",
 		"ink": "^5.0.0",
+		"ink-link": "^3.0.0",
 		"ink-select-input": "^6.0.0",
 		"ink-spinner": "~5.0.0",
 		"keypress": "^0.2.1",

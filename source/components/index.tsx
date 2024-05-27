@@ -1,5 +1,6 @@
 export * from "./breadcrumbs/index.js"
 export * from "./control-bar/index.js"
+export * from "./divider/index.js"
 export * from "./header/index.js"
 export * from "./home-screen/index.js"
 export * from "./main-content/index.js"

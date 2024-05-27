@@ -1,9 +1,13 @@
-import { Box } from "ink"
+import { Box, BoxProps } from "ink"
 import React from "react"
 
-export function MainContent({ children }: { children: React.ReactNode }) {
+interface MainContentProps extends BoxProps {
+	children?: React.ReactNode
+}
+
+export function MainContent({ children, ...props }: MainContentProps) {
 	return (
-		<Box flexDirection="column">
+		<Box {...props} flexDirection="column">
 			<Box borderTop borderBottom={false} borderStyle="single" />
 
 			<Box flexDirection="column" overflow="hidden" paddingLeft={2} paddingRight={2}>
