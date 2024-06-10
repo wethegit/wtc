@@ -3,13 +3,13 @@ import SelectInput from "ink-select-input"
 import { useQuery } from "@tanstack/react-query"
 import { Box, Text } from "ink"
 import Spinner from "ink-spinner"
+import Link from "ink-link"
 
 import { buildCommentUrl, buildTaskUrl, teamwork } from "../../utilities/index.js"
 import { Breadcrumbs } from "../breadcrumbs/index.js"
 import { MainContent } from "../main-content/index.js"
 import { Markdown } from "../markdown/index.js"
 import { Divider } from "../divider/index.js"
-import Link from "ink-link"
 
 export function TeamworkTaskScreen({
 	onSelectBack,
@@ -184,6 +184,7 @@ export function TeamworkTaskScreen({
 }
 
 function prettyPrintDate(d: string, convert?: boolean) {
+	if (!d || !isNaN(Date.parse(d))) return ""
 	const date = convert ? d.slice(0, 4) + "-" + d.slice(4, 6) + "-" + d.slice(6, 8) : d
 
 	return new Date(date).toLocaleDateString("en-CA", { dateStyle: "medium" })
