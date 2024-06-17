@@ -58,6 +58,7 @@ export function TeamworkTaskScreen({
 		["created-on"]: createdOn,
 		["last-changed-on"]: lastChangedOn,
 		priority,
+		status,
 		["responsible-party-names"]: responsibleNames,
 		["parent-task"]: parentTask,
 	} = data
@@ -76,9 +77,9 @@ export function TeamworkTaskScreen({
 				flexDirection="column"
 				gap={1}
 			>
-				<Link url={buildTaskUrl(id)}>
+				<Link url={buildTaskUrl(id)} fallback={false}>
 					<Text underline color="gray">
-						{buildTaskUrl(id)}
+						[{status}]: {buildTaskUrl(id)}
 					</Text>
 				</Link>
 
@@ -126,13 +127,14 @@ export function TeamworkTaskScreen({
 			</Box>
 
 			{description && (
-				<MainContent>
-					<Text bold>Description</Text>
-					<Divider borderColor="white" />
+				<MainContent title="Description">
 					{descriptionContentType === "TEXT" ? (
 						<Text>{description}</Text>
 					) : (
-						<Markdown body={description} />
+						<Text>
+							{" "}
+							<Markdown body={description} />
+						</Text>
 					)}
 				</MainContent>
 			)}
@@ -140,9 +142,7 @@ export function TeamworkTaskScreen({
 			{loadingComments ? (
 				<Spinner type="dots11" />
 			) : (
-				<MainContent>
-					<Text bold>Comments</Text>
-					<Divider borderColor="white" />
+				<MainContent title="Comments">
 					{comments.map(
 						(
 							{
@@ -150,6 +150,7 @@ export function TeamworkTaskScreen({
 								["author-firstname"]: authorFirstName,
 								["author-lastname"]: authorLastName,
 								datetime,
+								["content-type"]: contentType,
 								...comment
 							}: any,
 							i: number
@@ -157,7 +158,6 @@ export function TeamworkTaskScreen({
 							return (
 								<Box key={comment.id} flexDirection="column">
 									{i !== 0 && <Divider />}
-
 									<Box justifyContent="flex-start" marginBottom={1} gap={3} flexGrow={1}>
 										<Link url={buildCommentUrl(comment.id, id)}>
 											<Text underline color="gray">
@@ -170,7 +170,11 @@ export function TeamworkTaskScreen({
 										</Text>
 									</Box>
 
-									<Text>{body}</Text>
+									{contentType !== "TEXT" ? (
+										<Text>{body}</Text>
+									) : (
+										<Markdown body={body} />
+									)}
 								</Box>
 							)
 						}

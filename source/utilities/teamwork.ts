@@ -21,7 +21,7 @@ export function teamwork({ params, path = "me", version = 3 }: TeamworkOptions) 
 
 	if (params) {
 		url += `?${params.join("&")}`
-		console.log({ url })
+		// console.log({ url })
 	}
 
 	return fetch(url, {

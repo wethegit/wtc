@@ -3,8 +3,19 @@ import { marked } from "marked"
 import { markedTerminal } from "marked-terminal"
 import Spinner from "ink-spinner"
 import { Text } from "ink"
+import terminalImage from "term-img"
 
-marked.use(markedTerminal())
+const fallback = (href: string) => {
+	return href
+}
+
+marked.use(
+	markedTerminal({
+		image: function (href: string, title: string, text: string) {
+			return terminalImage(href, { fallback: () => fallback(href) })
+		},
+	})
+)
 
 interface MarkdownProps {
 	body: string
