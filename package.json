@@ -20,7 +20,7 @@
   "dependencies": {
     "@opentui/core": "^0.3.4",
     "yargs": "^18.0.0",
-    "zod": "^3.0.0"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
