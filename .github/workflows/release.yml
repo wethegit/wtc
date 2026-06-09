@@ -191,14 +191,27 @@ jobs:
           app-id: ${{ secrets.WETHEGIT_APP_ID }}
           private-key: ${{ secrets.WETHEGIT_APP_KEY }}
 
-      - name: Commit package updates
+      - name: Create checksum update PR
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
+          TAG="${{ needs.detect-release.outputs.tag }}"
+          BRANCH="chore/update-checksums/${TAG}"
+
           git config user.name "wethegit-publish[bot]"
           git config user.email "wethegit-publish[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
           git add Formula/wtc.rb aur/PKGBUILD
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: update package checksums to ${{ needs.detect-release.outputs.tag }}"
-            git push
-          fi
+          git commit -m "chore: update checksums to ${TAG}"
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "chore: update package checksums to ${TAG}" \
+            --body "Triggered by: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}
+
+            Auto-generated after ${TAG}." \
+            --base main \
+            --head "$BRANCH" \
+            --auto-merge
