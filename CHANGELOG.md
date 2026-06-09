@@ -1,5 +1,11 @@
 # homebrew-wtc
 
+## 0.1.3
+
+### Patch Changes
+
+- 5577f11: fix: updates runner version
+
 ## 0.1.2
 
 ### Patch Changes
