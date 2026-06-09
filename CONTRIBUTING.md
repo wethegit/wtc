@@ -116,9 +116,9 @@ Choose the correct bump type:
 
 This creates a Markdown file in `.changeset/`. Commit that file with your PR. Documentation-only, test-only, and internal tooling-only changes may skip a changeset if they should not create a release.
 
-After PRs with changesets merge to `main`, the Changesets workflow opens or updates a version PR. That version PR updates `package.json` and `CHANGELOG.md`. When the version PR is merged, the release tag workflow creates the matching `v*` git tag automatically.
+After PRs with changesets merge to `main`, the release workflow opens or updates a Changesets version PR. That version PR updates `package.json` and `CHANGELOG.md`.
 
-The release workflow runs automatically when that `v*` tag is pushed. It builds and uploads these standalone binaries to the GitHub Release:
+When the Changesets version PR is merged to `main`, the same release workflow detects the package version change, creates the matching `v*` git tag, builds binaries, and uploads these standalone assets to the GitHub Release:
 
 | Target      | Binary name        |
 | ----------- | ------------------ |
@@ -140,7 +140,7 @@ For changes intended to ship in a release:
 5. Do not commit generated binaries or release artifacts.
 6. Wait for CI to pass before requesting review.
 
-Maintainers create releases by merging the Changesets version PR. Tag creation, binary builds, GitHub Release assets, and package checksum updates are automated by GitHub Actions.
+Maintainers create releases by merging the Changesets version PR. Tag creation, binary builds, GitHub Release assets, and package checksum updates all happen in `.github/workflows/release.yml`.
 
 ## Code Conventions
 

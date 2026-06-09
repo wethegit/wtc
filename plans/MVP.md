@@ -102,34 +102,24 @@ jobs:
 
 ### 8. Changesets + Release Pipeline
 
-- `.github/workflows/changesets.yml` runs on pushes to `main`
+- `.github/workflows/release.yml` runs on pushes to `main`
   - Opens or updates a Changesets version PR when merged changesets are pending
   - Version PR updates `package.json` and `CHANGELOG.md`
-- `.github/workflows/create-release-tag.yml` runs when `package.json` changes on `main`
-  - Compares previous and current package versions
-  - Creates `v<package.version>` tag only when the version changed
-- `.github/workflows/release.yml` runs on `v*` tags
-  - Builds standalone binaries
+  - Detects when the version PR merge changes `package.json`
+  - Creates `v<package.version>` tag in the same workflow
+  - Builds standalone binaries when the package version changed
   - Uploads GitHub Release assets
   - Updates Homebrew and AUR package checksums
 
 ```yaml
 on:
   push:
-    tags: "v*"
+    branches: [main]
 jobs:
-  build-macos-arm64:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install
-      - run: bun install --os="*" --cpu="*" @opentui/core # cross-platform native pkgs
-      - run: bun run scripts/build.ts
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: dist/wtc-*
-  # similar for macos-x64, linux-x64-glibc
+  version-pr: changeset version
+  detect-release: compare package.json versions
+  build: build macOS arm64, macOS x64, Linux x64 binaries
+  publish: create tag, GitHub Release, and package checksum commit
 ```
 
 ### 9. Install Script (`install.sh`)
@@ -208,9 +198,7 @@ At the end of MVP:
 - [x] Pre-commit hook works (husky + lint-staged)
 - [x] CI pipeline configured (`.github/workflows/ci.yml`)
 - [x] Changesets configured (`.changeset/`)
-- [x] Changesets version PR workflow configured (`.github/workflows/changesets.yml`)
-- [x] Automatic release tag workflow configured (`.github/workflows/create-release-tag.yml`)
-- [x] Release pipeline configured (`.github/workflows/release.yml`)
+- [x] Unified Changesets + release pipeline configured (`.github/workflows/release.yml`)
 - [x] Binary builds locally (`bun run build`)
 - [x] Homebrew formula created (`Formula/wtc.rb`)
 - [x] Install script created (`install.sh`)
