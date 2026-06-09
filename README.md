@@ -4,19 +4,13 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 
 ## Installation
 
-### macOS/Linux (Homebrew)
+### macOS / Linux (Homebrew)
 
 ```bash
 brew install wethegit/wtc/wtc
 ```
 
-### Linux (Arch via AUR)
-
-```bash
-yay -S wtc
-```
-
-### YOLO
+### All platforms (install script)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh | bash
@@ -46,10 +40,9 @@ Package-manager installs should be updated through the package manager:
 
 ```bash
 brew upgrade wtc  # Homebrew
-yay -Syu wtc      # Arch/AUR
 ```
 
-`wtc upgrade` refuses to replace Homebrew or pacman/AUR-managed binaries.
+`wtc upgrade` refuses to replace Homebrew-managed binaries.
 
 ## Development
 
