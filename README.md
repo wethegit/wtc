@@ -7,7 +7,7 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 ### macOS/Linux (Homebrew)
 
 ```bash
-brew install wethegit/wtc
+brew install wethegit/wtc/wtc
 ```
 
 ### Linux (Arch via AUR)

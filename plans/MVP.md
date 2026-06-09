@@ -155,7 +155,7 @@ jobs:
   - `wtc upgrade --check` just checks without upgrading
 - `src/cli/parser.ts` — registers the `upgrade` subcommand
 
-### 11. Homebrew Formula (`homebrew/wtc.rb`)
+### 11. Homebrew Formula (`Formula/wtc.rb`)
 
 ```ruby
 class Wtc < Formula
@@ -212,7 +212,7 @@ At the end of MVP:
 - [x] Automatic release tag workflow configured (`.github/workflows/create-release-tag.yml`)
 - [x] Release pipeline configured (`.github/workflows/release.yml`)
 - [x] Binary builds locally (`bun run build`)
-- [x] Homebrew formula created (`homebrew/wtc.rb`)
+- [x] Homebrew formula created (`Formula/wtc.rb`)
 - [x] Install script created (`install.sh`)
 - [x] `README.md`, `AGENTS.md`, `CONTRIBUTING.md` written
 - [x] Update checker + `wtc upgrade` command

@@ -86,8 +86,8 @@ homebrew-wtc/
 │   │   └── teamwork.test.ts
 │   └── tui/
 │       └── components.test.ts
-├── homebrew/
-│   └── wtc.rb                # Homebrew formula
+├── Formula/
+│   └── wtc.rb                # Homebrew formula for the tap
 ├── aur/
 │   └── PKGBUILD              # Arch Linux package build
 ├── .changeset/
@@ -285,7 +285,7 @@ Create v<version> tag when version changed
 ```
 Build: bun build --compile (macOS arm64, macOS x64, Linux x64 glibc)
 Upload: attach binaries to GitHub Release
-Formula: update homebrew/wtc.rb with new version + shas
+Formula: update Formula/wtc.rb with new version + shas
 AUR: update aur/PKGBUILD with new version + sha256
 ```
 
@@ -298,7 +298,7 @@ AUR: update aur/PKGBUILD with new version + sha256
 | Method          | Platforms                    | Install command                                                                              |
 | --------------- | ---------------------------- | -------------------------------------------------------------------------------------------- |
 | Install script  | Universal (any Linux, macOS) | `curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh \| bash` |
-| Homebrew        | macOS, Linux                 | `brew install wethegit/wtc`                                                                  |
+| Homebrew        | macOS, Linux                 | `brew install wethegit/wtc/wtc`                                                              |
 | AUR             | Arch Linux                   | `yay -S wtc`                                                                                 |
 | GitHub Releases | All                          | Download from releases page                                                                  |
 | `wtc upgrade`   | Direct/install-script only   | `wtc upgrade`                                                                                |

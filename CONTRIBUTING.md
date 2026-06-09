@@ -128,7 +128,7 @@ The release workflow runs automatically when that `v*` tag is pushed. It builds 
 
 After building release artifacts, the workflow updates package checksums in:
 
-- `homebrew/wtc.rb`
+- `Formula/wtc.rb`
 - `aur/PKGBUILD`
 
 For changes intended to ship in a release:

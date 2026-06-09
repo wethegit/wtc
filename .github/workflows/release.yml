@@ -129,7 +129,7 @@ jobs:
           SHA_LINUX=$(sha256sum dist/wtc-linux-x64 | cut -d' ' -f1)
 
           ruby -e '
-            path = "homebrew/wtc.rb"
+            path = "Formula/wtc.rb"
             version, arm64, x64, linux = ARGV
             content = File.read(path)
             content = content.gsub(/version "[^"]+"/, "version \"#{version}\"")
@@ -152,7 +152,7 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add homebrew/wtc.rb aur/PKGBUILD
+          git add Formula/wtc.rb aur/PKGBUILD
           if ! git diff --cached --quiet; then
             git commit -m "chore: update package checksums to ${GITHUB_REF_NAME}"
             git push
