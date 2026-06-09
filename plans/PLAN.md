@@ -108,9 +108,7 @@ homebrew-wtc/
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml            # Lint + typecheck + test
-│   │   ├── changesets.yml    # Opens version PRs
-│   │   ├── create-release-tag.yml # Tags package versions
-│   │   └── release.yml       # Build + publish
+│   │   └── release.yml       # Changesets version PR + build + publish
 │   └── dependabot.yml
 ├── package.json
 ├── tsconfig.json
@@ -267,26 +265,16 @@ tsc --noEmit
 bun test
 ```
 
-### Changesets (changesets.yml) — Push to main
+### Release (release.yml) — Push to main
 
 ```
 changeset version -> opens/updates version PR when pending changesets exist
-```
-
-### Release Tag (create-release-tag.yml) — package.json version changes on main
-
-```
-Compare package.json version before/after push
-Create v<version> tag when version changed
-```
-
-### Release (release.yml) — Tag push (v\*)
-
-```
-Build: bun build --compile (macOS arm64, macOS x64, Linux x64 glibc)
-Upload: attach binaries to GitHub Release
-Formula: update Formula/wtc.rb with new version + shas
-AUR: update aur/PKGBUILD with new version + sha256
+if package.json version changed:
+  create v<version> tag
+  build: bun build --compile (macOS arm64, macOS x64, Linux x64 glibc)
+  upload: attach binaries to GitHub Release
+  formula: update Formula/wtc.rb with new version + shas
+  AUR: update aur/PKGBUILD with new version + sha256
 ```
 
 ---
