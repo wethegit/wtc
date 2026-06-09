@@ -1,5 +1,11 @@
 # homebrew-wtc
 
+## 0.1.4
+
+### Patch Changes
+
+- 5cc48ab: fix: release with secure app id
+
 ## 0.1.3
 
 ### Patch Changes
