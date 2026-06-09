@@ -83,7 +83,7 @@ Generated binaries live in `dist/`, which is ignored by git.
 
 ## CI/CD and Releases
 
-CI runs automatically on pushes and pull requests targeting `main`.
+CI runs automatically on pull requests targeting `main`.
 
 The CI workflow installs dependencies with Bun and runs:
 
@@ -118,7 +118,7 @@ This creates a Markdown file in `.changeset/`. Commit that file with your PR. Do
 
 After PRs with changesets merge to `main`, the release workflow opens or updates a Changesets version PR. That version PR updates `package.json` and `CHANGELOG.md`.
 
-When the Changesets version PR is merged to `main`, the same release workflow detects the package version change, creates the matching `v*` git tag, builds binaries, and uploads these standalone assets to the GitHub Release:
+When the Changesets version PR is merged to `main`, the same release workflow detects the package version change, creates the matching `v*` git tag, builds binaries, uploads standalone assets to the GitHub Release, and opens a checksum update PR with auto-merge enabled. The binaries built and uploaded are:
 
 | Target      | Binary name        |
 | ----------- | ------------------ |
@@ -126,10 +126,7 @@ When the Changesets version PR is merged to `main`, the same release workflow de
 | macOS x64   | `wtc-darwin-x64`   |
 | Linux x64   | `wtc-linux-x64`    |
 
-After building release artifacts, the workflow updates package checksums in:
-
-- `Formula/wtc.rb`
-- `aur/PKGBUILD`
+After building release artifacts, the workflow creates a pull request (`chore/update-checksums/v*`) that updates the checksums in `Formula/wtc.rb` and `aur/PKGBUILD`. This PR is opened by the `wethegit-publish[bot]` GitHub App and has auto-merge enabled, so it merges automatically once CI passes.
 
 For changes intended to ship in a release:
 
@@ -140,7 +137,7 @@ For changes intended to ship in a release:
 5. Do not commit generated binaries or release artifacts.
 6. Wait for CI to pass before requesting review.
 
-Maintainers create releases by merging the Changesets version PR. Tag creation, binary builds, GitHub Release assets, and package checksum updates all happen in `.github/workflows/release.yml`.
+Maintainers create releases by merging the Changesets version PR. Tag creation, binary builds, GitHub Release assets, and the checksum update PR all happen in `.github/workflows/release.yml`.
 
 ## Code Conventions
 
