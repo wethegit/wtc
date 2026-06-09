@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Lint, Typecheck & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Formatting check
+        run: bun run fmt:check
+
+      - name: TypeScript typecheck
+        run: bun run check
+
+      - name: Run tests
+        run: bun test

@@ -1,0 +1,117 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-macos-arm64:
+    name: Build macOS ARM64
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Install cross-platform native packages
+        run: bun install --os="*" --cpu="*" @opentui/core
+
+      - name: Build binary
+        run: bun run build
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wtc-*
+          fail_on_unmatched_files: true
+
+  build-macos-x64:
+    name: Build macOS x64
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Install cross-platform native packages
+        run: bun install --os="*" --cpu="*" @opentui/core
+
+      - name: Build binary
+        run: bun run build
+        env:
+          platform: darwin
+          arch: x64
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wtc-*
+          fail_on_unmatched_files: true
+
+  build-linux-x64:
+    name: Build Linux x64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Install cross-platform native packages
+        run: bun install --os="*" --cpu="*" @opentui/core
+
+      - name: Build binary
+        run: bun run build
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wtc-*
+          fail_on_unmatched_files: true
+
+  update-formula:
+    name: Update Homebrew formula
+    needs: [build-macos-arm64, build-macos-x64, build-linux-x64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            wtc-darwin-arm64
+            wtc-darwin-x64
+            wtc-linux-x64
+
+      - name: Update formula with checksums
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          SHA_ARM64=$(sha256sum wtc-darwin-arm64 | cut -d' ' -f1)
+          SHA_X64=$(sha256sum wtc-darwin-x64 | cut -d' ' -f1)
+          SHA_LINUX=$(sha256sum wtc-linux-x64 | cut -d' ' -f1)
+
+          sed -i "s/version \".*\"/version \"${VERSION}\"/" homebrew/wtc.rb
+          sed -i "s/sha256 \".*\"/sha256 \"${SHA_ARM64}\"/" homebrew/wtc.rb
+          sed -i "s/sha256 \".*\"/sha256 \"${SHA_X64}\"/" homebrew/wtc.rb
+          sed -i "s/sha256 \".*\"/sha256 \"${SHA_LINUX}\"/" homebrew/wtc.rb
+
+      - name: Commit formula update
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add homebrew/wtc.rb
+          git commit -m "chore: update Homebrew formula to ${GITHUB_REF_NAME}"
+          git push

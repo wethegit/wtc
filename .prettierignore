@@ -1,1 +1,7 @@
-dist
+.agents/
+node_modules/
+*.md
+*.mdx
+*.yml
+*.yaml
+*.json

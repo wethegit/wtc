@@ -1,56 +1,39 @@
 {
-	"name": "homebrew-wtc",
-	"version": "0.0.0",
-	"license": "MIT",
-	"bin": "dist/cli.js",
-	"type": "module",
-	"engines": {
-		"node": ">=20"
-	},
-	"scripts": {
-		"build": "tsc",
-		"dev": "tsc --watch",
-		"test": "prettier --check . && xo && ava"
-	},
-	"files": [
-		"dist"
-	],
-	"dependencies": {
-		"cfonts": "~3.2.0",
-		"ink": "^4.1.0",
-		"ink-spinner": "~5.0.0",
-		"pastel": "^2.0.0",
-		"react": "^18.2.0",
-		"zod": "^3.21.4"
-	},
-	"devDependencies": {
-		"@sindresorhus/tsconfig": "^3.0.1",
-		"@types/react": "^18.0.32",
-		"ava": "^5.2.0",
-		"chalk": "^5.2.0",
-		"eslint-config-xo-react": "^0.27.0",
-		"eslint-plugin-react": "^7.32.2",
-		"eslint-plugin-react-hooks": "^4.6.0",
-		"ink-testing-library": "^3.0.0",
-		"prettier": "^2.8.7",
-		"ts-node": "^10.9.1",
-		"typescript": "^5.0.3",
-		"xo": "^0.54.2"
-	},
-	"ava": {
-		"extensions": {
-			"ts": "module",
-			"tsx": "module"
-		},
-		"nodeArguments": [
-			"--loader=ts-node/esm"
-		]
-	},
-	"xo": {
-		"extends": "xo-react",
-		"prettier": true,
-		"rules": {
-			"react/prop-types": "off"
-		}
-	}
+  "name": "homebrew-wtc",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "lint": "oxlint",
+    "fmt": "oxfmt --write .",
+    "fmt:check": "oxfmt --check .",
+    "check": "tsc --noEmit",
+    "test": "bun test",
+    "prepare": "husky",
+    "build": "bun run scripts/build.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/yargs": "^17.0.35",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "oxfmt": "^0.54.0",
+    "oxlint": "^0.15.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.3.4",
+    "yargs": "^18.0.0",
+    "zod": "^3.0.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "oxlint --fix",
+      "oxfmt --check"
+    ]
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
