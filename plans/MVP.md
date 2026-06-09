@@ -1,20 +1,24 @@
 # MVP — Hello World Dashboard
 
-The minimum viable product: a CLI tool that installs via Homebrew (and direct binary),
-runs with the `wtc` command, and displays a basic TUI dashboard.
+The minimum viable product: a CLI tool that installs universally (install script, Homebrew, or direct binary),
+runs with the `wtc` command, and displays a basic TUI dashboard with built-in update notifications.
 
-**Goal:** Get the full foundation in place — tooling, CI/CD, distribution, and a working binary.
+**Goal:** Get the full foundation in place — tooling, CI/CD, distribution (install script + Homebrew + AUR + GitHub Releases),
+self-update capability, and a working binary.
 
 ---
 
 ## Tasks
 
 ### 1. Project Scaffolding
+
 - Create directory structure as defined in PLAN.md
 - Install dependencies:
   - Runtime: `yargs`, `@types/yargs`, `zod`
-  - Dev: `oxlint`, `husky`, `lint-staged`, `@types/bun`
+  - Dev: `oxlint`, `oxfmt`, `husky`, `lint-staged`, `@types/bun`, `@changesets/cli`
 - Configure `oxlintrc.json`
+- Configure `.oxfmtrc.json`
+- Configure `.changeset/config.json`
 - Configure `.lintstagedrc.json`:
   ```json
   {
@@ -24,6 +28,7 @@ runs with the `wtc` command, and displays a basic TUI dashboard.
 - Init husky with pre-commit hook running `bun lint-staged`
 
 ### 2. Scripts in package.json
+
 ```json
 {
   "scripts": {
@@ -34,19 +39,24 @@ runs with the `wtc` command, and displays a basic TUI dashboard.
     "check": "tsc --noEmit",
     "test": "bun test",
     "prepare": "husky",
-    "build": "bun run scripts/build.ts"
+    "build": "bun run scripts/build.ts",
+    "changeset": "changeset",
+    "changeset:status": "changeset status",
+    "changeset:version": "changeset version"
   }
 }
 ```
 
 ### 3. CLI Entry Point (`src/index.ts` + `src/cli/parser.ts`)
+
 - `wtc` (no args) → launches TUI dashboard
 - `wtc --version` → prints version
 - `wtc --help` → prints help
 - Uses yargs for argument parsing
 - MVP only implements the empty-args path
 
-### 4. TUI Dashboard (`src/tui/app.tsx` + `src/tui/pages/dashboard.tsx`)
+### 4. TUI Dashboard (`src/tui/app.ts` + `src/tui/pages/dashboard.ts`)
+
 - "WTC" ASCII art logo (use OpenTUI's ASCIIFont or custom)
 - Subtitle: "What will you build?"
 - Navigation menu with disabled items:
@@ -58,33 +68,24 @@ runs with the `wtc` command, and displays a basic TUI dashboard.
 - Active item selectable (cursor/keyboard nav)
 - Styled with Box + Text components
 
-### 5. Configuration Layer (`src/config/`)
-- `schema.ts` — Zod schema for config.json
-- `crypto.ts` — `encrypt(plaintext, password)` / `decrypt(ciphertext, password)`
-  - PBKDF2 with 600k iterations → 256-bit key
-  - AES-256-GCM encrypt
-  - Returns serializable object `{ salt, iv, authTag, data }`
-- `manager.ts` — `initConfig()`, `loadConfig()`, `saveConfig()`
-  - Creates `~/.config/wtc/` directory if missing
-  - On first run: prompts for master password, then prompts for config values
-  - MVP: store minimal config (just enough to test encryption works)
+### 5. Test Suite (`tests/`)
 
-### 6. Test Suite (`tests/`)
-- `tests/config/crypto.test.ts` — encrypt/decrypt round-trip
-- `tests/config/manager.test.ts` — config load/save
 - `tests/tui/dashboard.test.ts` — using `@opentui/core/testing`:
   ```ts
-  import { createTestRenderer } from "@opentui/core/testing"
+  import { createTestRenderer } from "@opentui/core/testing";
   // render dashboard, capture frame, assert content
   ```
 
-### 7. Build Script (`scripts/build.ts`)
+### 6. Build Script (`scripts/build.ts`)
+
 - Uses `Bun.build()` with `--compile` target
 - Platform detection: build for current platform
-- Output: `./wtc` (or `./wtc.exe`)
+- Output: `./dist/wtc-<platform>-<arch>`
+- Injects version from `package.json` via `--define` so `wtc --version` works in standalone binary
 - Use Bun's standalone executable feature
 
-### 8. CI Pipeline (`.github/workflows/ci.yml`)
+### 7. CI Pipeline (`.github/workflows/ci.yml`)
+
 ```yaml
 on: [push, pull_request]
 jobs:
@@ -99,7 +100,19 @@ jobs:
       - run: bun test
 ```
 
-### 9. Release Pipeline (`.github/workflows/release.yml`)
+### 8. Changesets + Release Pipeline
+
+- `.github/workflows/changesets.yml` runs on pushes to `main`
+  - Opens or updates a Changesets version PR when merged changesets are pending
+  - Version PR updates `package.json` and `CHANGELOG.md`
+- `.github/workflows/create-release-tag.yml` runs when `package.json` changes on `main`
+  - Compares previous and current package versions
+  - Creates `v<package.version>` tag only when the version changed
+- `.github/workflows/release.yml` runs on `v*` tags
+  - Builds standalone binaries
+  - Uploads GitHub Release assets
+  - Updates Homebrew and AUR package checksums
+
 ```yaml
 on:
   push:
@@ -111,33 +124,57 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install
-      - run: bun install --os="*" --cpu="*" @opentui/core  # cross-platform native pkgs
+      - run: bun install --os="*" --cpu="*" @opentui/core # cross-platform native pkgs
       - run: bun run scripts/build.ts
       - uses: softprops/action-gh-release@v2
         with:
-          files: wtc-*
+          files: dist/wtc-*
   # similar for macos-x64, linux-x64-glibc
 ```
 
-### 10. Homebrew Formula (`homebrew/wtc.rb`)
+### 9. Install Script (`install.sh`)
+
+- Bash script that auto-detects OS (macOS/Linux) and architecture (arm64/x64)
+- Downloads the correct binary from the latest GitHub Release
+- Supports `VERSION` env var for pinning: `VERSION=v1.2.3 install.sh`
+- Installs to `/usr/local/bin/wtc` by default (configurable via `INSTALL_DIR`)
+- Idempotent — re-running updates to the latest version
+
+### 10. Update Checker + Self-Upgrade
+
+- `src/utils/update-check.ts` — fetches latest release tag from GitHub Releases API
+  - Async, non-blocking on startup
+  - 24-hour cache to avoid rate limits
+  - Compares against current version (injected at build time)
+  - Returns "update available" message if newer
+- `src/cli/commands/upgrade.ts` — `wtc upgrade` command
+  - Detects its own binary path (`/proc/self/exe`, `which wtc`)
+  - Downloads latest binary from GitHub Releases
+  - Replaces itself atomically
+  - Refuses to replace Homebrew or pacman/AUR-managed binaries; those must be updated with their package manager
+  - `wtc upgrade --check` just checks without upgrading
+- `src/cli/parser.ts` — registers the `upgrade` subcommand
+
+### 11. Homebrew Formula (`homebrew/wtc.rb`)
+
 ```ruby
 class Wtc < Formula
   desc "CLI tool for managing GitHub, AWS Amplify, and Teamwork"
-  homepage "https://github.com/anomalyco/homebrew-wtc"
+  homepage "https://github.com/wethegit/homebrew-wtc"
   version "0.1.0"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/anomalyco/homebrew-wtc/releases/download/v#{version}/wtc-darwin-arm64"
+      url "https://github.com/wethegit/homebrew-wtc/releases/download/v#{version}/wtc-darwin-arm64"
       sha256 "..."
     else
-      url "https://github.com/anomalyco/homebrew-wtc/releases/download/v#{version}/wtc-darwin-x64"
+      url "https://github.com/wethegit/homebrew-wtc/releases/download/v#{version}/wtc-darwin-x64"
       sha256 "..."
     end
   end
 
   on_linux do
-    url "https://github.com/anomalyco/homebrew-wtc/releases/download/v#{version}/wtc-linux-x64"
+    url "https://github.com/wethegit/homebrew-wtc/releases/download/v#{version}/wtc-linux-x64"
     sha256 "..."
   end
 
@@ -151,7 +188,8 @@ class Wtc < Formula
 end
 ```
 
-### 11. Documentation
+### 12. Documentation
+
 - `AGENTS.md` — conventions, commands, tech stack
 - `CONTRIBUTING.md` — how to set up dev environment, run tests, make PRs
 - `README.md` — full rewrite with install instructions, usage, development guide
@@ -162,23 +200,32 @@ end
 
 At the end of MVP:
 
-- [ ] Source code compiles and runs (`bun dev` shows dashboard)
-- [ ] Linting passes (`bun run lint`)
-- [ ] Formatting passes (`bun run fmt:check`)
-- [ ] TypeScript type-checks (`bun run check`)
-- [ ] Tests pass (`bun test`)
-- [ ] Pre-commit hook works (husky + lint-staged)
-- [ ] CI passes on GitHub (push/PR)
-- [ ] Binary builds locally (`bun run build`)
-- [ ] Release workflow creates GitHub Release with binary
-- [ ] Homebrew formula works (`brew install` from local formula)
-- [ ] `README.md`, `AGENTS.md`, `CONTRIBUTING.md` written
+- [x] Source code compiles and runs (`bun dev` shows dashboard)
+- [x] Linting passes (`bun run lint`)
+- [x] Formatting passes (`bun run fmt:check`)
+- [x] TypeScript type-checks (`bun run check`)
+- [x] Tests pass (`bun test`)
+- [x] Pre-commit hook works (husky + lint-staged)
+- [x] CI pipeline configured (`.github/workflows/ci.yml`)
+- [x] Changesets configured (`.changeset/`)
+- [x] Changesets version PR workflow configured (`.github/workflows/changesets.yml`)
+- [x] Automatic release tag workflow configured (`.github/workflows/create-release-tag.yml`)
+- [x] Release pipeline configured (`.github/workflows/release.yml`)
+- [x] Binary builds locally (`bun run build`)
+- [x] Homebrew formula created (`homebrew/wtc.rb`)
+- [x] Install script created (`install.sh`)
+- [x] `README.md`, `AGENTS.md`, `CONTRIBUTING.md` written
+- [x] Update checker + `wtc upgrade` command
+- [ ] Install script tested end-to-end
+- [ ] Changesets release flow verified end-to-end with a test version PR/tag
 
 ---
 
 ## Open Questions for After MVP
+
 - Full Terraform-backed Amplify config
+- Configuration layer with encrypted secrets (`src/config/`)
 - Multi-platform build matrix in CI
-- AUR PKGBUILD creation
+- AUR PKGBUILD release publishing
 - Teamwork API integration details
 - Branch protection configuration via GitHub API

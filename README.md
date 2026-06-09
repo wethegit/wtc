@@ -4,31 +4,22 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 
 ## Installation
 
-### macOS (Homebrew)
+### macOS/Linux (Homebrew)
 
 ```bash
-brew install anomalyco/tap/wtc
+brew install wethegit/wtc
 ```
 
-### Linux (Homebrew)
-
-```bash
-brew install anomalyco/tap/wtc
-```
-
-### Linux (Arch Linux via AUR)
+### Linux (Arch via AUR)
 
 ```bash
 yay -S wtc
 ```
 
-### Direct Binary
-
-Download the appropriate binary from the [releases page](https://github.com/anomalyco/homebrew-wtc/releases), make it executable, and place it in your `PATH`.
+### YOLO
 
 ```bash
-chmod +x wtc-*
-mv wtc-* /usr/local/bin/wtc
+curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh | bash
 ```
 
 ## Usage
@@ -37,12 +28,28 @@ mv wtc-* /usr/local/bin/wtc
 # Launch the TUI dashboard
 wtc
 
-# Show version
-wtc --version
-
 # Show help
 wtc --help
 ```
+
+## Updating
+
+```bash
+# Check whether a newer release exists
+wtc upgrade --check
+
+# Direct binary / install-script installs only
+wtc upgrade
+```
+
+Package-manager installs should be updated through the package manager:
+
+```bash
+brew upgrade wtc  # Homebrew
+yay -Syu wtc      # Arch/AUR
+```
+
+`wtc upgrade` refuses to replace Homebrew or pacman/AUR-managed binaries.
 
 ## Development
 

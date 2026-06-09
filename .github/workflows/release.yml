@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   build-macos-arm64:
     name: Build macOS ARM64
@@ -23,16 +26,25 @@ jobs:
 
       - name: Build binary
         run: bun run build
+        env:
+          WTC_TARGET_PLATFORM: darwin
+          WTC_TARGET_ARCH: arm64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wtc-darwin-arm64
+          path: dist/wtc-darwin-arm64
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          files: wtc-*
+          files: dist/wtc-*
           fail_on_unmatched_files: true
 
   build-macos-x64:
     name: Build macOS x64
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
 
@@ -48,13 +60,19 @@ jobs:
       - name: Build binary
         run: bun run build
         env:
-          platform: darwin
-          arch: x64
+          WTC_TARGET_PLATFORM: darwin
+          WTC_TARGET_ARCH: x64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wtc-darwin-x64
+          path: dist/wtc-darwin-x64
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          files: wtc-*
+          files: dist/wtc-*
           fail_on_unmatched_files: true
 
   build-linux-x64:
@@ -74,44 +92,68 @@ jobs:
 
       - name: Build binary
         run: bun run build
+        env:
+          WTC_TARGET_PLATFORM: linux
+          WTC_TARGET_ARCH: x64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wtc-linux-x64
+          path: dist/wtc-linux-x64
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          files: wtc-*
+          files: dist/wtc-*
           fail_on_unmatched_files: true
 
-  update-formula:
-    name: Update Homebrew formula
+  update-packages:
+    name: Update package checksums
     needs: [build-macos-arm64, build-macos-x64, build-linux-x64]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download release assets
-        uses: softprops/action-gh-release@v2
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          files: |
-            wtc-darwin-arm64
-            wtc-darwin-x64
-            wtc-linux-x64
+          path: dist
+          merge-multiple: true
 
-      - name: Update formula with checksums
+      - name: Update package files with checksums
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          SHA_ARM64=$(sha256sum wtc-darwin-arm64 | cut -d' ' -f1)
-          SHA_X64=$(sha256sum wtc-darwin-x64 | cut -d' ' -f1)
-          SHA_LINUX=$(sha256sum wtc-linux-x64 | cut -d' ' -f1)
+          SHA_ARM64=$(sha256sum dist/wtc-darwin-arm64 | cut -d' ' -f1)
+          SHA_X64=$(sha256sum dist/wtc-darwin-x64 | cut -d' ' -f1)
+          SHA_LINUX=$(sha256sum dist/wtc-linux-x64 | cut -d' ' -f1)
 
-          sed -i "s/version \".*\"/version \"${VERSION}\"/" homebrew/wtc.rb
-          sed -i "s/sha256 \".*\"/sha256 \"${SHA_ARM64}\"/" homebrew/wtc.rb
-          sed -i "s/sha256 \".*\"/sha256 \"${SHA_X64}\"/" homebrew/wtc.rb
-          sed -i "s/sha256 \".*\"/sha256 \"${SHA_LINUX}\"/" homebrew/wtc.rb
+          ruby -e '
+            path = "homebrew/wtc.rb"
+            version, arm64, x64, linux = ARGV
+            content = File.read(path)
+            content = content.gsub(/version "[^"]+"/, "version \"#{version}\"")
+            content = content.gsub(/(wtc-darwin-arm64"\n\s*)sha256 (?:"[^"]+"|:no_check)/, "\\1sha256 \"#{arm64}\"")
+            content = content.gsub(/(wtc-darwin-x64"\n\s*)sha256 (?:"[^"]+"|:no_check)/, "\\1sha256 \"#{x64}\"")
+            content = content.gsub(/(wtc-linux-x64"\n\s*)sha256 (?:"[^"]+"|:no_check)/, "\\1sha256 \"#{linux}\"")
+            File.write(path, content)
+          ' "$VERSION" "$SHA_ARM64" "$SHA_X64" "$SHA_LINUX"
 
-      - name: Commit formula update
+          ruby -e '
+            path = "aur/PKGBUILD"
+            version, linux = ARGV
+            content = File.read(path)
+            content = content.gsub(/^pkgver=.*/, "pkgver=#{version}")
+            content = content.gsub(/^sha256sums=\(.*/, "sha256sums=(\"#{linux}\")")
+            File.write(path, content)
+          ' "$VERSION" "$SHA_LINUX"
+
+      - name: Commit package updates
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add homebrew/wtc.rb
-          git commit -m "chore: update Homebrew formula to ${GITHUB_REF_NAME}"
-          git push
+          git add homebrew/wtc.rb aur/PKGBUILD
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update package checksums to ${GITHUB_REF_NAME}"
+            git push
+          fi

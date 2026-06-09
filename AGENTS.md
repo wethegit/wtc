@@ -15,29 +15,33 @@ Before making changes, read these files for context:
 
 ## Tech Stack
 
-| Concern | Choice |
-|---------|--------|
-| Runtime | Bun |
-| TUI | `@opentui/core` (functional API, no React/Solid) |
-| CLI parser | yargs |
-| Linter | oxlint |
-| Formatter | oxfmt |
-| Test runner | bun test + `@opentui/core/testing` |
-| Pre-commit | husky + lint-staged |
-| Encryption | Node crypto (AES-256-GCM + PBKDF2) |
-| Config validation | zod |
+| Concern           | Choice                                           |
+| ----------------- | ------------------------------------------------ |
+| Runtime           | Bun                                              |
+| TUI               | `@opentui/core` (functional API, no React/Solid) |
+| CLI parser        | yargs                                            |
+| Linter            | oxlint                                           |
+| Formatter         | oxfmt                                            |
+| Test runner       | bun test + `@opentui/core/testing`               |
+| Pre-commit        | husky + lint-staged                              |
+| Release versions  | Changesets                                       |
+| Encryption        | Web Crypto (AES-256-GCM + PBKDF2)                |
+| Config validation | zod                                              |
 
 ## Conventions
 
 ### Branching
+
 ```
-(feature|fix|chore)/TASK-XXXXX-short-description
+(feature|fix|chore)/TASK-XXXXX
 ```
 
 ### Commits
+
 Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 
 ### TypeScript
+
 - strict mode, no `any`, no `as` casts where avoidable
 - Named exports only, no default exports
 - `verbatimModuleSyntax` — use `import type` for type-only imports
@@ -56,6 +60,7 @@ bun run fmt:check    # oxfmt (check only)
 bun run check        # tsc --noEmit
 bun test             # Run all tests
 bun run build        # Build standalone binary
+bun run changeset    # Add a release changeset
 ```
 
 ## Code Quality Rules
