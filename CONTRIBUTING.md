@@ -94,7 +94,7 @@ bun run check
 bun test
 ```
 
-Before opening a pull request, run the same checks locally. If your change affects the CLI entry point, release packaging, installation, update behavior, or OpenTUI native bundling, also run:
+Before opening a pull request, run the same checks locally. If your change affects the CLI entry point, release packaging, installation, TUI update notification, or OpenTUI native bundling, also run:
 
 ```bash
 bun run build

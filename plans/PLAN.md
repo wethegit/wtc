@@ -12,21 +12,21 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 
 ## Tech Stack
 
-| Concern           | Choice                                            | Rationale                                   |
-| ----------------- | ------------------------------------------------- | ------------------------------------------- |
-| Language          | TypeScript (strict)                               | Type safety, team familiarity               |
-| Runtime           | Bun                                               | OpenTUI native, fast, standalone binaries   |
-| TUI               | @opentui/core                                     | No JSX overhead, command-invocable          |
-| CLI parser        | yargs 18.x                                        | Patterns match OpenCode, robust subcommands |
-| Linter            | oxlint                                            | 700+ TS rules, Rust-native, fast            |
-| Formatter         | oxfmt                                             | Pairs with oxlint, zero config              |
-| Test runner       | bun test + @opentui/core/testing                  | Built-in, no extra deps                     |
-| Pre-commit        | husky + lint-staged                               | Runs oxlint + oxfmt on staged files         |
-| CI/CD             | GitHub Actions                                    | Tight GitHub integration                    |
-| Release versions  | Changesets                                        | Version PRs, changelog, automated tags      |
-| Encryption        | Web Crypto (AES-256-GCM + PBKDF2)                 | Built-in, no extra deps                     |
-| Config validation | zod                                               | Schema validation for config.json           |
-| Distribution      | Install script + Homebrew + AUR + GitHub Releases | Universal Linux, macOS, Arch                |
+| Concern           | Choice                                      | Rationale                                   |
+| ----------------- | ------------------------------------------- | ------------------------------------------- |
+| Language          | TypeScript (strict)                         | Type safety, team familiarity               |
+| Runtime           | Bun                                         | OpenTUI native, fast, standalone binaries   |
+| TUI               | @opentui/core                               | No JSX overhead, command-invocable          |
+| CLI parser        | yargs 18.x                                  | Patterns match OpenCode, robust subcommands |
+| Linter            | oxlint                                      | 700+ TS rules, Rust-native, fast            |
+| Formatter         | oxfmt                                       | Pairs with oxlint, zero config              |
+| Test runner       | bun test + @opentui/core/testing            | Built-in, no extra deps                     |
+| Pre-commit        | husky + lint-staged                         | Runs oxlint + oxfmt on staged files         |
+| CI/CD             | GitHub Actions                              | Tight GitHub integration                    |
+| Release versions  | Changesets                                  | Version PRs, changelog, automated tags      |
+| Encryption        | Web Crypto (AES-256-GCM + PBKDF2)           | Built-in, no extra deps                     |
+| Config validation | zod                                         | Schema validation for config.json           |
+| Distribution      | Install script + Homebrew + GitHub Releases | Universal Linux, macOS                      |
 
 ---
 
@@ -88,8 +88,6 @@ homebrew-wtc/
 │       └── components.test.ts
 ├── Formula/
 │   └── wtc.rb                # Homebrew formula for the tap
-├── aur/
-│   └── PKGBUILD              # Arch Linux package build
 ├── .changeset/
 │   ├── config.json            # Changesets configuration
 │   └── README.md              # Changesets contributor notes
@@ -216,7 +214,6 @@ See `MVP.md` for detailed deliverables.
 ### Phase 6 — Distribution Polish
 
 - Homebrew formula updates
-- AUR PKGBUILD
 - Documentation site or expanded docs
 - Release automation refinements
 
@@ -234,7 +231,7 @@ See `MVP.md` for detailed deliverables.
    ```
    Update available: v1.2.3 (you have v0.1.0). Use 'wtc upgrade' for direct installs, or update with your package manager.
    ```
-4. **Self-upgrade**: The `wtc upgrade` command downloads the latest binary for the current platform from GitHub Releases and replaces itself for direct binary/install-script installs. It detects its own location via `/proc/self/exe` (Linux) or `which wtc` (macOS), refuses Homebrew-managed binaries, and refuses pacman/AUR-managed binaries.
+4. **Self-upgrade**: The `wtc upgrade` command downloads the latest binary for the current platform from GitHub Releases and replaces itself for direct binary/install-script installs. It detects its own location via `/proc/self/exe` (Linux) or `which wtc` (macOS), refuses Homebrew-managed binaries, .
 
 ### Commands
 
@@ -249,7 +246,6 @@ wtc upgrade --check  # Check for update without downloading; safe for all instal
 | ------------------- | -------------------------------------- |
 | Install script      | `wtc upgrade` or re-run install script |
 | Homebrew            | `brew upgrade wtc`                     |
-| AUR                 | `yay -Syu wtc`                         |
 | Direct binary       | `wtc upgrade`                          |
 | GitHub Release      | `wtc upgrade` or download manually     |
 
@@ -273,8 +269,7 @@ if package.json version changed:
   create v<version> tag
   build: bun build --compile (macOS arm64, macOS x64, Linux x64 glibc)
   upload: attach binaries to GitHub Release
-  formula: update Formula/wtc.rb with new version + shas
-  AUR: update aur/PKGBUILD with new version + sha256
+  formula: update Formula/wtc.rb with new version
 ```
 
 ---
@@ -287,7 +282,6 @@ if package.json version changed:
 | --------------- | ---------------------------- | -------------------------------------------------------------------------------------------- |
 | Install script  | Universal (any Linux, macOS) | `curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh \| bash` |
 | Homebrew        | macOS, Linux                 | `brew install wethegit/wtc/wtc`                                                              |
-| AUR             | Arch Linux                   | `yay -S wtc`                                                                                 |
 | GitHub Releases | All                          | Download from releases page                                                                  |
 | `wtc upgrade`   | Direct/install-script only   | `wtc upgrade`                                                                                |
 

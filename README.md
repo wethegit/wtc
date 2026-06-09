@@ -28,21 +28,15 @@ wtc --help
 
 ## Updating
 
-```bash
-# Check whether a newer release exists
-wtc upgrade --check
-
-# Direct binary / install-script installs only
-wtc upgrade
-```
-
-Package-manager installs should be updated through the package manager:
+`wtc` checks for a newer version on every launch and shows a notification in the TUI with update commands.
 
 ```bash
-brew upgrade wtc  # Homebrew
-```
+# Homebrew
+brew upgrade wtc
 
-`wtc upgrade` refuses to replace Homebrew-managed binaries.
+# Install script
+curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh | bash
+```
 
 ## Development
 

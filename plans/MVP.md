@@ -1,10 +1,10 @@
 # MVP — Hello World Dashboard
 
 The minimum viable product: a CLI tool that installs universally (install script, Homebrew, or direct binary),
-runs with the `wtc` command, and displays a basic TUI dashboard with built-in update notifications.
+runs with the `wtc` command, and displays a basic TUI dashboard with update notifications.
 
-**Goal:** Get the full foundation in place — tooling, CI/CD, distribution (install script + Homebrew + AUR + GitHub Releases),
-self-update capability, and a working binary.
+**Goal:** Get the full foundation in place — tooling, CI/CD, distribution (install script + Homebrew + GitHub Releases),
+and a working binary.
 
 ---
 
@@ -53,7 +53,7 @@ self-update capability, and a working binary.
 - `wtc --version` → prints version
 - `wtc --help` → prints help
 - Uses yargs for argument parsing
-- MVP only implements the empty-args path
+- No `upgrade` subcommand in MVP — version check happens inside the TUI
 
 ### 4. TUI Dashboard (`src/tui/app.ts` + `src/tui/pages/dashboard.ts`)
 
@@ -67,6 +67,9 @@ self-update capability, and a working binary.
 - Footer: version + "Press Ctrl+C to exit"
 - Active item selectable (cursor/keyboard nav)
 - Styled with Box + Text components
+- **Update notification**: on mount, `app.ts` fires an async version check via `src/utils/update-check.ts`.
+  If a newer version exists, a banner appears at the top of the TUI showing the current/latest versions and
+  the update commands (`brew upgrade wtc` + install script). No self-upgrade — just notification.
 
 ### 5. Test Suite (`tests/`)
 
@@ -109,7 +112,7 @@ jobs:
   - Creates `v<package.version>` tag in the same workflow
   - Builds standalone binaries when the package version changed
   - Uploads GitHub Release assets
-  - Updates Homebrew and AUR package checksums
+  - Updates Homebrew formula version
 
 ```yaml
 on:
@@ -130,20 +133,19 @@ jobs:
 - Installs to `/usr/local/bin/wtc` by default (configurable via `INSTALL_DIR`)
 - Idempotent — re-running updates to the latest version
 
-### 10. Update Checker + Self-Upgrade
+### 10. Update Notification (inside TUI)
 
 - `src/utils/update-check.ts` — fetches latest release tag from GitHub Releases API
   - Async, non-blocking on startup
   - 24-hour cache to avoid rate limits
   - Compares against current version (injected at build time)
-  - Returns "update available" message if newer
-- `src/cli/commands/upgrade.ts` — `wtc upgrade` command
-  - Detects its own binary path (`/proc/self/exe`, `which wtc`)
-  - Downloads latest binary from GitHub Releases
-  - Replaces itself atomically
-  - Refuses to replace Homebrew or pacman/AUR-managed binaries; those must be updated with their package manager
-  - `wtc upgrade --check` just checks without upgrading
-- `src/cli/parser.ts` — registers the `upgrade` subcommand
+  - Returns `UpdateInfo` with `updateAvailable`, `currentVersion`, `latestVersion`
+- `src/tui/app.ts` — fires the update check asynchronously after the dashboard mounts
+  - On resolution, if an update is available, sets a notification `Text` node at the top of the TUI
+  - Notification shows the current version, new version, and the two update commands:
+    - `brew upgrade wtc` (Homebrew users)
+    - `curl -fsSL ... | bash` (install-script users)
+  - No self-upgrade command — MVP only notifies
 
 ### 11. Homebrew Formula (`Formula/wtc.rb`)
 
@@ -203,7 +205,8 @@ At the end of MVP:
 - [x] Homebrew formula created (`Formula/wtc.rb`)
 - [x] Install script created (`install.sh`)
 - [x] `README.md`, `AGENTS.md`, `CONTRIBUTING.md` written
-- [x] Update checker + `wtc upgrade` command
+- [x] Update checker + TUI notification
+- [ ] TUI update notification tested in alternate-screen mode
 - [ ] Install script tested end-to-end
 - [ ] Changesets release flow verified end-to-end with a test version PR/tag
 
@@ -211,9 +214,9 @@ At the end of MVP:
 
 ## Open Questions for After MVP
 
+- Self-upgrade (`wtc upgrade` command with binary download + atomic replace)
 - Full Terraform-backed Amplify config
 - Configuration layer with encrypted secrets (`src/config/`)
 - Multi-platform build matrix in CI
-- AUR PKGBUILD release publishing
 - Teamwork API integration details
 - Branch protection configuration via GitHub API
