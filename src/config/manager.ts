@@ -1,14 +1,13 @@
-import { mkdir, writeFile, readFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
 import { ConfigSchema } from "./schema.ts";
 import type { Config } from "./schema.ts";
 import { encrypt, decrypt } from "./crypto.ts";
 import type { EncryptedPayload } from "./crypto.ts";
 
-const CONFIG_DIR = join(homedir(), ".config", "wtc");
-const CONFIG_PATH = join(CONFIG_DIR, "config.json");
+function getConfigPaths(): { configDir: string; configPath: string } {
+  const homeDir = Bun.env.HOME ?? process.env.HOME ?? ".";
+  const configDir = process.env.WTC_CONFIG_DIR ?? `${homeDir}/.config/wtc`;
+  return { configDir, configPath: `${configDir}/config.json` };
+}
 
 const defaultConfig: Config = {
   version: 1,
@@ -30,20 +29,45 @@ export interface DecryptedSecrets {
   teamwork?: { apiKey: string };
 }
 
-export async function initConfig(): Promise<void> {
-  if (!existsSync(CONFIG_DIR)) {
-    await mkdir(CONFIG_DIR, { recursive: true });
-  }
+async function promptForInitialConfig(): Promise<Config> {
+  const masterPassword = prompt("WTC master password: ") ?? "";
+  const githubOrg = prompt("GitHub organization: ") ?? "";
+  const teamworkDomain = prompt("Teamwork domain: ") ?? "";
+  const githubToken = prompt("GitHub token (optional): ") ?? "";
+  const teamworkApiKey = prompt("Teamwork API key (optional): ") ?? "";
 
-  if (!existsSync(CONFIG_PATH)) {
-    await writeFile(CONFIG_PATH, JSON.stringify(defaultConfig, null, 2), "utf-8");
+  return {
+    version: 1,
+    encrypted: await encrypt(
+      JSON.stringify({
+        github: githubToken ? { token: githubToken } : undefined,
+        teamwork: teamworkApiKey ? { apiKey: teamworkApiKey } : undefined,
+      }),
+      masterPassword,
+    ),
+    plain: {
+      aws: { profile: "default" },
+      github: { org: githubOrg },
+      teamwork: { domain: teamworkDomain },
+    },
+  };
+}
+
+export async function initConfig(): Promise<void> {
+  const { configPath } = getConfigPaths();
+
+  if (!(await Bun.file(configPath).exists())) {
+    const shouldPrompt = process.stdin.isTTY && process.env.WTC_SKIP_CONFIG_PROMPTS !== "1";
+    const config = shouldPrompt ? await promptForInitialConfig() : defaultConfig;
+    await Bun.write(configPath, JSON.stringify(config, null, 2));
   }
 }
 
 export async function loadConfig(): Promise<Config> {
   await initConfig();
 
-  const raw = await readFile(CONFIG_PATH, "utf-8");
+  const { configPath } = getConfigPaths();
+  const raw = await Bun.file(configPath).text();
   const parsed = JSON.parse(raw);
 
   return ConfigSchema.parse(parsed);
@@ -51,12 +75,14 @@ export async function loadConfig(): Promise<Config> {
 
 export async function saveConfig(config: Config): Promise<void> {
   await initConfig();
-  await writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), "utf-8");
+
+  const { configPath } = getConfigPaths();
+  await Bun.write(configPath, JSON.stringify(config, null, 2));
 }
 
 export async function saveSecrets(decrypted: DecryptedSecrets, password: string): Promise<void> {
   const config = await loadConfig();
-  const encryptedPayload: EncryptedPayload = encrypt(JSON.stringify(decrypted), password);
+  const encryptedPayload: EncryptedPayload = await encrypt(JSON.stringify(decrypted), password);
 
   config.encrypted = encryptedPayload;
   await saveConfig(config);
@@ -69,6 +95,6 @@ export async function loadSecrets(password: string): Promise<DecryptedSecrets | 
     return null;
   }
 
-  const decrypted = decrypt(config.encrypted, password);
+  const decrypted = await decrypt(config.encrypted, password);
   return JSON.parse(decrypted) as DecryptedSecrets;
 }

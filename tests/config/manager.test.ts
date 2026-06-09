@@ -1,7 +1,21 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, beforeEach, describe, expect, test } from "bun:test";
 import { loadConfig, saveConfig, saveSecrets, loadSecrets } from "../../src/config/manager.ts";
 
+const CONFIG_DIR = `${Bun.env.TMPDIR ?? "/tmp"}/wtc-config-tests-${process.pid}`;
+
 describe("config manager", () => {
+  beforeEach(async () => {
+    process.env.WTC_CONFIG_DIR = CONFIG_DIR;
+    process.env.WTC_SKIP_CONFIG_PROMPTS = "1";
+    await Bun.$`rm -rf ${CONFIG_DIR}`.quiet();
+  });
+
+  afterAll(async () => {
+    await Bun.$`rm -rf ${CONFIG_DIR}`.quiet();
+    delete process.env.WTC_CONFIG_DIR;
+    delete process.env.WTC_SKIP_CONFIG_PROMPTS;
+  });
+
   test("default config is valid", async () => {
     const config = await loadConfig();
 
@@ -25,12 +39,16 @@ describe("config manager", () => {
   });
 
   test("loadSecrets returns null when no secrets stored", async () => {
-    // Reset config by saving default
-    const config = await loadConfig();
-    config.encrypted = { salt: "", iv: "", authTag: "", data: "" };
-    await saveConfig(config);
-
     const result = await loadSecrets("any-password");
     expect(result).toBeNull();
+  });
+
+  test("saveConfig persists plain config", async () => {
+    const config = await loadConfig();
+    config.plain.github.org = "wethegit";
+    await saveConfig(config);
+
+    const loaded = await loadConfig();
+    expect(loaded.plain.github.org).toBe("wethegit");
   });
 });
