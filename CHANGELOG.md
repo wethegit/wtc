@@ -1,5 +1,11 @@
 # homebrew-wtc
 
+## 0.1.5
+
+### Patch Changes
+
+- adb17af: fix: add app to push bypass
+
 ## 0.1.4
 
 ### Patch Changes
