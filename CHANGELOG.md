@@ -1,5 +1,11 @@
 # wtc
 
+## 0.1.9
+
+### Patch Changes
+
+- [#23](https://github.com/wethegit/wtc/pull/23) [`8a7d372`](https://github.com/wethegit/wtc/commit/8a7d372175e822a1f7081243b49c5dcc1fd29250) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - feature: adds notification for updates
+
 ## 0.1.8
 
 ### Patch Changes
