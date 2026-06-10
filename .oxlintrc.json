@@ -1,14 +1,18 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "env": {
+    "node": true
+  },
+  "globals": {
+    "Bun": "readonly"
+  },
   "rules": {
     "no-console": "warn",
     "no-unused-vars": "error",
     "no-undef": "error",
-    "typescript": {
-      "no-explicit-any": "error",
-      "no-non-null-assertion": "warn",
-      "prefer-as-const": "error",
-      "prefer-function-type": "error"
-    }
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "@typescript-eslint/prefer-as-const": "error",
+    "@typescript-eslint/prefer-function-type": "error"
   }
 }

@@ -1,5 +1,7 @@
 # MVP — Hello World Dashboard
 
+**Status: ✅ Completed**
+
 The minimum viable product: a CLI tool that installs universally via the install script,
 runs with the `wtc` command, and displays a basic TUI dashboard with update notifications.
 
@@ -177,13 +179,15 @@ At the end of MVP:
 - [x] Install script created (`install.sh`)
 - [x] `README.md`, `AGENTS.md`, `CONTRIBUTING.md` written
 - [x] Update checker + TUI notification
-- [ ] TUI update notification tested in alternate-screen mode
-- [ ] Install script tested end-to-end
-- [ ] Changesets release flow verified end-to-end with a test version PR/tag
+- [x] Design tokens (`src/tui/tokens.ts`) with brand colors
+- [x] Modal component for update notifications
+- [x] TUI update notification tested in alternate-screen mode
+- [x] Install script tested end-to-end
+- [x] Changesets release flow verified end-to-end with a test version PR/tag
 
 ---
 
-## Open Questions for After MVP
+## Follow-ups (moved to Phase 2)
 
 - Self-upgrade (`wtc upgrade` command with binary download + atomic replace)
 - Full Terraform-backed Amplify config
