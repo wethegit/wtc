@@ -257,7 +257,7 @@ download_with_progress() {
   trap "trap - RETURN; rm -f \"$tracefile\"; printf '\033[?25h' >&4; exec 4>&-" RETURN
 
   (
-    curl --trace-ascii "$tracefile" -s -L -o "$output" "$url"
+    curl --fail -sSL --trace-ascii "$tracefile" -o "$output" "$url"
   ) &
   local curl_pid=$!
 
