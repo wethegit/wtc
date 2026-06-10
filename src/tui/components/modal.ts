@@ -8,6 +8,7 @@ import {
   type CliRenderer,
   type StyledText,
 } from "@opentui/core";
+import { tokens } from "../tokens.ts";
 
 export interface ModalController {
   show(): void;
@@ -42,7 +43,7 @@ export function createModal(
       padding: 2,
       flexDirection: "column",
       gap: 1,
-      backgroundColor: "#1a1a2e",
+      backgroundColor: tokens.bgRaised,
     },
     Text({ content: opts.title, attributes: TextAttributes.BOLD }),
     bodyText,
