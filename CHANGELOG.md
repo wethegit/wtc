@@ -1,5 +1,11 @@
 # wtc
 
+## 0.1.7
+
+### Patch Changes
+
+- [#19](https://github.com/wethegit/wtc/pull/19) [`8317db4`](https://github.com/wethegit/wtc/commit/8317db4c522472ffdb978625c7943bdedc41a374) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - chore: better changelogs
+
 ## 0.1.6
 
 ### Patch Changes
