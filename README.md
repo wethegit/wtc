@@ -4,14 +4,6 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 
 ## Installation
 
-### macOS / Linux (Homebrew)
-
-```bash
-brew install wethegit/wtc/wtc
-```
-
-### All platforms (install script)
-
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh | bash
 ```
@@ -28,13 +20,15 @@ wtc --help
 
 ## Updating
 
-`wtc` checks for a newer version on every launch and shows a notification in the TUI with update commands.
+`wtc` checks for a newer version on every launch and shows a notification in the TUI with update commands. Or check manually:
 
 ```bash
-# Homebrew
-brew upgrade wtc
+wtc upgrade --check
+```
 
-# Install script
+To update, re-run the install script:
+
+```bash
 curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh | bash
 ```
 

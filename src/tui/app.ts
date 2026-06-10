@@ -20,7 +20,6 @@ export async function launchDashboard(version = APP_VERSION): Promise<void> {
   checkForUpdate(version).then((info) => {
     if (info.updateAvailable) {
       notif.content = t`  Update available: v${version} \u2192 ${info.latestVersion}
-    brew upgrade wtc
     curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | bash
 `;
     }

@@ -31,4 +31,4 @@
 
 - Do not commit generated binaries or release artifacts.
 - Do not edit `package.json` versions manually in feature/fix PRs.
-- Releases are created by merging the automated Changesets version PR; `.github/workflows/release.yml` handles tagging, binaries, release assets, and package checksums.
+- Releases are created by merging the automated Changesets version PR; `.github/workflows/release.yml` handles tagging, binaries, and release assets.

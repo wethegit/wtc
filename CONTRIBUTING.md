@@ -118,13 +118,15 @@ This creates a Markdown file in `.changeset/`. Commit that file with your PR. Do
 
 After PRs with changesets merge to `main`, the release workflow opens or updates a Changesets version PR. That version PR updates `package.json` and `CHANGELOG.md`.
 
-When the Changesets version PR is merged to `main`, the same release workflow detects the package version change, creates the matching `v*` git tag, builds binaries, and uploads them to the GitHub Release. The binaries built and uploaded are:
+When the Changesets version PR is merged to `main`, the same release workflow detects the package version change, creates the matching `v*` git tag, builds binaries, and uploads them to the GitHub Release. The binaries built are:
 
 | Target      | Binary name        |
 | ----------- | ------------------ |
 | macOS ARM64 | `wtc-darwin-arm64` |
 | macOS x64   | `wtc-darwin-x64`   |
 | Linux x64   | `wtc-linux-x64`    |
+
+Users install directly from the GitHub Release via the install script. No package manager (Homebrew, AUR, etc.) is packaged.
 
 For changes intended to ship in a release:
 
