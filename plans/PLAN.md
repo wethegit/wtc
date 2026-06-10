@@ -45,7 +45,7 @@ homebrew-wtc/
 │   │       ├── amplify.ts
 │   │       ├── teamwork.ts
 │   │       ├── config.ts
-│   │       └── upgrade.ts        # `wtc upgrade` — self-update
+│   │       └── upgrade.ts        # `wtc upgrade --check` — version check
 │   ├── tui/
 │   │   ├── app.ts            # Main TUI app shell
 │   │   ├── components/       # Reusable TUI components
@@ -164,7 +164,7 @@ Decrypted `data` contains:
 - CLI parser with yargs (supports `wtc` + subcommands)
 - Build script for standalone binary
 - Install script (`install.sh`) for universal distribution
-- Self-update mechanism (`wtc upgrade --check`, TUI notification on launch)
+- Built-in update notification (`wtc upgrade --check`, TUI banner on launch)
 - Changesets-based version PRs and automated release tags
 - Release pipeline with binary builds
 - Documentation: README, AGENTS.md, CONTRIBUTING.md, plans/
