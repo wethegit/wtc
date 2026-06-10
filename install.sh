@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
+set -u
 APP=wtc
 REPO="wethegit/wtc"
 
@@ -12,7 +11,7 @@ Orange=''
 Bold_Green=''
 Bold_White=''
 
-if [[ -t 1 ]]; then
+if [[ -t 2 ]]; then
   Color_Off='\033[0m'
   Red='\033[0;31m'
   Green='\033[0;32m'
@@ -28,19 +27,19 @@ error() {
 }
 
 info() {
-  echo -e "${Dim}$*${Color_Off}"
+  echo -e "${Dim}$*${Color_Off}" >&2
 }
 
 info_bold() {
-  echo -e "${Bold_White}$*${Color_Off}"
+  echo -e "${Bold_White}$*${Color_Off}" >&2
 }
 
 success() {
-  echo -e "${Green}$*${Color_Off}"
+  echo -e "${Green}$*${Color_Off}" >&2
 }
 
 usage() {
-  cat <<EOF
+  cat >&2 <<EOF
 wtc — Workflow Terminal Controller
 
 Usage: install.sh [options]
@@ -127,7 +126,6 @@ else
     arch="x64"
   fi
 
-  # Rosetta detection: if on macOS x64 under Rosetta, use arm64 binary
   if [ "$os" = "darwin" ] && [ "$arch" = "x64" ]; then
     rosetta_flag=$(sysctl -n sysctl.proc_translated 2>/dev/null || echo 0)
     if [ "$rosetta_flag" = "1" ]; then
@@ -189,17 +187,15 @@ verify_checksum() {
   expected=$(curl -sfL "$digest_url" | grep -A 15 "\"name\": \"wtc-${target}\"" | grep '"digest"' | sed 's/.*"digest": "sha256:\([^"]*\)".*/\1/')
 
   if [ -z "$expected" ]; then
-    # No digest in API response (may be an older release), skip verification
     return 0
   fi
 
-  local actual
+  local actual=""
   if command -v sha256sum >/dev/null 2>&1; then
     actual=$(sha256sum "$binary_path" | cut -d' ' -f1)
   elif command -v shasum >/dev/null 2>&1; then
     actual=$(shasum -a 256 "$binary_path" | cut -d' ' -f1)
   else
-    # No checksum tool available, skip
     return 0
   fi
 
@@ -256,11 +252,9 @@ download_with_progress() {
   local tracefile="${basename}.trace"
 
   rm -f "$tracefile"
-  mkfifo "$tracefile"
+  mkfifo "$tracefile" 2>/dev/null || return 1
 
   printf "\033[?25l" >&4
-
-  trap "trap - RETURN; rm -f \"$tracefile\"; printf '\033[?25h' >&4; exec 4>&-" RETURN
 
   (
     curl --fail -sSL --trace-ascii "$tracefile" -o "$output" "$url"
@@ -271,7 +265,7 @@ download_with_progress() {
     -e 'y/ACDEGHLNORTV/acdeghlnortv/' \
     -e '/^0000: content-length:/p' \
     -e '/^<= recv data/p' \
-    "$tracefile" |
+    "$tracefile" 2>/dev/null |
     {
       local length=0
       local bytes=0
@@ -292,11 +286,14 @@ download_with_progress() {
           fi
         fi
       done
-    }
+    } || true
 
-  wait $curl_pid
+  wait $curl_pid 2>/dev/null || true
   local ret=$?
   echo "" >&4
+  rm -f "$tracefile" 2>/dev/null
+  printf "\033[?25h" >&4
+  exec 4>&-
   return $ret
 }
 
@@ -306,15 +303,16 @@ download_and_install() {
   local tmp_dir="${TMPDIR:-/tmp}/${APP}_install_$$"
   mkdir -p "$tmp_dir"
 
-  if ! [ -t 2 ] || ! download_with_progress "$url" "$tmp_dir/$APP"; then
-    curl --fail -# -L -o "$tmp_dir/$APP" "$url"
+  if ! download_with_progress "$url" "$tmp_dir/$APP"; then
+    info "Falling back to simple download..."
+    curl --fail -# -L -o "$tmp_dir/$APP" "$url" 2>&1 || error "Download failed"
   fi
 
   verify_checksum "$tmp_dir/$APP" "$specific_version" "$target"
 
   chmod 755 "$tmp_dir/$APP"
   mkdir -p "$INSTALL_DIR"
-  mv "$tmp_dir/$APP" "$INSTALL_DIR/$APP"
+  mv "$tmp_dir/$APP" "$INSTALL_DIR/$APP" || error "Failed to install binary to $INSTALL_DIR"
 
   rm -rf "$tmp_dir"
 }
@@ -397,54 +395,33 @@ if [[ "$no_modify_path" != "true" ]] && [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; t
     esac
   fi
 
-  if add_to_path "$config_file" "$path_cmd"; then
-    tilde_config=$(tildify "$config_file")
-    info "Added \"$(tildify "$INSTALL_DIR")\" to \$PATH in \"$tilde_config\""
-  fi
-fi
-
-refresh_cmd=""
-if [[ "$no_modify_path" != "true" ]] && [[ -n "${config_file:-}" ]] && [[ -w "$config_file" ]]; then
-  case $current_shell in
-    fish) refresh_cmd="source $config_file" ;;
-    zsh) refresh_cmd="exec $SHELL" ;;
-    bash) refresh_cmd="source $config_file" ;;
-    ash | sh) refresh_cmd="source $config_file" ;;
-  esac
-fi
-
-if [ -n "${GITHUB_ACTIONS-}" ] && [ "${GITHUB_ACTIONS}" == "true" ]; then
-  echo "$INSTALL_DIR" >>"$GITHUB_PATH"
-  info "Added $(tildify "$INSTALL_DIR") to \$GITHUB_PATH"
+  add_to_path "$config_file" "$path_cmd" || true
 fi
 
 # --- Post-install message ---
 
-echo ""
-echo -e "${Dim}  _    _ _______ _______ ${Color_Off}"
-echo -e "${Dim} | |  | |__   __|__   __|${Color_Off}"
-echo -e "${Dim} | |  | |  | |     | |   ${Color_Off}"
-echo -e "${Dim} | |  | |  | |     | |   ${Color_Off}"
-echo -e "${Dim} | |__| |  | |     | |   ${Color_Off}"
-echo -e "${Dim}  \\____/   |_|     |_|   ${Color_Off}"
-echo ""
+echo "" >&2
+echo -e "${Dim}  _    _ _______ _______ ${Color_Off}" >&2
+echo -e "${Dim} | |  | |__   __|__   __|${Color_Off}" >&2
+echo -e "${Dim} | |  | |  | |     | |   ${Color_Off}" >&2
+echo -e "${Dim} | |  | |  | |     | |   ${Color_Off}" >&2
+echo -e "${Dim} | |__| |  | |     | |   ${Color_Off}" >&2
+echo -e "${Dim}  \\____/   |_|     |_|   ${Color_Off}" >&2
+echo "" >&2
 
 exe="$INSTALL_DIR/$APP"
-success "$APP was installed successfully to ${Bold_Green}$(tildify "$exe")"
+success "$APP was installed successfully: ${Bold_Green}$(tildify "$exe")"
 
-if command -v "$APP" >/dev/null; then
-  echo ""
-  info "Run 'wtc --help' to get started."
-  exit 0
+if ! command -v "$APP" >/dev/null 2>&1 && ! [[ ":$PATH:" == *":$INSTALL_DIR:"* ]]; then
+  echo "" >&2
+  echo "  To add $APP to your PATH, run:" >&2
+  echo "" >&2
+  echo "    export PATH=\"$INSTALL_DIR:\$PATH\"" >&2
+  echo "" >&2
+  echo "  Or add that line to your shell config (~/.bashrc, ~/.zshrc, etc.)" >&2
+  echo "  and restart your terminal." >&2
+  echo "" >&2
 fi
 
-echo ""
-echo "To add $APP to your PATH, restart your terminal or run:"
-echo ""
-
-if [[ "$no_modify_path" != "true" ]] && [[ -n ${refresh_cmd:-} ]]; then
-  info_bold "  $refresh_cmd"
-fi
-
-info_bold "  wtc --help"
-echo ""
+echo "  Run:  wtc --help" >&2
+echo "" >&2
