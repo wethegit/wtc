@@ -1,5 +1,11 @@
 # wtc
 
+## 0.1.8
+
+### Patch Changes
+
+- [#21](https://github.com/wethegit/wtc/pull/21) [`4995d85`](https://github.com/wethegit/wtc/commit/4995d85137b757545d3e7d4f1f1ed6f0321c0435) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - fix: kill signal not captured
+
 ## 0.1.7
 
 ### Patch Changes
