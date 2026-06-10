@@ -165,13 +165,17 @@ else
 fi
 
 check_version() {
+  local installed_version=""
+
   if command -v wtc >/dev/null 2>&1; then
     installed_version=$(wtc --version 2>/dev/null || echo "")
+  elif [ -x "$INSTALL_DIR/$APP" ]; then
+    installed_version=$("$INSTALL_DIR/$APP" --version 2>/dev/null || echo "")
+  fi
 
-    if [[ "$installed_version" == "$specific_version" ]]; then
-      success "Version $specific_version already installed"
-      exit 0
-    fi
+  if [[ "$installed_version" == "$specific_version" ]]; then
+    success "Version $specific_version already installed"
+    exit 0
   fi
 }
 
