@@ -26,11 +26,7 @@ wtc --help
 wtc upgrade --check
 ```
 
-To update, re-run the install script:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh | bash
-```
+To update, re-run the install script.
 
 ## Development
 
