@@ -3,11 +3,12 @@ import { checkForUpdate } from "../utils/update-check.ts";
 import { APP_VERSION } from "../version.ts";
 import { createDashboard } from "./pages/dashboard.ts";
 import { createModal } from "./components/modal.ts";
+import { tokens } from "./tokens.ts";
 
 const REPO = "wethegit/wtc";
 
 export async function launchDashboard(version = APP_VERSION): Promise<void> {
-  const renderer = await createCliRenderer({ exitOnCtrlC: true });
+  const renderer = await createCliRenderer({ exitOnCtrlC: true, backgroundColor: tokens.bg });
 
   renderer.root.add(Box({ flexDirection: "column", flexGrow: 1 }, createDashboard(version)));
 
