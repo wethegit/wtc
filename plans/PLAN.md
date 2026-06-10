@@ -2,10 +2,10 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** Planning
+- **Status:** MVP complete — Phase 2 active
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
-- **TUI:** @opentui/core (functional API)
+- **TUI:** @opentui/solid + solid-js
 - **Repository:** wtc
 
 ---
@@ -16,7 +16,7 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 | ----------------- | --------------------------------- | ------------------------------------------- |
 | Language          | TypeScript (strict)               | Type safety, team familiarity               |
 | Runtime           | Bun                               | OpenTUI native, fast, standalone binaries   |
-| TUI               | @opentui/core                     | No JSX overhead, command-invocable          |
+| TUI               | @opentui/solid + solid-js          | Reactive JSX components, proven dialog model |
 | CLI parser        | yargs 18.x                        | Patterns match OpenCode, robust subcommands |
 | Linter            | oxlint                            | 700+ TS rules, Rust-native, fast            |
 | Formatter         | oxfmt                             | Pairs with oxlint, zero config              |
@@ -157,7 +157,7 @@ Decrypted `data` contains:
 
 ## Phases
 
-### Phase 1 — Foundation (MVP)
+### Phase 1 — Foundation (MVP) ✅
 
 - Tooling: oxlint, oxfmt, husky, lint-staged, CI, pre-commit hooks
 - TUI dashboard with "Hello World" display
@@ -167,11 +167,24 @@ Decrypted `data` contains:
 - Built-in update notification (`wtc upgrade --check`, TUI banner on launch)
 - Changesets-based version PRs and automated release tags
 - Release pipeline with binary builds
+- Design tokens (`src/tui/tokens.ts`) for brand-aligned colors
+- Modal component for in-TUI alerts
 - Documentation: README, AGENTS.md, CONTRIBUTING.md, plans/
 
 See `MVP.md` for detailed deliverables.
 
-### Phase 2 — GitHub Repo Creation
+### Phase 2 — TUI Refactor to Solid.js
+
+- Add `@opentui/solid` + `solid-js` as dependencies
+- Rewrite `src/tui/app.ts` → Solid root component with `<DialogProvider>`
+- Rewrite `src/tui/components/modal.ts` → `Dialog` component + `useDialog` context (matching OpenCode's dialog pattern)
+- Rewrite `src/tui/pages/dashboard.ts` → Solid JSX with reactive state
+- Create keymap module (`useBindings`-style) for keyboard handling
+- Create theme context (`useTheme`) consuming `tokens.ts`
+- Remove all `findDescendantById` patterns
+- Update test setup for Solid-based TUI
+
+### Phase 3 — GitHub Repo Creation
 
 - `wtc repo create` command + TUI form
 - Fetch org templates via GitHub API
@@ -180,7 +193,7 @@ See `MVP.md` for detailed deliverables.
 - Optionally clone locally
 - Link repo to Teamwork project (writes `.wtc.json`)
 
-### Phase 3 — AWS Amplify Hosting
+### Phase 4 — AWS Amplify Hosting
 
 - `wtc amplify create` command + TUI form
 - Use @aws-sdk/client-amplify to create Amplify app
@@ -190,7 +203,7 @@ See `MVP.md` for detailed deliverables.
 - Profile-based auth from ~/.aws/credentials
 - Full Terraform-backed config (details TBD)
 
-### Phase 4 — Teamwork Integration
+### Phase 5 — Teamwork Integration
 
 - Task ↔ PR linking by parsing branch names (`(feature|fix|chore)/TASK-XXXXX`)
 - `wtc teamwork timer start|stop|pause`
@@ -200,7 +213,7 @@ See `MVP.md` for detailed deliverables.
 - Notification popup on timer events
 - Project↔Repo mapping in local config + per-repo `.wtc.json`
 
-### Phase 5 — TUI Dashboard
+### Phase 6 — TUI Dashboard & Settings
 
 - Sidebar navigation between GitHub, Amplify, Teamwork, Settings
 - Timer overview page
@@ -208,7 +221,7 @@ See `MVP.md` for detailed deliverables.
 - Configuration layer with encrypted secrets
 - Status bar (timer status, git branch, AWS profile)
 
-### Phase 6 — Distribution Polish
+### Phase 7 — Distribution Polish
 
 - Documentation site or expanded docs
 - Release automation refinements

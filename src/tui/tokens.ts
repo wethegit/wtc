@@ -14,8 +14,8 @@ export const palette = {
 
 export const tokens = {
   bg: palette.black,
-  bgRaised: palette.greyBlue,
-  bgOverlay: "rgba(0,0,0,0.5)",
+  bgRaised: palette.black75,
+
 
   text: palette.white,
   textDim: palette.black50,
@@ -23,7 +23,7 @@ export const tokens = {
 
   border: palette.black75,
   borderFocus: palette.teal75,
-  selectionBg: palette.teal75,
+  selectionBg: palette.teal50,
   selectionText: palette.teal75,
 
   primary: palette.teal75,

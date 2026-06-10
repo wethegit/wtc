@@ -3,9 +3,9 @@ import {
   TextRenderable,
   Box,
   Text,
-  RGBA,
   TextAttributes,
   type CliRenderer,
+  type KeyEvent,
   type StyledText,
 } from "@opentui/core";
 import { tokens } from "../tokens.ts";
@@ -26,20 +26,9 @@ export function createModal(
     content: "",
   });
 
-  const backdrop = Box({
-    id: `${opts.id}-backdrop`,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: RGBA.fromValues(0, 0, 0, 0.5),
-  });
-
   const content = Box(
     {
       id: `${opts.id}-content`,
-      borderStyle: "rounded",
       padding: 2,
       flexDirection: "column",
       gap: 1,
@@ -64,20 +53,17 @@ export function createModal(
     visible: false,
   });
 
-  root.add(backdrop);
   root.add(content);
-
   renderer.root.add(root);
 
-  root.onKeyDown = (key) => {
-    if (key.name === "escape") {
+  renderer.keyInput.on("keypress", (key: KeyEvent) => {
+    if (root.visible && key.name === "escape") {
       root.visible = false;
     }
-  };
+  });
 
   function show() {
     root.visible = true;
-    root.focus();
   }
 
   function hide() {
