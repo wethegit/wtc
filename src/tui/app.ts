@@ -25,5 +25,7 @@ export async function launchDashboard(version = APP_VERSION): Promise<void> {
     }
   });
 
-  await new Promise<void>(() => {});
+  await new Promise<void>((resolve) => {
+    renderer.on("destroy", () => resolve());
+  });
 }
