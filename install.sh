@@ -171,6 +171,8 @@ check_version() {
     installed_version=$("$INSTALL_DIR/$APP" --version 2>/dev/null || echo "")
   fi
 
+  installed_version="${installed_version##* }"
+
   if [[ "$installed_version" == "$specific_version" ]]; then
     success "Version $specific_version already installed"
     exit 0
@@ -401,12 +403,21 @@ fi
 # --- Post-install message ---
 
 echo "" >&2
-echo -e "${Dim}  _    _ _______ _______ ${Color_Off}" >&2
-echo -e "${Dim} | |  | |__   __|__   __|${Color_Off}" >&2
-echo -e "${Dim} | |  | |  | |     | |   ${Color_Off}" >&2
-echo -e "${Dim} | |  | |  | |     | |   ${Color_Off}" >&2
-echo -e "${Dim} | |__| |  | |     | |   ${Color_Off}" >&2
-echo -e "${Dim}  \\____/   |_|     |_|   ${Color_Off}" >&2
+echo -e "${Dim},----,                        ${Color_Off}" >&2
+echo -e "${Dim}                      ,/   .\`|           ${Color_Off}" >&2
+echo -e "${Dim}           .---.    ,\`   .'  : ,----..   ${Color_Off}" >&2
+echo -e "${Dim}          /. ./|  ;    ;     //   /   \\  ${Color_Off}" >&2
+echo -e "${Dim}      .--'.  ' ;.'___,/    ,'|   :     : ${Color_Off}" >&2
+echo -e "${Dim}     /__./ \\ : ||    :     | .   |  ;. / ${Color_Off}" >&2
+echo -e "${Dim} .--'.  '   \\' .;    |.';  ; .   ; /--\`  ${Color_Off}" >&2
+echo -e "${Dim}/___/ \\ |    ' '\`----'  |  | ;   | ;     ${Color_Off}" >&2
+echo -e "${Dim};   \\  \\;      :    '   :  ; |   : |     ${Color_Off}" >&2
+echo -e "${Dim} \\   ;  \`      |    |   |  ' .   | '___  ${Color_Off}" >&2
+echo -e "${Dim}  .   \\    .\\  ;    '   :  | '   ; : .'| ${Color_Off}" >&2
+echo -e "${Dim}   \\   \\   ' \\ |    ;   |.'  '   | '/  : ${Color_Off}" >&2
+echo -e "${Dim}    :   '  |--\"     '---'    |   :    /  ${Color_Off}" >&2
+echo -e "${Dim}     \\   \\ ;                  \\   \\ .'   ${Color_Off}" >&2
+echo -e "${Dim}      '---\"                    \`---\`     ${Color_Off}" >&2
 echo "" >&2
 
 exe="$INSTALL_DIR/$APP"
