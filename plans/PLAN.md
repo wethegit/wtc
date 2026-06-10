@@ -12,21 +12,21 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 
 ## Tech Stack
 
-| Concern           | Choice                                      | Rationale                                   |
-| ----------------- | ------------------------------------------- | ------------------------------------------- |
-| Language          | TypeScript (strict)                         | Type safety, team familiarity               |
-| Runtime           | Bun                                         | OpenTUI native, fast, standalone binaries   |
-| TUI               | @opentui/core                               | No JSX overhead, command-invocable          |
-| CLI parser        | yargs 18.x                                  | Patterns match OpenCode, robust subcommands |
-| Linter            | oxlint                                      | 700+ TS rules, Rust-native, fast            |
-| Formatter         | oxfmt                                       | Pairs with oxlint, zero config              |
-| Test runner       | bun test + @opentui/core/testing            | Built-in, no extra deps                     |
-| Pre-commit        | husky + lint-staged                         | Runs oxlint + oxfmt on staged files         |
-| CI/CD             | GitHub Actions                              | Tight GitHub integration                    |
-| Release versions  | Changesets                                  | Version PRs, changelog, automated tags      |
-| Encryption        | Web Crypto (AES-256-GCM + PBKDF2)           | Built-in, no extra deps                     |
-| Config validation | zod                                         | Schema validation for config.json           |
-| Distribution      | Install script + Homebrew + GitHub Releases | Universal Linux, macOS                      |
+| Concern           | Choice                            | Rationale                                   |
+| ----------------- | --------------------------------- | ------------------------------------------- |
+| Language          | TypeScript (strict)               | Type safety, team familiarity               |
+| Runtime           | Bun                               | OpenTUI native, fast, standalone binaries   |
+| TUI               | @opentui/core                     | No JSX overhead, command-invocable          |
+| CLI parser        | yargs 18.x                        | Patterns match OpenCode, robust subcommands |
+| Linter            | oxlint                            | 700+ TS rules, Rust-native, fast            |
+| Formatter         | oxfmt                             | Pairs with oxlint, zero config              |
+| Test runner       | bun test + @opentui/core/testing  | Built-in, no extra deps                     |
+| Pre-commit        | husky + lint-staged               | Runs oxlint + oxfmt on staged files         |
+| CI/CD             | GitHub Actions                    | Tight GitHub integration                    |
+| Release versions  | Changesets                        | Version PRs, changelog, automated tags      |
+| Encryption        | Web Crypto (AES-256-GCM + PBKDF2) | Built-in, no extra deps                     |
+| Config validation | zod                               | Schema validation for config.json           |
+| Distribution      | Install script + GitHub Releases  | Universal Linux, macOS                      |
 
 ---
 
@@ -86,8 +86,6 @@ homebrew-wtc/
 │   │   └── teamwork.test.ts
 │   └── tui/
 │       └── components.test.ts
-├── Formula/
-│   └── wtc.rb                # Homebrew formula for the tap
 ├── .changeset/
 │   ├── config.json            # Changesets configuration
 │   └── README.md              # Changesets contributor notes
@@ -166,8 +164,7 @@ Decrypted `data` contains:
 - CLI parser with yargs (supports `wtc` + subcommands)
 - Build script for standalone binary
 - Install script (`install.sh`) for universal distribution
-- Self-update mechanism (`wtc upgrade`, version check on launch)
-- Homebrew formula
+- Self-update mechanism (`wtc upgrade --check`, TUI notification on launch)
 - Changesets-based version PRs and automated release tags
 - Release pipeline with binary builds
 - Documentation: README, AGENTS.md, CONTRIBUTING.md, plans/
@@ -213,9 +210,9 @@ See `MVP.md` for detailed deliverables.
 
 ### Phase 6 — Distribution Polish
 
-- Homebrew formula updates
 - Documentation site or expanded docs
 - Release automation refinements
+- Self-upgrade command (`wtc upgrade` with binary download + atomic replace)
 
 ---
 
@@ -227,27 +224,22 @@ See `MVP.md` for detailed deliverables.
 
 1. **Version check on launch**: On startup, `wtc` fetches the latest release tag from the GitHub Releases API (`api.github.com/repos/wethegit/homebrew-wtc/releases/latest`). This is done asynchronously so it never blocks startup.
 2. **24-hour cache**: Results are cached to avoid hitting the API on every launch. The cache is cleared after 24 hours.
-3. **Notification**: If a newer version exists, a single message is printed:
-   ```
-   Update available: v1.2.3 (you have v0.1.0). Use 'wtc upgrade' for direct installs, or update with your package manager.
-   ```
-4. **Self-upgrade**: The `wtc upgrade` command downloads the latest binary for the current platform from GitHub Releases and replaces itself for direct binary/install-script installs. It detects its own location via `/proc/self/exe` (Linux) or `which wtc` (macOS), refuses Homebrew-managed binaries, .
+3. **TUI notification**: If a newer version exists, a banner appears at the top of the dashboard showing the new version and the update commands.
+4. **CLI check**: `wtc upgrade --check` prints the version info and update commands to stdout without opening the TUI.
 
 ### Commands
 
 ```bash
-wtc upgrade          # Download and apply latest version for direct/install-script installs
-wtc upgrade --check  # Check for update without downloading; safe for all install methods
+wtc upgrade --check  # Check for update and print commands to stdout
 ```
 
 ### Who Handles Updates
 
-| Installation method | Update mechanism                       |
-| ------------------- | -------------------------------------- |
-| Install script      | `wtc upgrade` or re-run install script |
-| Homebrew            | `brew upgrade wtc`                     |
-| Direct binary       | `wtc upgrade`                          |
-| GitHub Release      | `wtc upgrade` or download manually     |
+| Installation method | Update mechanism          |
+| ------------------- | ------------------------- |
+| Install script      | Re-run the install script |
+| Direct binary       | Re-run the install script |
+| GitHub Release      | Re-run the install script |
 
 ---
 
@@ -269,7 +261,7 @@ if package.json version changed:
   create v<version> tag
   build: bun build --compile (macOS arm64, macOS x64, Linux x64 glibc)
   upload: attach binaries to GitHub Release
-  formula: update Formula/wtc.rb with new version
+  # no formula/checksum updates — install script downloads latest directly
 ```
 
 ---
@@ -281,11 +273,9 @@ if package.json version changed:
 | Method          | Platforms                    | Install command                                                                              |
 | --------------- | ---------------------------- | -------------------------------------------------------------------------------------------- |
 | Install script  | Universal (any Linux, macOS) | `curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh \| bash` |
-| Homebrew        | macOS, Linux                 | `brew install wethegit/wtc/wtc`                                                              |
 | GitHub Releases | All                          | Download from releases page                                                                  |
-| `wtc upgrade`   | Direct/install-script only   | `wtc upgrade`                                                                                |
 
-All binaries are standalone — no Bun runtime required by end users. No .deb, .rpm, or APT repo is needed because the install script + GitHub Releases covers every Linux distro.
+All binaries are standalone — no Bun runtime required by end users. No package manager (Homebrew, AUR, etc.) is needed because the install script covers every platform.
 
 ### Build Targets
 

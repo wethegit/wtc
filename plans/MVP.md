@@ -1,9 +1,9 @@
 # MVP — Hello World Dashboard
 
-The minimum viable product: a CLI tool that installs universally (install script, Homebrew, or direct binary),
+The minimum viable product: a CLI tool that installs universally via the install script,
 runs with the `wtc` command, and displays a basic TUI dashboard with update notifications.
 
-**Goal:** Get the full foundation in place — tooling, CI/CD, distribution (install script + Homebrew + GitHub Releases),
+**Goal:** Get the full foundation in place — tooling, CI/CD, distribution (install script + GitHub Releases),
 and a working binary.
 
 ---
@@ -68,8 +68,8 @@ and a working binary.
 - Active item selectable (cursor/keyboard nav)
 - Styled with Box + Text components
 - **Update notification**: on mount, `app.ts` fires an async version check via `src/utils/update-check.ts`.
-  If a newer version exists, a banner appears at the top of the TUI showing the current/latest versions and
-  the update commands (`brew upgrade wtc` + install script). No self-upgrade — just notification.
+  If a newer version exists, a banner appears at the top of the TUI showing the current/latest version and
+  the install script command. `wtc upgrade --check` does the same on the CLI.
 
 ### 5. Test Suite (`tests/`)
 
@@ -112,7 +112,6 @@ jobs:
   - Creates `v<package.version>` tag in the same workflow
   - Builds standalone binaries when the package version changed
   - Uploads GitHub Release assets
-  - Updates Homebrew formula version
 
 ```yaml
 on:
@@ -122,16 +121,21 @@ jobs:
   version-pr: changeset version
   detect-release: compare package.json versions
   build: build macOS arm64, macOS x64, Linux x64 binaries
-  publish: create tag, GitHub Release, and package checksum commit
+  publish: create tag, GitHub Release, and upload binaries
 ```
 
 ### 9. Install Script (`install.sh`)
 
-- Bash script that auto-detects OS (macOS/Linux) and architecture (arm64/x64)
-- Downloads the correct binary from the latest GitHub Release
-- Supports `VERSION` env var for pinning: `VERSION=v1.2.3 install.sh`
-- Installs to `/usr/local/bin/wtc` by default (configurable via `INSTALL_DIR`)
-- Idempotent — re-running updates to the latest version
+- Bash script modeled after OpenCode's install script
+- CLI flags: `-h/--help`, `-v/--version <ver>`, `-b/--binary <path>`, `--no-modify-path`
+- Auto-detects OS (macOS/Linux) and architecture (arm64/x64) with Rosetta detection
+- Fetches latest version from GitHub API or pins with `VERSION` env var / `--version` flag
+- Installs to `$HOME/.local/bin` by default (no sudo needed); configurable via `INSTALL_DIR`
+- Progress bar for downloads with fallback
+- Adds to `$PATH` via `.zshrc`/`.bashrc`/`config.fish`
+- Version skip: if same version already installed, exits quietly
+- Pre-install version check — skips download if already up to date
+- GitHub Actions support — adds to `$GITHUB_PATH`
 
 ### 10. Update Notification (inside TUI)
 
@@ -142,43 +146,11 @@ jobs:
   - Returns `UpdateInfo` with `updateAvailable`, `currentVersion`, `latestVersion`
 - `src/tui/app.ts` — fires the update check asynchronously after the dashboard mounts
   - On resolution, if an update is available, sets a notification `Text` node at the top of the TUI
-  - Notification shows the current version, new version, and the two update commands:
-    - `brew upgrade wtc` (Homebrew users)
-    - `curl -fsSL ... | bash` (install-script users)
-  - No self-upgrade command — MVP only notifies
+  - Notification shows the current version, new version, and the install script command
+- `src/cli/commands/upgrade.ts` — `wtc upgrade --check` prints the same info to stdout
+  - No self-upgrade (no binary download + replace) — MVP only notifies
 
-### 11. Homebrew Formula (`Formula/wtc.rb`)
-
-```ruby
-class Wtc < Formula
-  desc "CLI tool for managing GitHub, AWS Amplify, and Teamwork"
-  homepage "https://github.com/wethegit/homebrew-wtc"
-  version "0.1.0"
-
-  on_macos do
-    if Hardware::CPU.arm?
-      url "https://github.com/wethegit/homebrew-wtc/releases/download/v#{version}/wtc-darwin-arm64"
-      sha256 "..."
-    else
-      url "https://github.com/wethegit/homebrew-wtc/releases/download/v#{version}/wtc-darwin-x64"
-      sha256 "..."
-    end
-  end
-
-  on_linux do
-    url "https://github.com/wethegit/homebrew-wtc/releases/download/v#{version}/wtc-linux-x64"
-    sha256 "..."
-  end
-
-  def install
-    bin.install Dir["wtc-*"].first => "wtc"
-  end
-
-  test do
-    assert_match "wtc", shell_output("#{bin}/wtc --version")
-  end
-end
-```
+(Install script is the only distribution method — no Homebrew formula.)
 
 ### 12. Documentation
 
@@ -202,7 +174,6 @@ At the end of MVP:
 - [x] Changesets configured (`.changeset/`)
 - [x] Unified Changesets + release pipeline configured (`.github/workflows/release.yml`)
 - [x] Binary builds locally (`bun run build`)
-- [x] Homebrew formula created (`Formula/wtc.rb`)
 - [x] Install script created (`install.sh`)
 - [x] `README.md`, `AGENTS.md`, `CONTRIBUTING.md` written
 - [x] Update checker + TUI notification
