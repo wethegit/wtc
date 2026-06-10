@@ -52,10 +52,10 @@ Options:
         --no-modify-path    Don't modify shell config files (.zshrc, .bashrc, etc.)
 
 Examples:
-Examples:
     curl -fsSL https://raw.githubusercontent.com/$REPO/main/install.sh | bash
     curl -fsSL https://raw.githubusercontent.com/$REPO/main/install.sh | bash -s -- --version 0.1.0
     ./install.sh --binary /path/to/wtc-darwin-arm64
+EOF
 }
 
 tildify() {
