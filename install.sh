@@ -403,7 +403,7 @@ fi
 # --- Post-install message ---
 
 echo "" >&2
-echo -e "${Dim},----,                        ${Color_Off}" >&2
+echo -e "${Dim}                        ,----,            ${Color_Off}" >&2
 echo -e "${Dim}                      ,/   .\`|           ${Color_Off}" >&2
 echo -e "${Dim}           .---.    ,\`   .'  : ,----..   ${Color_Off}" >&2
 echo -e "${Dim}          /. ./|  ;    ;     //   /   \\  ${Color_Off}" >&2
@@ -421,7 +421,7 @@ echo -e "${Dim}      '---\"                    \`---\`     ${Color_Off}" >&2
 echo "" >&2
 
 exe="$INSTALL_DIR/$APP"
-success "$APP was installed successfully: ${Bold_Green}$(tildify "$exe")"
+echo -e "${Dim}$APP was installed successfully: ${Bold_Green}$(tildify "$exe")${Color_Off}"
 
 if ! command -v "$APP" >/dev/null 2>&1 && ! [[ ":$PATH:" == *":$INSTALL_DIR:"* ]]; then
   echo "" >&2
