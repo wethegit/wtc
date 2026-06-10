@@ -24,7 +24,7 @@ export const tokens = {
   border: palette.black75,
   borderFocus: palette.teal75,
   selectionBg: palette.teal75,
-  selectionText: palette.white,
+  selectionText: palette.teal75,
 
   primary: palette.teal75,
   danger: palette.pink50,
