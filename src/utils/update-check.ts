@@ -1,5 +1,5 @@
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-const REPO = "wethegit/homebrew-wtc";
+const REPO = "wethegit/wtc";
 
 function getCachePaths(): { cacheDir: string; cachePath: string } {
   const homeDir = Bun.env.HOME ?? process.env.HOME ?? ".";

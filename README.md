@@ -5,7 +5,7 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 ## Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/wethegit/wtc/main/install.sh | bash
 ```
 
 ## Usage

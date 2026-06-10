@@ -1,4 +1,4 @@
-# homebrew-wtc
+# wtc
 
 ## 0.1.5
 

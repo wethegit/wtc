@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP=wtc
-REPO="wethegit/homebrew-wtc"
+REPO="wethegit/wtc"
 
 Color_Off=''
 Red=''

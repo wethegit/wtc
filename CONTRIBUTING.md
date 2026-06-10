@@ -8,8 +8,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/wethegit/homebrew-wtc.git
-cd homebrew-wtc
+git clone https://github.com/wethegit/wtc.git
+cd wtc
 
 # Install dependencies
 bun install

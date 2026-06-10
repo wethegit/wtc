@@ -1,7 +1,7 @@
 import { checkForUpdate } from "../../utils/update-check.ts";
 import { APP_VERSION } from "../../version.ts";
 
-const REPO = "wethegit/homebrew-wtc";
+const REPO = "wethegit/wtc";
 
 export async function upgrade(_args: { check: boolean }): Promise<void> {
   const currentVersion = APP_VERSION;

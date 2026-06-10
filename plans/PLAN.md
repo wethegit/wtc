@@ -6,7 +6,7 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/core (functional API)
-- **Repository:** homebrew-wtc
+- **Repository:** wtc
 
 ---
 
@@ -35,7 +35,7 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 ### Directory Structure
 
 ```
-homebrew-wtc/
+wtc/
 ├── src/
 │   ├── index.ts              # Entry point — CLI parser or TUI
 │   ├── cli/
@@ -222,7 +222,7 @@ See `MVP.md` for detailed deliverables.
 
 ### How It Works
 
-1. **Version check on launch**: On startup, `wtc` fetches the latest release tag from the GitHub Releases API (`api.github.com/repos/wethegit/homebrew-wtc/releases/latest`). This is done asynchronously so it never blocks startup.
+1. **Version check on launch**: On startup, `wtc` fetches the latest release tag from the GitHub Releases API (`api.github.com/repos/wethegit/wtc/releases/latest`). This is done asynchronously so it never blocks startup.
 2. **24-hour cache**: Results are cached to avoid hitting the API on every launch. The cache is cleared after 24 hours.
 3. **TUI notification**: If a newer version exists, a banner appears at the top of the dashboard showing the new version and the update commands.
 4. **CLI check**: `wtc upgrade --check` prints the version info and update commands to stdout without opening the TUI.
@@ -270,10 +270,10 @@ if package.json version changed:
 
 ### Methods
 
-| Method          | Platforms                    | Install command                                                                              |
-| --------------- | ---------------------------- | -------------------------------------------------------------------------------------------- |
-| Install script  | Universal (any Linux, macOS) | `curl -fsSL https://raw.githubusercontent.com/wethegit/homebrew-wtc/main/install.sh \| bash` |
-| GitHub Releases | All                          | Download from releases page                                                                  |
+| Method          | Platforms                    | Install command                                                                     |
+| --------------- | ---------------------------- | ----------------------------------------------------------------------------------- |
+| Install script  | Universal (any Linux, macOS) | `curl -fsSL https://raw.githubusercontent.com/wethegit/wtc/main/install.sh \| bash` |
+| GitHub Releases | All                          | Download from releases page                                                         |
 
 All binaries are standalone — no Bun runtime required by end users. No package manager (Homebrew, AUR, etc.) is needed because the install script covers every platform.
 
