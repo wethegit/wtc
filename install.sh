@@ -189,13 +189,15 @@ verify_checksum() {
     return 0
   fi
 
-  if ! command -v sha256sum >/dev/null 2>&1; then
-    # No sha256sum available, skip
+  local actual
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual=$(sha256sum "$binary_path" | cut -d' ' -f1)
+  elif command -v shasum >/dev/null 2>&1; then
+    actual=$(shasum -a 256 "$binary_path" | cut -d' ' -f1)
+  else
+    # No checksum tool available, skip
     return 0
   fi
-
-  local actual
-  actual=$(sha256sum "$binary_path" | cut -d' ' -f1)
 
   if [ "$actual" != "$expected" ]; then
     rm -f "$binary_path"
