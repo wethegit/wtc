@@ -26,7 +26,7 @@ export async function runCli(): Promise<void> {
         yargs.option("check", {
           alias: "c",
           type: "boolean",
-          description: "Only check for update, don't apply",
+          description: "Only check for updates",
         }),
       async (argv) => {
         await upgrade({ check: argv.check ?? false });
