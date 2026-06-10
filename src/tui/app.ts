@@ -3,7 +3,7 @@ import { checkForUpdate } from "../utils/update-check.ts";
 import { APP_VERSION } from "../version.ts";
 import { createDashboard } from "./pages/dashboard.ts";
 
-const REPO = "wethegit/homebrew-wtc";
+const REPO = "wethegit/wtc";
 
 export async function launchDashboard(version = APP_VERSION): Promise<void> {
   const renderer = await createCliRenderer({ exitOnCtrlC: true });
