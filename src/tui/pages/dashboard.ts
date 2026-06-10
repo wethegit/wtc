@@ -1,4 +1,5 @@
 import { ASCIIFont, Box, Select, Text, TextAttributes } from "@opentui/core";
+import { tokens } from "../tokens.ts";
 
 const navItems = [
   { name: "GitHub (coming soon)", description: "Repository workflows" },
@@ -29,8 +30,8 @@ export function createDashboard(version = "0.1.0") {
       selectedIndex: 0,
       showDescription: false,
       wrapSelection: true,
-      selectedTextColor: "#ffffff",
-      selectedBackgroundColor: "#2563eb",
+      selectedTextColor: tokens.selectionText,
+      selectedBackgroundColor: tokens.selectionBg,
     }),
     Text({
       content: `v${version} | Press Ctrl+C to exit`,
