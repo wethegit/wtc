@@ -16,7 +16,6 @@ export const tokens = {
   bg: palette.black,
   bgRaised: palette.black75,
 
-
   text: palette.white,
   textDim: palette.black50,
   textAccent: palette.teal75,

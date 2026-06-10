@@ -12,21 +12,21 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 
 ## Tech Stack
 
-| Concern           | Choice                            | Rationale                                   |
-| ----------------- | --------------------------------- | ------------------------------------------- |
-| Language          | TypeScript (strict)               | Type safety, team familiarity               |
-| Runtime           | Bun                               | OpenTUI native, fast, standalone binaries   |
-| TUI               | @opentui/solid + solid-js          | Reactive JSX components, proven dialog model |
-| CLI parser        | yargs 18.x                        | Patterns match OpenCode, robust subcommands |
-| Linter            | oxlint                            | 700+ TS rules, Rust-native, fast            |
-| Formatter         | oxfmt                             | Pairs with oxlint, zero config              |
-| Test runner       | bun test + @opentui/core/testing  | Built-in, no extra deps                     |
-| Pre-commit        | husky + lint-staged               | Runs oxlint + oxfmt on staged files         |
-| CI/CD             | GitHub Actions                    | Tight GitHub integration                    |
-| Release versions  | Changesets                        | Version PRs, changelog, automated tags      |
-| Encryption        | Web Crypto (AES-256-GCM + PBKDF2) | Built-in, no extra deps                     |
-| Config validation | zod                               | Schema validation for config.json           |
-| Distribution      | Install script + GitHub Releases  | Universal Linux, macOS                      |
+| Concern           | Choice                            | Rationale                                    |
+| ----------------- | --------------------------------- | -------------------------------------------- |
+| Language          | TypeScript (strict)               | Type safety, team familiarity                |
+| Runtime           | Bun                               | OpenTUI native, fast, standalone binaries    |
+| TUI               | @opentui/solid + solid-js         | Reactive JSX components, proven dialog model |
+| CLI parser        | yargs 18.x                        | Patterns match OpenCode, robust subcommands  |
+| Linter            | oxlint                            | 700+ TS rules, Rust-native, fast             |
+| Formatter         | oxfmt                             | Pairs with oxlint, zero config               |
+| Test runner       | bun test + @opentui/core/testing  | Built-in, no extra deps                      |
+| Pre-commit        | husky + lint-staged               | Runs oxlint + oxfmt on staged files          |
+| CI/CD             | GitHub Actions                    | Tight GitHub integration                     |
+| Release versions  | Changesets                        | Version PRs, changelog, automated tags       |
+| Encryption        | Web Crypto (AES-256-GCM + PBKDF2) | Built-in, no extra deps                      |
+| Config validation | zod                               | Schema validation for config.json            |
+| Distribution      | Install script + GitHub Releases  | Universal Linux, macOS                       |
 
 ---
 
