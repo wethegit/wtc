@@ -301,7 +301,7 @@ download_and_install() {
   mkdir -p "$tmp_dir"
 
   if ! [ -t 2 ] || ! download_with_progress "$url" "$tmp_dir/$APP"; then
-    curl -# -L -o "$tmp_dir/$APP" "$url"
+    curl --fail -# -L -o "$tmp_dir/$APP" "$url"
   fi
 
   verify_checksum "$tmp_dir/$APP" "$specific_version" "$target"
