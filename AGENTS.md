@@ -22,7 +22,7 @@ Before making changes, read these files for context:
 | CLI parser        | yargs                                            |
 | Linter            | oxlint                                           |
 | Formatter         | oxfmt                                            |
-| Test runner       | bun test + `@opentui/core/testing`               |
+| Test runner       | bun test                                         |
 | Pre-commit        | husky + lint-staged                              |
 | Release versions  | Changesets                                       |
 | Encryption        | Web Crypto (AES-256-GCM + PBKDF2)                |
@@ -70,6 +70,13 @@ bun run changeset    # Add a release changeset
 3. All code must pass `oxfmt --check` (formatting)
 4. All tests must pass (`bun test`)
 5. Pre-commit hook runs lint-staged on staged `.ts` files
+
+## Testing Philosophy
+
+- **Test logic, not layout.** Tests should cover pure functions, business logic, API clients, and utility modules. Do not test TUI rendering (box position, text content, styling against OpenTUI components) — that's the framework's job.
+- **No mocks of the OpenTUI renderer.** Module-mocking `@opentui/core` (Box, Text, createCliRenderer, t) adds fragility and tests the mock, not the real behavior. If a function delegates to OpenTUI, trust the function; test what it computes, not how it renders.
+- **Prefer real calls over mocks.** For utilities like `checkForUpdate`, test with a real (or near-real) API surface — mock at the HTTP layer only if necessary.
+- **Integration tests for CLI flows** are acceptable only when they invoke the binary as a subprocess (e.g., `wtc --version`), but are deferred until Phase 2+.
 
 ## Pull Request Checklist
 
