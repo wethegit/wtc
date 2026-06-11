@@ -18,7 +18,7 @@ Before making changes, read these files for context:
 | Concern           | Choice                                           |
 | ----------------- | ------------------------------------------------ |
 | Runtime           | Bun                                              |
-| TUI               | `@opentui/core` (functional API, no React/Solid) |
+| TUI               | `@opentui/solid` + `solid-js`                    |
 | CLI parser        | yargs                                            |
 | Linter            | oxlint                                           |
 | Formatter         | oxfmt                                            |
