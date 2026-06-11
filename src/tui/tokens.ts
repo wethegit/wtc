@@ -126,3 +126,5 @@ export const tokens = {
   border: palette.black75,
   borderFocus: palette.teal75,
 } as const;
+
+export type Tokens = typeof tokens;
