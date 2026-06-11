@@ -32,7 +32,7 @@ export function createModal(
       padding: 2,
       flexDirection: "column",
       gap: 1,
-      backgroundColor: tokens.bgRaised,
+      backgroundColor: tokens.surface,
     },
     Text({ content: opts.title, attributes: TextAttributes.BOLD }),
     bodyText,
