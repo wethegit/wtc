@@ -29,8 +29,11 @@ await Bun.$`mkdir -p ${outdir}`.quiet();
 
 console.log(`Building ${outfilePath} (v${version})...`);
 
+import solidPlugin from "@opentui/solid/bun-plugin";
+
 const result = await Bun.build({
   entrypoints: ["./src/index.ts"],
+  plugins: [solidPlugin],
   compile: {
     target: bunTarget,
     outfile: `./${outfilePath}`,
