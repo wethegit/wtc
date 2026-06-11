@@ -2,8 +2,8 @@
 
 ## Status
 
-- **Started**: —  
-- **Branch**: `chore/solid-tui-refactor` (suggested)  
+- **Started**: —
+- **Branch**: `chore/solid-tui-refactor` (suggested)
 - **TUI Stack**: `@opentui/solid` + `solid-js` + `@opentui/keymap`
 
 ---
@@ -121,17 +121,17 @@ export const tokens = {
 
 ### Design Direction
 
-| Role              | Color                         | Notes                          |
-| ----------------- | ----------------------------- | ------------------------------ |
-| Background        | `#101820` (black)             | Dark base                      |
-| Surface           | `#5e5f61` (black75)           | Cards, dialog panels           |
-| Primary text      | `#ffffff` (white)             | High contrast                  |
-| Dim text          | `#939497` (black50)           | Labels, hints, version strings |
-| Accent / focus    | `#2daccc` (teal75)            | Borders, highlights, CTAs      |
-| Accent soft       | `#9ad9e9` (teal50)            | Selection background           |
-| Callout / brand   | `#fc6f83` (pink50)            | Titles, warnings, personality  |
-| Success           | `#8dc975` (green)             | Confirmations                  |
-| Warning           | `#f8ea36` (yellow)            | Attention states               |
+| Role            | Color               | Notes                          |
+| --------------- | ------------------- | ------------------------------ |
+| Background      | `#101820` (black)   | Dark base                      |
+| Surface         | `#5e5f61` (black75) | Cards, dialog panels           |
+| Primary text    | `#ffffff` (white)   | High contrast                  |
+| Dim text        | `#939497` (black50) | Labels, hints, version strings |
+| Accent / focus  | `#2daccc` (teal75)  | Borders, highlights, CTAs      |
+| Accent soft     | `#9ad9e9` (teal50)  | Selection background           |
+| Callout / brand | `#fc6f83` (pink50)  | Titles, warnings, personality  |
+| Success         | `#8dc975` (green)   | Confirmations                  |
+| Warning         | `#f8ea36` (yellow)  | Attention states               |
 
 No ASCII art logos unless they are genuinely brand-relevant. The WTC tiny-font logo from the MVP can stay as a lightweight branding element on the dashboard.
 
@@ -230,15 +230,15 @@ This stays minimal — no external theme loading, no mode switching.
 File: `src/tui/keymap.tsx`
 
 ```ts
-import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
-import { KeymapProvider, useBindings, useKeymapSelector } from "@opentui/keymap/solid"
-import type { CliRenderer } from "@opentui/core"
+import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
+import { KeymapProvider, useBindings, useKeymapSelector } from "@opentui/keymap/solid";
+import type { CliRenderer } from "@opentui/core";
 
 export function createKeymap(renderer: CliRenderer) {
-  return createDefaultOpenTuiKeymap(renderer)
+  return createDefaultOpenTuiKeymap(renderer);
 }
 
-export { KeymapProvider, useBindings, useKeymapSelector }
+export { KeymapProvider, useBindings, useKeymapSelector };
 ```
 
 Global bindings (quit, status bar update) are registered inside `app.tsx` via `useBindings`.
@@ -274,9 +274,9 @@ Props:
 
 ```ts
 interface UpdateDialogProps {
-  currentVersion: string
-  latestVersion: string
-  repo: string
+  currentVersion: string;
+  latestVersion: string;
+  repo: string;
 }
 ```
 
@@ -308,11 +308,11 @@ File: `src/tui/pages/dashboard.tsx`
 Replace `createDashboard()` with:
 
 ```tsx
-import { ascii_font, box, select, text } from "@opentui/solid"
-import { useTheme } from "../theme"
+import { ascii_font, box, select, text } from "@opentui/solid";
+import { useTheme } from "../theme";
 
 export function Dashboard(props: { version: string }) {
-  const theme = useTheme()
+  const theme = useTheme();
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={1}>
@@ -331,7 +331,7 @@ export function Dashboard(props: { version: string }) {
       />
       <text dim>v{props.version} · Press Ctrl+C to exit</text>
     </box>
-  )
+  );
 }
 ```
 
@@ -344,14 +344,14 @@ File: `src/tui/components/status-bar.tsx`
 A bottom-pinned bar that shows active keybinding hints for the current context. This is the **mandatory** UX pattern from OpenCode.
 
 ```tsx
-import { useTheme } from "../theme"
-import { useKeymapSelector } from "../keymap"
-import { useDialog } from "./dialog"
+import { useTheme } from "../theme";
+import { useKeymapSelector } from "../keymap";
+import { useDialog } from "./dialog";
 
 export function StatusBar() {
-  const theme = useTheme()
-  const dialog = useDialog()
-  const activeKeys = useKeymapSelector((km) => km.getActiveKeys({ includeMetadata: true }))
+  const theme = useTheme();
+  const dialog = useDialog();
+  const activeKeys = useKeymapSelector((km) => km.getActiveKeys({ includeMetadata: true }));
 
   return (
     <box
@@ -364,11 +364,13 @@ export function StatusBar() {
     >
       <text dim>
         {activeKeys().length > 0
-          ? activeKeys().map((k) => k.display ?? k.key).join(" · ")
+          ? activeKeys()
+              .map((k) => k.display ?? k.key)
+              .join(" · ")
           : "↑↓ navigate · enter select · esc back · q quit"}
       </text>
     </box>
-  )
+  );
 }
 ```
 
@@ -413,50 +415,50 @@ The palette is rendered through `DialogProvider` via `dialog.replace()`.
 File: `src/tui/app.tsx`
 
 ```tsx
-import { render } from "@opentui/solid"
-import { createKeymap, KeymapProvider } from "./keymap"
-import { ThemeProvider } from "./theme"
-import { DialogProvider } from "./components/dialog"
-import { StatusBar } from "./components/status-bar"
-import { Dashboard } from "./pages/dashboard"
-import { UpdateDialog } from "./components/update-dialog"
-import { checkForUpdate } from "../utils/update-check"
-import { useBindings } from "./keymap"
-import { onMount } from "solid-js"
-import { APP_VERSION } from "../version"
+import { render } from "@opentui/solid";
+import { createKeymap, KeymapProvider } from "./keymap";
+import { ThemeProvider } from "./theme";
+import { DialogProvider } from "./components/dialog";
+import { StatusBar } from "./components/status-bar";
+import { Dashboard } from "./pages/dashboard";
+import { UpdateDialog } from "./components/update-dialog";
+import { checkForUpdate } from "../utils/update-check";
+import { useBindings } from "./keymap";
+import { onMount } from "solid-js";
+import { APP_VERSION } from "../version";
 
-const REPO = "wethegit/wtc"
+const REPO = "wethegit/wtc";
 
 export async function launchDashboard(version = APP_VERSION): Promise<void> {
-  const renderer = await createCliRenderer({ exitOnCtrlC: true, backgroundColor: tokens.bg })
-  const keymap = createKeymap(renderer)
+  const renderer = await createCliRenderer({ exitOnCtrlC: true, backgroundColor: tokens.bg });
+  const keymap = createKeymap(renderer);
 
   function Root() {
-    const dialog = useDialog()
+    const dialog = useDialog();
 
     useBindings(() => ({
       bindings: [
         { key: "ctrl+p", cmd: "command-palette.show", desc: "Command palette" },
         { key: "q", cmd: "quit", run: () => renderer.destroy() },
       ],
-    }))
+    }));
 
     onMount(() => {
       checkForUpdate(version).then((info) => {
         if (info.updateAvailable) {
-          dialog.replace(
-            () => <UpdateDialog currentVersion={version} latestVersion={info.latestVersion} repo={REPO} />,
-          )
+          dialog.replace(() => (
+            <UpdateDialog currentVersion={version} latestVersion={info.latestVersion} repo={REPO} />
+          ));
         }
-      })
-    })
+      });
+    });
 
     return (
       <box flexDirection="column" flexGrow={1}>
         <Dashboard version={version} />
         <StatusBar />
       </box>
-    )
+    );
   }
 
   await render(
@@ -470,7 +472,7 @@ export async function launchDashboard(version = APP_VERSION): Promise<void> {
       </KeymapProvider>
     ),
     renderer,
-  )
+  );
 }
 ```
 
