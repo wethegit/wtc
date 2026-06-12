@@ -142,7 +142,6 @@ No ASCII art logos unless they are genuinely brand-relevant. The WTC tiny-font l
 ```
 src/tui/
 ├── app.tsx              # Solid root — renderer creation, keymap init, providers
-├── keymap.tsx           # KeymapProvider, re-export useBindings/useKeymapSelector
 ├── tokens.ts            # Palette + semantic tokens (expand existing)
 ├── components/
 │   ├── dialog.tsx       # DialogProvider + useDialog + base Dialog overlay
@@ -201,23 +200,18 @@ import { tokens } from "../tokens.ts";
 
 Do not add a `ThemeProvider` or `useTheme` hook while the app has one fixed brand theme. Add a provider only if runtime theming becomes necessary.
 
-### Step 4 — Create Keymap Module
+### Step 4 — Use OpenTUI Keymap Directly
 
-File: `src/tui/keymap.tsx`
+Use `@opentui/keymap` imports directly until the app needs custom keymap behavior.
 
 ```ts
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings, useKeymapSelector } from "@opentui/keymap/solid";
-import type { CliRenderer } from "@opentui/core";
-
-export function createKeymap(renderer: CliRenderer) {
-  return createDefaultOpenTuiKeymap(renderer);
-}
-
-export { KeymapProvider, useBindings, useKeymapSelector };
 ```
 
-Global bindings (quit, status bar update) are registered inside `app.tsx` via `useBindings`.
+Do not add a local `keymap.tsx` wrapper while it only re-exports library functions. Add one later if we introduce app-specific behavior such as user-configurable keybinds, command formatting, mode stacks, leader keys, or shared command registry helpers.
+
+Global bindings (quit, status bar update, command palette) are registered inside Solid components via `useBindings`.
 
 ### Step 5 — Create Dialog Provider
 
@@ -318,7 +312,7 @@ File: `src/tui/components/status-bar.tsx`
 A bottom-pinned bar that shows active keybinding hints for the current context. This is the **mandatory** UX pattern from OpenCode.
 
 ```tsx
-import { useKeymapSelector } from "../keymap";
+import { useKeymapSelector } from "@opentui/keymap/solid";
 import { tokens } from "../tokens";
 
 export function StatusBar() {
@@ -386,13 +380,13 @@ File: `src/tui/app.tsx`
 
 ```tsx
 import { render } from "@opentui/solid";
-import { createKeymap, KeymapProvider } from "./keymap";
+import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
+import { KeymapProvider, useBindings } from "@opentui/keymap/solid";
 import { DialogProvider } from "./components/dialog";
 import { StatusBar } from "./components/status-bar";
 import { Dashboard } from "./pages/dashboard";
 import { UpdateDialog } from "./components/update-dialog";
 import { checkForUpdate } from "../utils/update-check";
-import { useBindings } from "./keymap";
 import { onMount } from "solid-js";
 import { APP_VERSION } from "../version";
 
@@ -400,7 +394,7 @@ const REPO = "wethegit/wtc";
 
 export async function launchDashboard(version = APP_VERSION): Promise<void> {
   const renderer = await createCliRenderer({ exitOnCtrlC: true, backgroundColor: tokens.bg });
-  const keymap = createKeymap(renderer);
+  const keymap = createDefaultOpenTuiKeymap(renderer);
 
   function Root() {
     const dialog = useDialog();
@@ -464,7 +458,7 @@ Per the testing philosophy in `AGENTS.md`:
 
 ## Future-Proofing Notes
 
-- The keymap module location (`src/tui/keymap.tsx`) can later grow command registration helpers when Phase 3+ adds real features.
+- Add a local keymap module only when Phase 3+ needs app-specific command registration, key formatting, mode stacks, leader keys, or configurable user bindings.
 - The status bar is intentionally simple — it can become richer (git branch, AWS profile, timer status) in Phase 5-6.
 - The command palette is a shell — its command list is populated as real commands are built.
 - DialogProvider supports a stack but we only use single-dialog mode for now. Stack semantics are ready for multi-dialog flows like wizards.

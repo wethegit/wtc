@@ -1,4 +1,4 @@
-import { useKeymapSelector } from "../keymap.tsx";
+import { useKeymapSelector } from "@opentui/keymap/solid";
 import { tokens } from "../tokens.ts";
 
 export function StatusBar() {

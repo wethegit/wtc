@@ -2,7 +2,7 @@ import { createContext, useContext, type ParentProps, type JSX, Show } from "sol
 import { createStore } from "solid-js/store";
 import { Portal, useRenderer, useTerminalDimensions } from "@opentui/solid";
 import { RGBA } from "@opentui/core";
-import { useBindings } from "../keymap.tsx";
+import { useBindings } from "@opentui/keymap/solid";
 import { tokens } from "../tokens.ts";
 
 interface DialogItem {
