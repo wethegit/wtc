@@ -1,5 +1,5 @@
 import { TextAttributes } from "@opentui/core";
-import { useTheme } from "../theme.tsx";
+import { tokens } from "../tokens.ts";
 import { useDialog } from "./dialog.tsx";
 import { useBindings } from "../keymap.tsx";
 
@@ -11,7 +11,6 @@ export interface UpdateDialogProps {
 
 export function UpdateDialog(props: UpdateDialogProps) {
   const dialog = useDialog();
-  const theme = useTheme();
 
   useBindings(() => ({
     bindings: [
@@ -29,29 +28,29 @@ export function UpdateDialog(props: UpdateDialogProps) {
   return (
     <box paddingLeft={2} paddingRight={2} gap={1}>
       <box flexDirection="row" justifyContent="space-between">
-        <text attributes={TextAttributes.BOLD} fg={theme.danger}>
+        <text attributes={TextAttributes.BOLD} fg={tokens.danger}>
           Update Available
         </text>
-        <text fg={theme.textDim} onMouseUp={() => dialog.clear()}>
+        <text fg={tokens.textDim} onMouseUp={() => dialog.clear()}>
           esc
         </text>
       </box>
       <box>
-        <text fg={theme.text}>v{props.currentVersion}</text>
-        <text fg={theme.textDim}> → </text>
-        <text fg={theme.accent}>v{props.latestVersion}</text>
+        <text fg={tokens.text}>v{props.currentVersion}</text>
+        <text fg={tokens.textDim}> → </text>
+        <text fg={tokens.accent}>v{props.latestVersion}</text>
       </box>
       <box paddingTop={1} paddingBottom={1}>
-        <text fg={theme.textDim}>{installCmd}</text>
+        <text fg={tokens.textDim}>{installCmd}</text>
       </box>
       <box flexDirection="row" justifyContent="flex-end" paddingBottom={1}>
         <box
           paddingLeft={3}
           paddingRight={3}
-          backgroundColor={theme.accent}
+          backgroundColor={tokens.accent}
           onMouseUp={() => dialog.clear()}
         >
-          <text fg={theme.textInverse}>ok</text>
+          <text fg={tokens.textInverse}>ok</text>
         </box>
       </box>
     </box>

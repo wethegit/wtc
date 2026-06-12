@@ -4,7 +4,6 @@ import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings } from "@opentui/keymap/solid";
 import { checkForUpdate } from "../utils/update-check.ts";
 import { APP_VERSION } from "../version.ts";
-import { ThemeProvider } from "./theme.tsx";
 import { DialogProvider, useDialog } from "./components/dialog.tsx";
 import { UpdateDialog } from "./components/update-dialog.tsx";
 import { Dashboard } from "./pages/dashboard.tsx";
@@ -55,20 +54,16 @@ function AppShell(props: { version: string }) {
 
   return (
     <KeymapProvider keymap={keymap}>
-      <AppContent version={props.version} />
+      <DialogProvider>
+        <AppContent version={props.version} />
+      </DialogProvider>
     </KeymapProvider>
   );
 }
 
 export async function launchSolidApp(version = APP_VERSION): Promise<void> {
-  await render(
-    () => (
-      <ThemeProvider>
-        <DialogProvider>
-          <AppShell version={version} />
-        </DialogProvider>
-      </ThemeProvider>
-    ),
-    { exitOnCtrlC: true, backgroundColor: tokens.bg },
-  );
+  await render(() => <AppShell version={version} />, {
+    exitOnCtrlC: true,
+    backgroundColor: tokens.bg,
+  });
 }

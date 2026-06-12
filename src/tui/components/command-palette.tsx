@@ -1,6 +1,6 @@
 import { createSignal } from "solid-js";
 import { TextAttributes } from "@opentui/core";
-import { useTheme } from "../theme.tsx";
+import { tokens } from "../tokens.ts";
 import { useDialog } from "./dialog.tsx";
 import { useBindings } from "../keymap.tsx";
 
@@ -18,7 +18,6 @@ export function showCommandPalette(entries: () => CommandEntry[]) {
 }
 
 function CommandPalette(props: { entries: CommandEntry[]; onClose: () => void }) {
-  const theme = useTheme();
   const [query, setQuery] = createSignal("");
   const [selectedIndex, setSelectedIndex] = createSignal(0);
 
@@ -64,7 +63,7 @@ function CommandPalette(props: { entries: CommandEntry[]; onClose: () => void })
 
   return (
     <box paddingLeft={2} paddingRight={2} gap={1} flexDirection="column">
-      <text attributes={TextAttributes.BOLD} fg={theme.text}>
+      <text attributes={TextAttributes.BOLD} fg={tokens.text}>
         Command Palette
       </text>
       <input
@@ -78,18 +77,20 @@ function CommandPalette(props: { entries: CommandEntry[]; onClose: () => void })
       <box flexDirection="column" height={10} gap={0}>
         {filtered().map((entry, i) => (
           <box
-            backgroundColor={i === selectedIndex() ? theme.selectionBg : undefined}
+            backgroundColor={i === selectedIndex() ? tokens.selectionBg : undefined}
             onMouseUp={() => {
               entry.onSelect();
             }}
           >
-            <text fg={i === selectedIndex() ? theme.selectionText : theme.text}>{entry.title}</text>
-            {entry.description && <text fg={theme.textDim}> — {entry.description}</text>}
+            <text fg={i === selectedIndex() ? tokens.selectionText : tokens.text}>
+              {entry.title}
+            </text>
+            {entry.description && <text fg={tokens.textDim}> — {entry.description}</text>}
           </box>
         ))}
-        {filtered().length === 0 && <text fg={theme.textDim}>No matching commands</text>}
+        {filtered().length === 0 && <text fg={tokens.textDim}>No matching commands</text>}
       </box>
-      <text fg={theme.textDim}>↑↓ navigate · enter select · esc close</text>
+      <text fg={tokens.textDim}>↑↓ navigate · enter select · esc close</text>
     </box>
   );
 }
