@@ -4,15 +4,33 @@ import { useBindings } from "@opentui/keymap/solid";
 import { tokens } from "../tokens.ts";
 import { useDialog } from "./dialog.tsx";
 
+/**
+ * Selectable option rendered by `DialogSelect`.
+ *
+ * `value` is owned by the caller and can be any stable identifier. `onSelect`
+ * should perform the action and close the dialog when appropriate.
+ */
 export interface DialogSelectOption<T> {
+  /** Primary label shown in the list. */
   title: string;
+  /** Caller-owned identifier for the option. */
   value: T;
+  /** Optional secondary text shown beside the title. */
   description?: string;
+  /** Optional grouping metadata, currently used by filtering. */
   category?: string;
+  /** Reserved for future contextual footer text. */
   footer?: string;
+  /** Action to run when the option is selected by keyboard or mouse. */
   onSelect?: () => void;
 }
 
+/**
+ * Filters dialog select options using the title, description, and category.
+ *
+ * This helper is intentionally pure so command palette filtering stays covered
+ * by unit tests without rendering OpenTUI components.
+ */
 export function filterDialogSelectOptions<T>(
   options: readonly DialogSelectOption<T>[],
   query: string,
@@ -27,6 +45,14 @@ export function filterDialogSelectOptions<T>(
   );
 }
 
+/**
+ * Searchable list dialog used by the command palette and future pickers.
+ *
+ * The component assumes it is rendered inside `DialogProvider` and
+ * `KeymapProvider`. It registers local dialog navigation bindings with
+ * `useBindings()` for Escape, Up, Down, and Return. Callers provide the options
+ * and decide what each option does in `onSelect`.
+ */
 export function DialogSelect<T>(props: { title: string; options: DialogSelectOption<T>[] }) {
   const dialog = useDialog();
   const [query, setQuery] = createSignal("");
@@ -50,6 +76,8 @@ export function DialogSelect<T>(props: { title: string; options: DialogSelectOpt
     option.onSelect?.();
   };
 
+  // These bindings live with the dialog component so they are automatically
+  // disposed when the dialog is removed from the stack.
   useBindings(() => ({
     bindings: [
       {
@@ -97,6 +125,9 @@ export function DialogSelect<T>(props: { title: string; options: DialogSelectOpt
         placeholder="Search"
         ref={(renderable) => {
           input = renderable;
+          // OpenTUI creates the underlying input renderable during reconciliation.
+          // Delay focus until the renderable exists and has not been destroyed by
+          // a fast close/reopen cycle.
           setTimeout(() => {
             if (!input || input.isDestroyed) return;
             input.focus();

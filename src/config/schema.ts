@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+/**
+ * Persisted config file schema for `~/.config/wtc/config.json`.
+ *
+ * `plain` stores non-secret preferences that can be edited directly. `encrypted`
+ * stores the encrypted secrets payload produced by `saveSecrets()`.
+ */
 export const ConfigSchema = z.object({
   version: z.literal(1),
   encrypted: z.object({
@@ -15,4 +21,5 @@ export const ConfigSchema = z.object({
   }),
 });
 
+/** Parsed and validated WTC config shape. */
 export type Config = z.infer<typeof ConfigSchema>;

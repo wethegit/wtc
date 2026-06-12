@@ -6,14 +6,21 @@ const IV_LENGTH = 16;
 const SALT_LENGTH = 32;
 const DIGEST = "sha512";
 
+/** Hex-encoded encrypted payload persisted inside the WTC config file. */
 export interface EncryptedPayload {
+  /** Random salt used to derive the encryption key. */
   salt: string;
+  /** Random initialization vector used for AES-GCM. */
   iv: string;
+  /** AES-GCM authentication tag used to verify ciphertext integrity. */
   authTag: string;
+  /** Hex-encoded ciphertext. */
   data: string;
 }
 
 function deriveKey(password: string, salt: Buffer): Buffer {
+  // Keep derivation deterministic for decrypting existing config payloads. If
+  // this changes later, add config versioning/migration before shipping it.
   return Buffer.from(
     createHash(DIGEST)
       .update(Buffer.concat([Buffer.from(password, "utf-8"), salt]))
@@ -22,6 +29,12 @@ function deriveKey(password: string, salt: Buffer): Buffer {
   );
 }
 
+/**
+ * Encrypts a UTF-8 string with a password-derived AES-256-GCM key.
+ *
+ * A fresh salt and IV are generated for every call, so encrypting the same input
+ * twice should produce different payloads.
+ */
 export function encrypt(plaintext: string, password: string): EncryptedPayload {
   const salt = randomBytes(SALT_LENGTH);
   const key = deriveKey(password, salt);
@@ -40,6 +53,13 @@ export function encrypt(plaintext: string, password: string): EncryptedPayload {
   };
 }
 
+/**
+ * Decrypts a payload produced by `encrypt()`.
+ *
+ * Throws when the password is wrong, the auth tag fails, or the payload is
+ * malformed. Callers should surface those errors as invalid credentials rather
+ * than silently returning empty secrets.
+ */
 export function decrypt(payload: EncryptedPayload, password: string): string {
   const salt = Buffer.from(payload.salt, "hex");
   const key = deriveKey(password, salt);

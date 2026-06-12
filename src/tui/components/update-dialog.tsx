@@ -7,13 +7,24 @@ import { tokens } from "../tokens.ts";
 
 import { useDialog } from "./dialog.tsx";
 
+/** Props for the update notification dialog. */
 export interface UpdateDialogProps {
+  /** Latest release tag returned by the update checker. */
   latestVersion: string;
 }
 
+/**
+ * Modal shown when a newer WTC release is available.
+ *
+ * The dialog is opened by the app shell after `checkForUpdate()` resolves. It is
+ * intentionally passive: users copy or run the install command themselves, and
+ * Return/Escape only close the notice.
+ */
 export function UpdateDialog(props: UpdateDialogProps) {
   const dialog = useDialog();
 
+  // Register the Return shortcut with the dialog itself so the binding exists
+  // only while the update notice is visible.
   useBindings(() => ({
     bindings: [
       {

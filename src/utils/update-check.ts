@@ -1,18 +1,27 @@
 import { APP_VERSION } from "../config/consts";
 
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+/** How long a successful GitHub release lookup remains fresh. */
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const REPO = "wethegit/wtc";
 
+/** Returns the update cache location, allowing tests to override the directory. */
 function getCachePaths(): { cacheDir: string; cachePath: string } {
   const homeDir = Bun.env.HOME ?? process.env.HOME ?? ".";
   const cacheDir = process.env.WTC_CACHE_DIR ?? `${homeDir}/.cache/wtc`;
   return { cacheDir, cachePath: `${cacheDir}/update-check.json` };
 }
 
+/** Normalizes release tags so `v1.2.3` and `1.2.3` compare equally. */
 function normalizeVersion(version: string): string {
   return version.trim().replace(/^v/, "");
 }
 
+/**
+ * Compares semantic-looking versions from GitHub release tags.
+ *
+ * Falls back to string comparison when either side contains non-numeric parts so
+ * pre-releases or unexpected tags remain deterministic instead of throwing.
+ */
 function compareVersions(left: string, right: string): number {
   const leftParts = normalizeVersion(left).split(".").map(Number);
   const rightParts = normalizeVersion(right).split(".").map(Number);
@@ -32,17 +41,25 @@ function compareVersions(left: string, right: string): number {
   return 0;
 }
 
+/** Cached latest release lookup. */
 interface UpdateCache {
+  /** Latest version tag returned by GitHub. */
   latestVersion: string;
+  /** Unix timestamp in milliseconds for when the lookup was cached. */
   checkedAt: number;
 }
 
+/** Result returned by the update checker. */
 export interface UpdateInfo {
+  /** Version currently running. */
   currentVersion: string;
+  /** Latest known release version. */
   latestVersion: string;
+  /** Whether `latestVersion` is newer than `currentVersion`. */
   updateAvailable: boolean;
 }
 
+/** Reads the cached release lookup, returning null when missing or invalid. */
 async function readCache(): Promise<UpdateCache | null> {
   try {
     const { cachePath } = getCachePaths();
@@ -53,12 +70,14 @@ async function readCache(): Promise<UpdateCache | null> {
   }
 }
 
+/** Writes the latest successful release lookup to the local cache. */
 async function writeCache(cache: UpdateCache): Promise<void> {
   const { cachePath } = getCachePaths();
 
   await Bun.write(cachePath, JSON.stringify(cache));
 }
 
+/** Fetches the latest GitHub release tag for the WTC repository. */
 async function fetchLatestVersion(): Promise<string> {
   const response = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
     headers: { "User-Agent": "wtc" },
@@ -73,15 +92,23 @@ async function fetchLatestVersion(): Promise<string> {
   return data.tag_name;
 }
 
-export async function checkForUpdate(): Promise<UpdateInfo> {
+/**
+ * Checks whether a newer WTC release exists.
+ *
+ * The checker prefers cached data for fast startup, refreshes from GitHub when
+ * the cache is stale, and falls back to stale cache data if the network request
+ * fails. If no cache exists and GitHub is unavailable, it reports no update so
+ * startup remains quiet and non-blocking.
+ */
+export async function checkForUpdate(currentVersion = APP_VERSION): Promise<UpdateInfo> {
   const cached = await readCache();
   const now = Date.now();
 
   if (cached && now - cached.checkedAt < CACHE_TTL_MS) {
     return {
-      currentVersion: APP_VERSION,
+      currentVersion,
       latestVersion: cached.latestVersion,
-      updateAvailable: compareVersions(cached.latestVersion, APP_VERSION) > 0,
+      updateAvailable: compareVersions(cached.latestVersion, currentVersion) > 0,
     };
   }
 
@@ -90,22 +117,22 @@ export async function checkForUpdate(): Promise<UpdateInfo> {
     await writeCache({ latestVersion, checkedAt: now });
 
     return {
-      currentVersion: APP_VERSION,
+      currentVersion,
       latestVersion,
-      updateAvailable: compareVersions(latestVersion, APP_VERSION) > 0,
+      updateAvailable: compareVersions(latestVersion, currentVersion) > 0,
     };
   } catch {
     if (cached) {
       return {
-        currentVersion: APP_VERSION,
+        currentVersion,
         latestVersion: cached.latestVersion,
-        updateAvailable: compareVersions(cached.latestVersion, APP_VERSION) > 0,
+        updateAvailable: compareVersions(cached.latestVersion, currentVersion) > 0,
       };
     }
 
     return {
-      currentVersion: APP_VERSION,
-      latestVersion: APP_VERSION,
+      currentVersion,
+      latestVersion: currentVersion,
       updateAvailable: false,
     };
   }

@@ -16,6 +16,7 @@ import { tokens } from "./tokens.ts";
 
 type Route = "home" | "github" | "settings";
 
+/** Main TUI screen controller rendered inside the app providers. */
 function Home() {
   const dialog = useDialog();
   const keymap = useKeymap();
@@ -61,10 +62,15 @@ function Home() {
       ...command,
     }));
 
+  // Palette commands are registered as keymap commands instead of local arrays
+  // so other UI can query the same action registry and stay in sync with active
+  // route/focus conditions later.
   useBindings(() => ({
     commands: commands(),
   }));
 
+  // Global bindings live at the app shell level. Feature screens should add
+  // their own scoped bindings with `useBindings()` when they need local actions.
   useBindings(() => ({
     bindings: [
       {
@@ -94,6 +100,9 @@ function Home() {
     ],
   }));
 
+  // `useBindings()` is the primary key path. This fallback handles terminals or
+  // keyboard protocols that report modifier keys differently and guarantees that
+  // Ctrl+C tears down the renderer even when focus is inside an input.
   useKeyboard((key) => {
     if (key.name === "c" && key.ctrl) {
       key.preventDefault();
@@ -110,6 +119,8 @@ function Home() {
   });
 
   onMount(() => {
+    // The update check is non-blocking. If a newer release exists, it enters the
+    // same dialog stack used by app actions so modal behavior stays consistent.
     checkForUpdate().then((info) => {
       if (info.updateAvailable) {
         dialog.replace(() => <UpdateDialog latestVersion={info.latestVersion} />);
@@ -131,11 +142,14 @@ function Home() {
   );
 }
 
+/** Root provider tree for the Solid OpenTUI app. */
 function App() {
   const renderer = useRenderer();
   const keymap = createDefaultOpenTuiKeymap(renderer);
 
   return (
+    // Provider order matters: the keymap needs the OpenTUI renderer, and dialogs
+    // need the keymap so they can register modal Escape/Return bindings.
     <KeymapProvider keymap={keymap}>
       <DialogProvider>
         <Home />
@@ -144,6 +158,13 @@ function App() {
   );
 }
 
+/**
+ * Starts the interactive TUI.
+ *
+ * The CLI entrypoint calls this when `wtc` is executed without arguments. The
+ * renderer disables OpenTUI's default Ctrl+C handling because the app shell owns
+ * graceful teardown through global key bindings.
+ */
 export async function runTUI(): Promise<void> {
   await render(() => <App />, {
     exitOnCtrlC: false,

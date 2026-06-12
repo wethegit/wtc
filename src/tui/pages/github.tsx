@@ -1,6 +1,7 @@
 import { TextAttributes } from "@opentui/core";
 import { tokens } from "../tokens.ts";
 
+/** Placeholder route for upcoming GitHub repository workflows. */
 export function GitHubPage() {
   return (
     <box flexDirection="column" flexGrow={1} justifyContent="center" alignItems="center" gap={1}>

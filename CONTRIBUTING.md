@@ -4,6 +4,10 @@
 
 - [Bun](https://bun.com/)
 
+Useful resources:
+
+- [OpenTUI Docs](https://opentui.com/)
+
 ## Development Setup
 
 ```bash
@@ -72,14 +76,13 @@ bun install --os="*" --cpu="*" @opentui/core
 Run the generated binary directly from the repository root:
 
 ```bash
-./dist/wtc-linux-x64 --version
-./dist/wtc-linux-x64 --help
-./dist/wtc-linux-x64
+cd ./dist
+wtc-linux-x64 --version
+wtc-linux-x64 --help
+wtc-linux-x64
 ```
 
 Use the filename that matches your platform. The dashboard starts with no arguments. Press `Ctrl+C` to exit.
-
-Generated binaries live in `dist/`, which is ignored by git.
 
 ## CI/CD and Releases
 
