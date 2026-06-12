@@ -1,7 +1,7 @@
 import { TextAttributes } from "@opentui/core";
+import { useBindings } from "@opentui/keymap/solid";
 import { tokens } from "../tokens.ts";
 import { useDialog } from "./dialog.tsx";
-import { useBindings } from "../keymap.tsx";
 
 export interface UpdateDialogProps {
   currentVersion: string;

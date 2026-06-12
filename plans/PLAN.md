@@ -183,7 +183,7 @@ See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, 
 - Rewrite `src/tui/app.ts` → Solid root component with `<KeymapProvider>` + `<DialogProvider>`
 - Rewrite `src/tui/components/modal.ts` → `DialogProvider` + `UpdateDialog` (OpenCode-inspired dialog pattern)
 - Rewrite `src/tui/pages/dashboard.ts` → Solid JSX with reactive state
-- Create keymap module (`useBindings`-style) for keyboard handling
+- Use `@opentui/keymap` directly for `KeymapProvider`, `useBindings`, and `useKeymapSelector`
 - Import `tokens.ts` directly from components; do not add a theme provider unless runtime theming becomes necessary
 - Add bottom status bar (mandatory — shows active hotkeys per context)
 - Add command palette (mandatory — `ctrl+p` overlay for quick navigation)
