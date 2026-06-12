@@ -2,7 +2,6 @@ import { createSignal } from "solid-js";
 import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { tokens } from "../tokens.ts";
-import { useDialog } from "./dialog.tsx";
 
 export interface CommandEntry {
   id: string;
@@ -11,22 +10,25 @@ export interface CommandEntry {
   onSelect: () => void;
 }
 
-export function showCommandPalette(entries: () => CommandEntry[]) {
-  const dialog = useDialog();
-
-  dialog.replace(() => <CommandPalette entries={entries()} onClose={() => dialog.clear()} />);
+export function filterCommands(entries: readonly CommandEntry[], query: string): CommandEntry[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [...entries];
+  return entries.filter(
+    (entry) =>
+      entry.title.toLowerCase().includes(q) || entry.description?.toLowerCase().includes(q),
+  );
 }
 
-function CommandPalette(props: { entries: CommandEntry[]; onClose: () => void }) {
+export function CommandPalette(props: { entries: CommandEntry[]; onClose: () => void }) {
   const [query, setQuery] = createSignal("");
   const [selectedIndex, setSelectedIndex] = createSignal(0);
+  const filtered = () => filterCommands(props.entries, query());
 
-  const filtered = () => {
-    const q = query().toLowerCase();
-    if (!q) return props.entries;
-    return props.entries.filter(
-      (e) => e.title.toLowerCase().includes(q) || e.description?.toLowerCase().includes(q),
-    );
+  const selectCurrent = () => {
+    const entry = filtered()[selectedIndex()];
+    if (!entry) return;
+    entry.onSelect();
+    props.onClose();
   };
 
   useBindings(() => ({
@@ -45,18 +47,13 @@ function CommandPalette(props: { entries: CommandEntry[]; onClose: () => void })
       {
         key: "down",
         cmd: "palette.down",
-        run: () => setSelectedIndex((i) => Math.min(filtered().length - 1, i + 1)),
+        run: () => setSelectedIndex((i) => Math.min(Math.max(0, filtered().length - 1), i + 1)),
       },
       {
         key: "return",
         desc: "Select command",
         group: "CommandPalette",
-        cmd: () => {
-          const entry = filtered()[selectedIndex()];
-          if (entry) {
-            entry.onSelect();
-          }
-        },
+        cmd: selectCurrent,
       },
     ],
   }));
@@ -80,6 +77,7 @@ function CommandPalette(props: { entries: CommandEntry[]; onClose: () => void })
             backgroundColor={i === selectedIndex() ? tokens.selectionBg : undefined}
             onMouseUp={() => {
               entry.onSelect();
+              props.onClose();
             }}
           >
             <text fg={i === selectedIndex() ? tokens.selectionText : tokens.text}>
