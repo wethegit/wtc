@@ -6,10 +6,7 @@ import { checkForUpdate } from "../utils/update-check.ts";
 import { APP_VERSION } from "../version.ts";
 import { DialogProvider, useDialog } from "./components/dialog.tsx";
 import { UpdateDialog } from "./components/update-dialog.tsx";
-import {
-  COMMAND_PALETTE_COMMAND,
-  CommandPaletteDialog,
-} from "./components/command-palette.tsx";
+import { COMMAND_PALETTE_COMMAND, CommandPaletteDialog } from "./components/command-palette.tsx";
 import { Dashboard } from "./pages/dashboard.tsx";
 import { GitHubPage } from "./pages/github.tsx";
 import { SettingsPage } from "./pages/settings.tsx";
