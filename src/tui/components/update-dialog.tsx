@@ -2,9 +2,9 @@ import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { tokens } from "../tokens.ts";
 import { useDialog } from "./dialog.tsx";
+import { APP_VERSION } from "../../version.ts";
 
 export interface UpdateDialogProps {
-  currentVersion: string;
   latestVersion: string;
   repo: string;
 }
@@ -36,7 +36,7 @@ export function UpdateDialog(props: UpdateDialogProps) {
         </text>
       </box>
       <box>
-        <text fg={tokens.text}>v{props.currentVersion}</text>
+        <text fg={tokens.text}>v{APP_VERSION}</text>
         <text fg={tokens.textDim}> → </text>
         <text fg={tokens.accent}>v{props.latestVersion}</text>
       </box>
