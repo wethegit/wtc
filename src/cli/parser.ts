@@ -1,7 +1,7 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { upgrade } from "./commands/upgrade.ts";
-import { APP_VERSION } from "../version.ts";
+import { APP_VERSION } from "../config/consts.ts";
 
 export async function runCli(): Promise<void> {
   const currentVersion = APP_VERSION;

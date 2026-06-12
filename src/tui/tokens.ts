@@ -1,3 +1,5 @@
+import { RGBA } from "@opentui/core";
+
 /**
  * These were taken from our website CSS styles
  */
@@ -51,35 +53,40 @@ export const palette = {
 
 export const tokens = {
   // Surfaces
-  bg: palette.black,
-  surface: palette.black75,
-  surfaceRaised: palette.greyBlue,
-  surfaceOverlay: palette.black,
+  bg: RGBA.fromHex(palette.black),
+  surface: RGBA.fromHex(palette.black75),
+  surfaceRaised: RGBA.fromHex(palette.black50),
+  surfaceOverlay: RGBA.fromValues(
+    RGBA.fromHex(palette.black75).r,
+    RGBA.fromHex(palette.black75).g,
+    RGBA.fromHex(palette.black75).b,
+    0.2,
+  ),
 
   // Text
-  text: palette.white,
-  textDim: palette.black50,
-  textMuted: palette.black50,
-  textAccent: palette.teal75,
-  textInverse: palette.black,
+  text: RGBA.fromHex(palette.white),
+  textDim: RGBA.fromHex(palette.black50),
+  textMuted: RGBA.fromHex(palette.black50),
+  textAccent: RGBA.fromHex(palette.teal75),
+  textInverse: RGBA.fromHex(palette.black),
 
   // Brand accent
-  accent: palette.teal75,
-  accentSoft: palette.teal50,
+  accent: RGBA.fromHex(palette.teal75),
+  accentSoft: RGBA.fromHex(palette.teal50),
 
   // Semantic
-  success: palette.green,
-  warning: palette.yellow,
-  danger: palette.pink50,
-  info: palette.teal50,
+  success: RGBA.fromHex(palette.green),
+  warning: RGBA.fromHex(palette.yellow),
+  danger: RGBA.fromHex(palette.pink50),
+  info: RGBA.fromHex(palette.teal50),
 
   // Interactive
-  selectionBg: palette.teal50,
-  selectionText: palette.black,
+  selectionBg: RGBA.fromHex(palette.teal50),
+  selectionText: RGBA.fromHex(palette.black),
 
   // Borders
-  border: palette.black75,
-  borderFocus: palette.teal75,
+  border: RGBA.fromHex(palette.black75),
+  borderFocus: RGBA.fromHex(palette.teal75),
 } as const;
 
 export type Tokens = typeof tokens;

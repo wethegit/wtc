@@ -1,4 +1,4 @@
-import { APP_VERSION } from "../version";
+import { APP_VERSION } from "../config/consts";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const REPO = "wethegit/wtc";

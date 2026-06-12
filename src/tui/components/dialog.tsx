@@ -1,8 +1,8 @@
 import { createContext, useContext, type ParentProps, type JSX, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { useTerminalDimensions } from "@opentui/solid";
-import { RGBA } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
+
 import { tokens } from "../tokens.ts";
 
 type DialogElement = JSX.Element | (() => JSX.Element);
@@ -38,13 +38,14 @@ function DialogOverlay(props: ParentProps<{ onClose: () => void }>) {
       zIndex={3000}
       left={0}
       top={0}
-      backgroundColor={RGBA.fromInts(0, 0, 0, 150)}
+      backgroundColor={tokens.surfaceOverlay}
     >
       <box
         width={60}
         maxWidth={dimensions().width - 4}
-        backgroundColor={tokens.surface}
-        padding={1}
+        backgroundColor={tokens.bg}
+        paddingY={1}
+        paddingX={2}
         flexDirection="column"
         gap={1}
       >

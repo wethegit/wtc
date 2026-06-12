@@ -14,7 +14,6 @@ import { SettingsPage } from "./pages/settings.tsx";
 import { StatusBar } from "./components/status-bar.tsx";
 import { tokens } from "./tokens.ts";
 
-const REPO = "wethegit/wtc";
 type Route = "home" | "github" | "settings";
 
 function Home() {
@@ -113,13 +112,13 @@ function Home() {
   onMount(() => {
     checkForUpdate().then((info) => {
       if (info.updateAvailable) {
-        dialog.replace(() => <UpdateDialog latestVersion={info.latestVersion} repo={REPO} />);
+        dialog.replace(() => <UpdateDialog latestVersion={info.latestVersion} />);
       }
     });
   });
 
   return (
-    <box flexDirection="column" flexGrow={1}>
+    <box flexDirection="column" flexGrow={1} backgroundColor={tokens.bg}>
       {route() === "github" ? (
         <GitHubPage />
       ) : route() === "settings" ? (
