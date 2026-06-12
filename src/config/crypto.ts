@@ -1,3 +1,9 @@
+/**
+ *
+ *
+ * Work in progress
+ * This will store TUI secretes
+ */
 import { randomBytes, createHash, createCipheriv, createDecipheriv } from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm";
