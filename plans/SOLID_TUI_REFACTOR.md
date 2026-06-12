@@ -25,7 +25,7 @@ Moving to Solid.js brings:
 
 1. **Bottom status bar** (mandatory — OpenCode-inspired)
    - Always visible at terminal bottom
-   - Shows available hotkeys for the current context (e.g., `↑↓ navigate · enter select · esc back · q quit`)
+   - Shows available hotkeys for the current context (initially `ctrl/cmd+p commands · q quit`)
    - Updates reactively as focus or key layers change
 2. **Command palette** (mandatory — VSCode/Slack/OpenCode-style)
    - Triggered by a key chord (e.g., `ctrl+p` or `cmd+p`)
@@ -148,9 +148,11 @@ src/tui/
 │   ├── dialog-alert.tsx # Alert dialog (simplified from OpenCode pattern)
 │   ├── update-dialog.tsx# Update available notification dialog
 │   ├── status-bar.tsx   # Bottom bar showing active hotkeys
-│   └── command-palette.tsx # ctrl+p overlay command list
+│   └── command-palette.tsx # ctrl/cmd+p overlay command list
 └── pages/
-    └── dashboard.tsx    # Solid JSX version of the dashboard
+    ├── dashboard.tsx    # Intro screen with WTC logo
+    ├── github.tsx       # Placeholder GitHub page
+    └── settings.tsx     # Placeholder Settings page
 ```
 
 ---
@@ -275,10 +277,10 @@ Behavior:
 
 File: `src/tui/pages/dashboard.tsx`
 
-Replace `createDashboard()` with:
+Replace `createDashboard()` with an intro-only screen. Do not include a navigation `<select>` on the dashboard; navigation starts in the command palette.
 
 ```tsx
-import { ascii_font, box, select, text } from "@opentui/solid";
+import { ascii_font, box, text } from "@opentui/solid";
 import { tokens } from "../tokens";
 
 export function Dashboard(props: { version: string }) {
@@ -286,24 +288,23 @@ export function Dashboard(props: { version: string }) {
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={1}>
       <ascii_font font="tiny" text="WTC" />
       <text dim>What will you build?</text>
-      <select
-        id="dashboard-nav"
-        width={34}
-        height={4}
-        options={[
-          { name: "GitHub (coming soon)", description: "Repository workflows" },
-          { name: "Amplify (coming soon)", description: "Hosting setup" },
-          { name: "Teamwork (coming soon)", description: "Tasks and timers" },
-          { name: "Settings (coming soon)", description: "Configuration" },
-        ]}
-      />
+      <text>Press ctrl/cmd+p to open the command palette.</text>
       <text dim>v{props.version} · Press Ctrl+C to exit</text>
     </box>
   );
 }
 ```
 
-No `findDescendantById` — focus is either automatic or set via a ref.
+No `findDescendantById`, no dashboard select, and no rendering tests for this visual-only screen.
+
+### Step 7.5 — Add Initial Pages
+
+Add placeholder pages used by the first command palette commands:
+
+- `src/tui/pages/github.tsx`
+- `src/tui/pages/settings.tsx`
+
+These pages are intentionally lightweight until their real feature phases begin.
 
 ### Step 8 — Create Status Bar
 
@@ -312,12 +313,9 @@ File: `src/tui/components/status-bar.tsx`
 A bottom-pinned bar that shows active keybinding hints for the current context. This is the **mandatory** UX pattern from OpenCode.
 
 ```tsx
-import { useKeymapSelector } from "@opentui/keymap/solid";
 import { tokens } from "../tokens";
 
 export function StatusBar() {
-  const activeKeys = useKeymapSelector((km) => km.getActiveKeys({ includeMetadata: true }));
-
   return (
     <box
       position="absolute"
@@ -327,19 +325,13 @@ export function StatusBar() {
       height={1}
       backgroundColor={tokens.surface}
     >
-      <text dim>
-        {activeKeys().length > 0
-          ? activeKeys()
-              .map((k) => k.display)
-              .join(" · ")
-          : "↑↓ navigate · enter select · esc back · q quit"}
-      </text>
+      <text dim>ctrl/cmd+p commands · q quit</text>
     </box>
   );
 }
 ```
 
-The status bar is rendered inside the root app layout, below the main content area, using absolute positioning.
+The status bar is rendered inside the root app layout, below the main content area, using absolute positioning. It can become fully dynamic later, but the initial UX should reliably advertise the command palette shortcut.
 
 ### Step 9 — Create Command Palette
 
@@ -347,9 +339,9 @@ File: `src/tui/components/command-palette.tsx`
 
 A **mandatory** keyboard-driven overlay for quick navigation and actions.
 
-- Triggered by `ctrl+p` via a global binding in `app.tsx`
+- Triggered by `mod+p` plus explicit `ctrl+p` fallback via a global binding in `app.tsx`
 - Registers its own layer via `useBindings` that activates when the palette is open
-- Renders a `<select>` with navigable commands (future: page navigation, feature actions, upgrade check, etc.)
+- Renders a filter input and command list
 - On select, dispatches the command and closes
 - Escape closes without action
 
@@ -364,15 +356,18 @@ export function CommandPalette(props: { onClose: () => void }) {
   return (
     <box>
       <input value={query()} onInput={...} />
-      <select selectedIndex={selectedIndex()} ...>
-        {/* filtered command list */}
-      </select>
+      {/* filtered command list */}
     </box>
   )
 }
 ```
 
 The palette is rendered through `DialogProvider` via `dialog.replace()`.
+
+Initial commands:
+
+- `Open GitHub` → route to `github`
+- `Open Settings` → route to `settings`
 
 ### Step 10 — Rewrite App Root
 
@@ -401,6 +396,7 @@ export async function launchDashboard(version = APP_VERSION): Promise<void> {
 
     useBindings(() => ({
       bindings: [
+        { key: "mod+p", cmd: "command-palette.show", desc: "Command palette" },
         { key: "ctrl+p", cmd: "command-palette.show", desc: "Command palette" },
         { key: "q", cmd: "quit", run: () => renderer.destroy() },
       ],
@@ -448,8 +444,7 @@ Per the testing philosophy in `AGENTS.md`:
 - **Remove existing dashboard tests** that assert text content (`expect(frame).toContain(...)`) — those test the renderer's output, not our logic.
 - **Test pure logic and state transformations:**
   - `UpdateDialog` — test that correct version strings and install command are constructed
-  - `CommandPalette` — test command filtering against a query string (pure function)
-  - `StatusBar` — test key metadata formatting (pure function that maps binding arrays to display strings)
+- `CommandPalette` — test command filtering against a query string (pure function)
   - `tokens.ts` — verify palette values are readonly and token keys map to palette keys (structural contract)
   - `update-check.ts` — existing tests already cover this well; keep them
 - **Future tests:** dialogs' `onClose` callbacks, command dispatch behavior (if factored as testable functions).
@@ -460,9 +455,9 @@ Per the testing philosophy in `AGENTS.md`:
 
 - Add a local keymap module only when Phase 3+ needs app-specific command registration, key formatting, mode stacks, leader keys, or configurable user bindings.
 - The status bar is intentionally simple — it can become richer (git branch, AWS profile, timer status) in Phase 5-6.
-- The command palette is a shell — its command list is populated as real commands are built.
+- The command palette starts with GitHub and Settings navigation commands; add real commands as feature pages mature.
 - DialogProvider supports a stack but we only use single-dialog mode for now. Stack semantics are ready for multi-dialog flows like wizards.
-- No router is introduced yet. The MVP dashboard nav leads to "coming soon" placeholders; real page routing is added per feature phase.
+- Routing is intentionally local app state for now (`home`, `github`, `settings`). Add a larger router only when route complexity requires it.
 
 ---
 
