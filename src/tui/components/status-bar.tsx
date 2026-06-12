@@ -1,8 +1,7 @@
-import { useTheme } from "../theme.tsx";
 import { useKeymapSelector } from "../keymap.tsx";
+import { tokens } from "../tokens.ts";
 
 export function StatusBar() {
-  const theme = useTheme();
   const activeKeys = useKeymapSelector((km) => km.getActiveKeys({ includeMetadata: true }));
 
   const hint = () => {
@@ -20,9 +19,9 @@ export function StatusBar() {
       left={0}
       width="100%"
       height={1}
-      backgroundColor={theme.surface}
+      backgroundColor={tokens.surface}
     >
-      <text fg={theme.textDim}>{hint()}</text>
+      <text fg={tokens.textDim}>{hint()}</text>
     </box>
   );
 }

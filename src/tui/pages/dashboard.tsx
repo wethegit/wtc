@@ -1,5 +1,5 @@
 import { TextAttributes } from "@opentui/core";
-import { useTheme } from "../theme.tsx";
+import { tokens } from "../tokens.ts";
 
 const navItems = [
   { name: "GitHub (coming soon)", description: "Repository workflows" },
@@ -9,7 +9,6 @@ const navItems = [
 ];
 
 export function Dashboard(props: { version?: string }) {
-  const theme = useTheme();
   const version = props.version ?? "0.1.0";
 
   return (
@@ -26,8 +25,8 @@ export function Dashboard(props: { version?: string }) {
         selectedIndex={0}
         showDescription={false}
         wrapSelection={true}
-        selectedTextColor={theme.selectionText}
-        selectedBackgroundColor={theme.selectionBg}
+        selectedTextColor={tokens.selectionText}
+        selectedBackgroundColor={tokens.selectionBg}
       />
       <text attributes={TextAttributes.DIM}>v{version} · Press Ctrl+C to exit</text>
     </box>

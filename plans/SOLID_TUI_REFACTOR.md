@@ -142,7 +142,6 @@ No ASCII art logos unless they are genuinely brand-relevant. The WTC tiny-font l
 ```
 src/tui/
 ├── app.tsx              # Solid root — renderer creation, keymap init, providers
-├── theme.tsx            # ThemeProvider + useTheme context
 ├── keymap.tsx           # KeymapProvider, re-export useBindings/useKeymapSelector
 ├── tokens.ts            # Palette + semantic tokens (expand existing)
 ├── components/
@@ -192,38 +191,15 @@ plugins: [solidPlugin],
 
 Edit `src/tui/tokens.ts` to include the full `palette` and the updated `tokens` object described above.
 
-### Step 3 — Create Theme Context
+### Step 3 — Use Tokens Directly
 
-File: `src/tui/theme.tsx`
+Components should import `tokens` from `src/tui/tokens.ts` directly.
 
 ```ts
-import { createContext, useContext, type ParentProps } from "solid-js"
-import { tokens } from "./tokens"
-import { useRenderer } from "@opentui/solid"
-import { onMount } from "solid-js"
-
-export type Theme = typeof tokens
-
-const ThemeContext = createContext<Theme>()
-
-export function ThemeProvider(props: ParentProps) {
-  const renderer = useRenderer()
-  onMount(() => renderer.setBackgroundColor(tokens.bg))
-  return (
-    <ThemeContext.Provider value={tokens}>
-      {props.children}
-    </ThemeContext.Provider>
-  )
-}
-
-export function useTheme(): Theme {
-  const value = useContext(ThemeContext)
-  if (!value) throw new Error("useTheme must be used within a ThemeProvider")
-  return value
-}
+import { tokens } from "../tokens.ts";
 ```
 
-This stays minimal — no external theme loading, no mode switching.
+Do not add a `ThemeProvider` or `useTheme` hook while the app has one fixed brand theme. Add a provider only if runtime theming becomes necessary.
 
 ### Step 4 — Create Keymap Module
 
@@ -309,11 +285,9 @@ Replace `createDashboard()` with:
 
 ```tsx
 import { ascii_font, box, select, text } from "@opentui/solid";
-import { useTheme } from "../theme";
+import { tokens } from "../tokens";
 
 export function Dashboard(props: { version: string }) {
-  const theme = useTheme();
-
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={1}>
       <ascii_font font="tiny" text="WTC" />
@@ -344,13 +318,10 @@ File: `src/tui/components/status-bar.tsx`
 A bottom-pinned bar that shows active keybinding hints for the current context. This is the **mandatory** UX pattern from OpenCode.
 
 ```tsx
-import { useTheme } from "../theme";
 import { useKeymapSelector } from "../keymap";
-import { useDialog } from "./dialog";
+import { tokens } from "../tokens";
 
 export function StatusBar() {
-  const theme = useTheme();
-  const dialog = useDialog();
   const activeKeys = useKeymapSelector((km) => km.getActiveKeys({ includeMetadata: true }));
 
   return (
@@ -360,12 +331,12 @@ export function StatusBar() {
       left={0}
       width="100%"
       height={1}
-      backgroundColor={theme.surface}
+      backgroundColor={tokens.surface}
     >
       <text dim>
         {activeKeys().length > 0
           ? activeKeys()
-              .map((k) => k.display ?? k.key)
+              .map((k) => k.display)
               .join(" · ")
           : "↑↓ navigate · enter select · esc back · q quit"}
       </text>
@@ -390,7 +361,6 @@ A **mandatory** keyboard-driven overlay for quick navigation and actions.
 
 ```tsx
 export function CommandPalette(props: { onClose: () => void }) {
-  const theme = useTheme()
   const [query, setQuery] = createSignal("")
   const [selectedIndex, setSelectedIndex] = createSignal(0)
 
@@ -417,7 +387,6 @@ File: `src/tui/app.tsx`
 ```tsx
 import { render } from "@opentui/solid";
 import { createKeymap, KeymapProvider } from "./keymap";
-import { ThemeProvider } from "./theme";
 import { DialogProvider } from "./components/dialog";
 import { StatusBar } from "./components/status-bar";
 import { Dashboard } from "./pages/dashboard";
@@ -464,11 +433,9 @@ export async function launchDashboard(version = APP_VERSION): Promise<void> {
   await render(
     () => (
       <KeymapProvider keymap={keymap}>
-        <ThemeProvider>
-          <DialogProvider>
-            <Root />
-          </DialogProvider>
-        </ThemeProvider>
+        <DialogProvider>
+          <Root />
+        </DialogProvider>
       </KeymapProvider>
     ),
     renderer,

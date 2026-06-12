@@ -2,8 +2,8 @@ import { createContext, useContext, type ParentProps, type JSX, Show } from "sol
 import { createStore } from "solid-js/store";
 import { Portal, useRenderer, useTerminalDimensions } from "@opentui/solid";
 import { RGBA } from "@opentui/core";
-import { useTheme } from "../theme.tsx";
 import { useBindings } from "../keymap.tsx";
+import { tokens } from "../tokens.ts";
 
 interface DialogItem {
   element: JSX.Element;
@@ -20,7 +20,6 @@ const DialogContext = createContext<DialogContextValue>();
 
 function DialogOverlay(props: ParentProps<{ onClose: () => void }>) {
   const dimensions = useTerminalDimensions();
-  const theme = useTheme();
 
   return (
     <box
@@ -37,7 +36,7 @@ function DialogOverlay(props: ParentProps<{ onClose: () => void }>) {
       <box
         width={60}
         maxWidth={dimensions().width - 4}
-        backgroundColor={theme.surface}
+        backgroundColor={tokens.surface}
         padding={1}
         flexDirection="column"
         gap={1}
