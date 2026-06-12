@@ -2,8 +2,9 @@ import { createSignal, onMount } from "solid-js";
 import { render, useKeyboard, useRenderer } from "@opentui/solid";
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings, useKeymap } from "@opentui/keymap/solid";
+
 import { checkForUpdate } from "../utils/update-check.ts";
-import { APP_VERSION } from "../version.ts";
+
 import { DialogProvider, useDialog } from "./components/dialog.tsx";
 import { UpdateDialog } from "./components/update-dialog.tsx";
 import { COMMAND_PALETTE_COMMAND, CommandPaletteDialog } from "./components/command-palette.tsx";
@@ -16,7 +17,7 @@ import { tokens } from "./tokens.ts";
 const REPO = "wethegit/wtc";
 type Route = "home" | "github" | "settings";
 
-function AppContent(props: { version: string }) {
+function Home() {
   const dialog = useDialog();
   const keymap = useKeymap();
   const renderer = useRenderer();
@@ -110,15 +111,9 @@ function AppContent(props: { version: string }) {
   });
 
   onMount(() => {
-    checkForUpdate(props.version).then((info) => {
+    checkForUpdate().then((info) => {
       if (info.updateAvailable) {
-        dialog.replace(() => (
-          <UpdateDialog
-            currentVersion={props.version}
-            latestVersion={info.latestVersion}
-            repo={REPO}
-          />
-        ));
+        dialog.replace(() => <UpdateDialog latestVersion={info.latestVersion} repo={REPO} />);
       }
     });
   });
@@ -130,28 +125,28 @@ function AppContent(props: { version: string }) {
       ) : route() === "settings" ? (
         <SettingsPage />
       ) : (
-        <Dashboard version={props.version} />
+        <Dashboard />
       )}
       <StatusBar />
     </box>
   );
 }
 
-function AppShell(props: { version: string }) {
+function App() {
   const renderer = useRenderer();
   const keymap = createDefaultOpenTuiKeymap(renderer);
 
   return (
     <KeymapProvider keymap={keymap}>
       <DialogProvider>
-        <AppContent version={props.version} />
+        <Home />
       </DialogProvider>
     </KeymapProvider>
   );
 }
 
-export async function runTUI(version = APP_VERSION): Promise<void> {
-  await render(() => <AppShell version={version} />, {
+export async function runTUI(): Promise<void> {
+  await render(() => <App />, {
     exitOnCtrlC: false,
     backgroundColor: tokens.bg,
     useKittyKeyboard: {},

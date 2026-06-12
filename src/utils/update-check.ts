@@ -1,3 +1,5 @@
+import { APP_VERSION } from "../version";
+
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const REPO = "wethegit/wtc";
 
@@ -71,15 +73,15 @@ async function fetchLatestVersion(): Promise<string> {
   return data.tag_name;
 }
 
-export async function checkForUpdate(currentVersion: string): Promise<UpdateInfo> {
+export async function checkForUpdate(): Promise<UpdateInfo> {
   const cached = await readCache();
   const now = Date.now();
 
   if (cached && now - cached.checkedAt < CACHE_TTL_MS) {
     return {
-      currentVersion,
+      currentVersion: APP_VERSION,
       latestVersion: cached.latestVersion,
-      updateAvailable: compareVersions(cached.latestVersion, currentVersion) > 0,
+      updateAvailable: compareVersions(cached.latestVersion, APP_VERSION) > 0,
     };
   }
 
@@ -88,22 +90,22 @@ export async function checkForUpdate(currentVersion: string): Promise<UpdateInfo
     await writeCache({ latestVersion, checkedAt: now });
 
     return {
-      currentVersion,
+      currentVersion: APP_VERSION,
       latestVersion,
-      updateAvailable: compareVersions(latestVersion, currentVersion) > 0,
+      updateAvailable: compareVersions(latestVersion, APP_VERSION) > 0,
     };
   } catch {
     if (cached) {
       return {
-        currentVersion,
+        currentVersion: APP_VERSION,
         latestVersion: cached.latestVersion,
-        updateAvailable: compareVersions(cached.latestVersion, currentVersion) > 0,
+        updateAvailable: compareVersions(cached.latestVersion, APP_VERSION) > 0,
       };
     }
 
     return {
-      currentVersion,
-      latestVersion: currentVersion,
+      currentVersion: APP_VERSION,
+      latestVersion: APP_VERSION,
       updateAvailable: false,
     };
   }
