@@ -37,7 +37,7 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 ```
 wtc/
 ├── src/
-│   ├── index.ts              # Entry point — CLI parser or TUI
+│   ├── index.ts              # Entry point — opens TUI with no args, CLI parser with args
 │   ├── cli/
 │   │   ├── parser.ts         # yargs command definitions
 │   │   └── commands/         # Subcommand handlers
@@ -47,7 +47,8 @@ wtc/
 │   │       ├── config.ts
 │   │       └── upgrade.ts        # `wtc upgrade --check` — version check
 │   ├── tui/
-│   │   ├── app.ts            # Main TUI app shell
+│   │   ├── app.ts            # TUI launcher compatibility wrapper
+│   │   ├── app.tsx           # Main Solid TUI app shell
 │   │   ├── components/       # Reusable TUI components
 │   │   │   ├── status-bar.ts
 │   │   │   ├── sidebar.ts
@@ -178,9 +179,10 @@ See `MVP.md` for detailed deliverables.
 See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, design tokens, dialog/status bar/command palette architecture, testing boundaries, and migration sequence.
 
 - Add `@opentui/solid` + `solid-js` + `@opentui/keymap` as dependencies
-- Configure TSX (`jsxImportSource`), Bun preload, and Solid build plugin
+- Configure TSX (`jsxImportSource`) and Solid build plugin; avoid top-level Bun preload so compiled binaries do not load dev-only modules at runtime
 - Expand `tokens.ts` into full palette + semantic tokens
 - Rewrite `src/tui/app.ts` → Solid root component with `<KeymapProvider>` + `<DialogProvider>`
+- Keep `src/index.ts` as the OpenCode-style entrypoint that decides whether to launch the TUI or parse CLI commands
 - Rewrite `src/tui/components/modal.ts` → `DialogProvider` + `UpdateDialog` (OpenCode-inspired dialog pattern)
 - Rewrite `src/tui/pages/dashboard.ts` → Solid JSX intro screen without dashboard navigation select
 - Use `@opentui/keymap` directly for `KeymapProvider`, `useBindings`, and `useKeymapSelector`

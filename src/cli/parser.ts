@@ -1,6 +1,5 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { launchDashboard } from "../tui/app.ts";
 import { upgrade } from "./commands/upgrade.ts";
 import { APP_VERSION } from "../version.ts";
 
@@ -11,14 +10,6 @@ export async function runCli(): Promise<void> {
     .scriptName("wtc")
     .version(currentVersion)
     .help()
-    .command(
-      "$0",
-      "Launch the WTC dashboard",
-      () => {},
-      async () => {
-        await launchDashboard(currentVersion);
-      },
-    )
     .command(
       "upgrade",
       "Check for updates",

@@ -1,12 +1,15 @@
 import { createSignal, onMount } from "solid-js";
-import { render, useRenderer } from "@opentui/solid";
+import { render, useKeyboard, useRenderer } from "@opentui/solid";
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
-import { KeymapProvider, useBindings } from "@opentui/keymap/solid";
+import { KeymapProvider, useBindings, useKeymap } from "@opentui/keymap/solid";
 import { checkForUpdate } from "../utils/update-check.ts";
 import { APP_VERSION } from "../version.ts";
 import { DialogProvider, useDialog } from "./components/dialog.tsx";
 import { UpdateDialog } from "./components/update-dialog.tsx";
-import { CommandPalette, type CommandEntry } from "./components/command-palette.tsx";
+import {
+  COMMAND_PALETTE_COMMAND,
+  CommandPaletteDialog,
+} from "./components/command-palette.tsx";
 import { Dashboard } from "./pages/dashboard.tsx";
 import { GitHubPage } from "./pages/github.tsx";
 import { SettingsPage } from "./pages/settings.tsx";
@@ -18,27 +21,52 @@ type Route = "home" | "github" | "settings";
 
 function AppContent(props: { version: string }) {
   const dialog = useDialog();
+  const keymap = useKeymap();
   const renderer = useRenderer();
   const [route, setRoute] = createSignal<Route>("home");
 
-  const commands = (): CommandEntry[] => [
-    {
-      id: "github.open",
-      title: "Open GitHub",
-      description: "Repository workflows",
-      onSelect: () => setRoute("github"),
-    },
-    {
-      id: "settings.open",
-      title: "Open Settings",
-      description: "Configuration and setup",
-      onSelect: () => setRoute("settings"),
-    },
-  ];
-
-  const openCommandPalette = () => {
-    dialog.replace(() => <CommandPalette entries={commands()} onClose={() => dialog.clear()} />);
+  const quit = () => {
+    renderer.destroy();
+    process.exit(0);
   };
+
+  const commands = () =>
+    [
+      {
+        name: COMMAND_PALETTE_COMMAND,
+        title: "Show command palette",
+        category: "System",
+        hidden: true,
+        run: () => dialog.replace(() => <CommandPaletteDialog />),
+      },
+      {
+        name: "github.open",
+        title: "Open GitHub",
+        desc: "Repository workflows",
+        category: "Navigation",
+        run: () => {
+          setRoute("github");
+          dialog.clear();
+        },
+      },
+      {
+        name: "settings.open",
+        title: "Open Settings",
+        desc: "Configuration and setup",
+        category: "Navigation",
+        run: () => {
+          setRoute("settings");
+          dialog.clear();
+        },
+      },
+    ].map((command) => ({
+      namespace: "palette",
+      ...command,
+    }));
+
+  useBindings(() => ({
+    commands: commands(),
+  }));
 
   useBindings(() => ({
     bindings: [
@@ -46,23 +74,43 @@ function AppContent(props: { version: string }) {
         key: "mod+p",
         desc: "Command palette",
         group: "Global",
-        cmd: openCommandPalette,
+        cmd: COMMAND_PALETTE_COMMAND,
       },
       {
         key: "ctrl+p",
         desc: "Command palette",
         group: "Global",
-        cmd: openCommandPalette,
+        cmd: COMMAND_PALETTE_COMMAND,
       },
       {
         key: "q",
         desc: "Quit",
         group: "Global",
-        cmd: "quit",
-        run: () => renderer.destroy(),
+        cmd: quit,
+      },
+      {
+        key: "ctrl+c",
+        desc: "Quit",
+        group: "Global",
+        cmd: quit,
       },
     ],
   }));
+
+  useKeyboard((key) => {
+    if (key.name === "c" && key.ctrl) {
+      key.preventDefault();
+      key.stopPropagation();
+      quit();
+      return;
+    }
+
+    if (key.name === "p" && (key.ctrl || key.meta || key.super)) {
+      key.preventDefault();
+      key.stopPropagation();
+      keymap.dispatchCommand(COMMAND_PALETTE_COMMAND);
+    }
+  });
 
   onMount(() => {
     checkForUpdate(props.version).then((info) => {
@@ -105,9 +153,10 @@ function AppShell(props: { version: string }) {
   );
 }
 
-export async function launchSolidApp(version = APP_VERSION): Promise<void> {
+export async function runTUI(version = APP_VERSION): Promise<void> {
   await render(() => <AppShell version={version} />, {
-    exitOnCtrlC: true,
+    exitOnCtrlC: false,
     backgroundColor: tokens.bg,
+    useKittyKeyboard: {},
   });
 }
