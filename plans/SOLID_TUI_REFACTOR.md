@@ -3,7 +3,7 @@
 ## Status
 
 - **Started**: —
-- **Branch**: `chore/solid-tui-refactor` (suggested)
+- **Branch**: `feature/solid-js-integration` (suggested)
 - **TUI Stack**: `@opentui/solid` + `solid-js` + `@opentui/keymap`
 
 ---
@@ -121,39 +121,7 @@ export const tokens = {
 
 ### Design Direction
 
-| Role            | Color               | Notes                          |
-| --------------- | ------------------- | ------------------------------ |
-| Background      | `#101820` (black)   | Dark base                      |
-| Surface         | `#5e5f61` (black75) | Cards, dialog panels           |
-| Primary text    | `#ffffff` (white)   | High contrast                  |
-| Dim text        | `#939497` (black50) | Labels, hints, version strings |
-| Accent / focus  | `#2daccc` (teal75)  | Borders, highlights, CTAs      |
-| Accent soft     | `#9ad9e9` (teal50)  | Selection background           |
-| Callout / brand | `#fc6f83` (pink50)  | Titles, warnings, personality  |
-| Success         | `#8dc975` (green)   | Confirmations                  |
-| Warning         | `#f8ea36` (yellow)  | Attention states               |
-
 No ASCII art logos unless they are genuinely brand-relevant. The WTC tiny-font logo from the MVP can stay as a lightweight branding element on the dashboard.
-
----
-
-## File Structure Changes
-
-```
-src/tui/
-├── app.tsx              # Solid root — renderer creation, keymap init, providers
-├── tokens.ts            # Palette + semantic tokens (expand existing)
-├── components/
-│   ├── dialog.tsx       # DialogProvider + useDialog + base Dialog overlay
-│   ├── dialog-alert.tsx # Alert dialog (simplified from OpenCode pattern)
-│   ├── update-dialog.tsx# Update available notification dialog
-│   ├── status-bar.tsx   # Bottom bar showing active hotkeys
-│   └── command-palette.tsx # ctrl/cmd+p overlay command list
-└── pages/
-    ├── dashboard.tsx    # Intro screen with WTC logo
-    ├── github.tsx       # Placeholder GitHub page
-    └── settings.tsx     # Placeholder Settings page
-```
 
 ---
 
@@ -277,22 +245,6 @@ File: `src/tui/pages/dashboard.tsx`
 
 Replace `createDashboard()` with an intro-only screen. Do not include a navigation `<select>` on the dashboard; navigation starts in the command palette.
 
-```tsx
-import { ascii_font, box, text } from "@opentui/solid";
-import { tokens } from "../tokens";
-
-export function Dashboard(props: { version: string }) {
-  return (
-    <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1} gap={1}>
-      <ascii_font font="tiny" text="WTC" />
-      <text dim>What will you build?</text>
-      <text>Press ctrl/cmd+p to open the command palette.</text>
-      <text dim>v{props.version} · Press Ctrl+C to exit</text>
-    </box>
-  );
-}
-```
-
 No `findDescendantById`, no dashboard select, and no rendering tests for this visual-only screen.
 
 ### Step 7.5 — Add Initial Pages
@@ -310,25 +262,6 @@ File: `src/tui/components/status-bar.tsx`
 
 A bottom-pinned bar that shows active keybinding hints for the current context. This is the **mandatory** UX pattern from OpenCode.
 
-```tsx
-import { tokens } from "../tokens";
-
-export function StatusBar() {
-  return (
-    <box
-      position="absolute"
-      bottom={0}
-      left={0}
-      width="100%"
-      height={1}
-      backgroundColor={tokens.surface}
-    >
-      <text dim>ctrl/cmd+p commands · q quit</text>
-    </box>
-  );
-}
-```
-
 The status bar is rendered inside the root app layout, below the main content area, using absolute positioning. It can become fully dynamic later, but the initial UX should reliably advertise the command palette shortcut.
 
 ### Step 9 — Create Command Palette
@@ -342,94 +275,6 @@ A **mandatory** keyboard-driven overlay for quick navigation and actions.
 - Renders a filter input and command list
 - On select, dispatches the command and closes
 - Escape closes without action
-
-```tsx
-export function CommandPalette(props: { onClose: () => void }) {
-  const [query, setQuery] = createSignal("")
-  const [selectedIndex, setSelectedIndex] = createSignal(0)
-
-  // filtered commands based on query
-  // keybinding: enter to select, esc to close, up/down to navigate
-
-  return (
-    <box>
-      <input value={query()} onInput={...} />
-      {/* filtered command list */}
-    </box>
-  )
-}
-```
-
-The palette is rendered through `DialogProvider` via `dialog.replace()`.
-
-Initial commands:
-
-- `Open GitHub` → route to `github`
-- `Open Settings` → route to `settings`
-
-### Step 10 — Rewrite App Root
-
-File: `src/tui/app.tsx`
-
-```tsx
-import { render } from "@opentui/solid";
-import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
-import { KeymapProvider, useBindings } from "@opentui/keymap/solid";
-import { DialogProvider } from "./components/dialog";
-import { StatusBar } from "./components/status-bar";
-import { Dashboard } from "./pages/dashboard";
-import { UpdateDialog } from "./components/update-dialog";
-import { checkForUpdate } from "../utils/update-check";
-import { onMount } from "solid-js";
-import { APP_VERSION } from "../version";
-
-const REPO = "wethegit/wtc";
-
-export async function launchDashboard(version = APP_VERSION): Promise<void> {
-  const renderer = await createCliRenderer({ exitOnCtrlC: true, backgroundColor: tokens.bg });
-  const keymap = createDefaultOpenTuiKeymap(renderer);
-
-  function Root() {
-    const dialog = useDialog();
-
-    useBindings(() => ({
-      bindings: [
-        { key: "mod+p", cmd: "command-palette.show", desc: "Command palette" },
-        { key: "ctrl+p", cmd: "command-palette.show", desc: "Command palette" },
-        { key: "q", cmd: "quit", run: () => renderer.destroy() },
-      ],
-    }));
-
-    onMount(() => {
-      checkForUpdate(version).then((info) => {
-        if (info.updateAvailable) {
-          dialog.replace(() => (
-            <UpdateDialog currentVersion={version} latestVersion={info.latestVersion} repo={REPO} />
-          ));
-        }
-      });
-    });
-
-    return (
-      <box flexDirection="column" flexGrow={1}>
-        <Dashboard version={version} />
-        <StatusBar />
-      </box>
-    );
-  }
-
-  await render(
-    () => (
-      <KeymapProvider keymap={keymap}>
-        <DialogProvider>
-          <Root />
-        </DialogProvider>
-      </KeymapProvider>
-    ),
-    renderer,
-  );
-}
-```
 
 ---
 
