@@ -1,22 +1,29 @@
 import { createContext, useContext, type ParentProps, type JSX, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import { Portal, useRenderer, useTerminalDimensions } from "@opentui/solid";
+import { useTerminalDimensions } from "@opentui/solid";
 import { RGBA } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { tokens } from "../tokens.ts";
 
+type DialogElement = JSX.Element | (() => JSX.Element);
+
 interface DialogItem {
-  element: JSX.Element;
+  element: DialogElement;
   onClose?: () => void;
 }
 
-interface DialogContextValue {
-  show(element: JSX.Element, onClose?: () => void): void;
-  replace(element: JSX.Element, onClose?: () => void): void;
+export interface DialogContextValue {
+  show(element: DialogElement, onClose?: () => void): void;
+  replace(element: DialogElement, onClose?: () => void): void;
   clear(): void;
 }
 
 const DialogContext = createContext<DialogContextValue>();
+
+function renderDialogElement(element: DialogElement | undefined) {
+  if (typeof element === "function") return element();
+  return element;
+}
 
 function DialogOverlay(props: ParentProps<{ onClose: () => void }>) {
   const dimensions = useTerminalDimensions();
@@ -52,8 +59,6 @@ export function DialogProvider(props: ParentProps) {
     stack: [] as DialogItem[],
   });
 
-  const renderer = useRenderer();
-
   useBindings(() => ({
     enabled: store.stack.length > 0,
     bindings: [
@@ -71,10 +76,10 @@ export function DialogProvider(props: ParentProps) {
   }));
 
   const value: DialogContextValue = {
-    show(element: JSX.Element, onClose?: () => void) {
+    show(element: DialogElement, onClose?: () => void) {
       setStore("stack", [...store.stack, { element, onClose }]);
     },
-    replace(element: JSX.Element, onClose?: () => void) {
+    replace(element: DialogElement, onClose?: () => void) {
       for (const item of store.stack) {
         item.onClose?.();
       }
@@ -91,11 +96,11 @@ export function DialogProvider(props: ParentProps) {
   return (
     <DialogContext.Provider value={value}>
       {props.children}
-      <Portal mount={renderer.root}>
-        <Show when={store.stack.length > 0}>
-          <DialogOverlay onClose={() => value.clear()}>{store.stack.at(-1)?.element}</DialogOverlay>
-        </Show>
-      </Portal>
+      <Show when={store.stack.length > 0}>
+        <DialogOverlay onClose={() => value.clear()}>
+          {renderDialogElement(store.stack.at(-1)?.element)}
+        </DialogOverlay>
+      </Show>
     </DialogContext.Provider>
   );
 }

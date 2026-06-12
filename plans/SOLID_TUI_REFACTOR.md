@@ -174,11 +174,9 @@ Package manager additions in `package.json`:
 "jsxImportSource": "@opentui/solid"
 ```
 
-`bunfig.toml` creation (or addition) — needed for Solid JSX runtime:
+Avoid top-level `bunfig.toml` preload entries for Solid. Standalone binaries read project config at runtime, and a top-level preload can make the compiled executable try to resolve `@opentui/solid/preload` from disk.
 
-```toml
-preload = ["@opentui/solid/preload"]
-```
+Keep any required preload scoped to tests or source-only workflows, not production binary startup.
 
 `scripts/build.ts` — add the Solid Bun plugin:
 
@@ -221,7 +219,7 @@ File: `src/tui/components/dialog.tsx`
 
 Simplified from OpenCode's pattern:
 
-- `DialogProvider` wraps children + a portal overlay
+- `DialogProvider` wraps children + an inline absolute overlay
 - `useDialog()` returns `{ show, replace, clear }`
 - `show(element, onClose?)` pushes onto a stack
 - `replace(element, onClose?)` replaces the stack (for single-dialog mode)
@@ -232,7 +230,7 @@ Simplified from OpenCode's pattern:
 The implementation:
 
 - Uses `createStore` with a `stack` array
-- `Portal` from `@opentui/solid` to mount the overlay outside the main tree root
+- Render the overlay inline after children, matching OpenCode's pattern. Do not use `Portal` here unless there is a concrete layering issue.
 - The overlay box has `position: "absolute"`, `zIndex: 3000`, `backgroundColor: RGBA.fromInts(...)` for the dimming effect
 - Dialog panel width is capped at 60 columns by default (or configurable)
 
