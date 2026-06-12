@@ -3,6 +3,13 @@ import { hideBin } from "yargs/helpers";
 import { upgrade } from "./commands/upgrade.ts";
 import { APP_VERSION } from "../config/consts.ts";
 
+/**
+ * Runs the yargs-powered CLI parser for non-interactive commands.
+ *
+ * The top-level entrypoint only imports this module when arguments are present,
+ * which keeps simple CLI commands independent from TUI startup cost and OpenTUI
+ * renderer initialization.
+ */
 export async function runCli(): Promise<void> {
   const currentVersion = APP_VERSION;
 

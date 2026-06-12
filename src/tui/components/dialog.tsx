@@ -5,6 +5,14 @@ import { useBindings } from "@opentui/keymap/solid";
 
 import { tokens } from "../tokens.ts";
 
+/**
+ * Renderable dialog content.
+ *
+ * Prefer passing a factory, for example `dialog.replace(() => <UpdateDialog />)`,
+ * when the dialog component uses Solid hooks or context. The provider renders the
+ * factory inside the active dialog owner so hooks like `useDialog()` and
+ * `useBindings()` resolve correctly.
+ */
 type DialogElement = JSX.Element | (() => JSX.Element);
 
 interface DialogItem {
@@ -12,9 +20,19 @@ interface DialogItem {
   onClose?: () => void;
 }
 
+/**
+ * Dialog stack controller exposed to components below `DialogProvider`.
+ *
+ * The stack lets temporary UI layers compose without each caller needing to know
+ * who opened the previous layer. `show()` pushes a new layer, `replace()` closes
+ * all current layers and opens one layer, and `clear()` closes everything.
+ */
 export interface DialogContextValue {
+  /** Pushes a dialog on top of the current stack. */
   show(element: DialogElement, onClose?: () => void): void;
+  /** Closes existing dialogs and opens a single replacement dialog. */
   replace(element: DialogElement, onClose?: () => void): void;
+  /** Closes all dialogs and runs their close callbacks. */
   clear(): void;
 }
 
@@ -25,6 +43,7 @@ function renderDialogElement(element: DialogElement | undefined) {
   return element;
 }
 
+/** Full-screen overlay that centers the active dialog content. */
 function DialogOverlay(props: ParentProps<{ onClose: () => void }>) {
   const dimensions = useTerminalDimensions();
 
@@ -55,11 +74,21 @@ function DialogOverlay(props: ParentProps<{ onClose: () => void }>) {
   );
 }
 
+/**
+ * Provides dialog stack state and keyboard behavior for modal overlays.
+ *
+ * `DialogProvider` must be rendered below `KeymapProvider` because it registers
+ * an Escape binding with `useBindings()`. That binding is enabled only while the
+ * stack has entries, so normal app-level Escape handling can remain inactive
+ * until a dialog is actually open.
+ */
 export function DialogProvider(props: ParentProps) {
   const [store, setStore] = createStore({
     stack: [] as DialogItem[],
   });
 
+  // Dialogs are stack based so future flows can open a confirmation dialog from
+  // another dialog without losing the original layer underneath it.
   useBindings(() => ({
     enabled: store.stack.length > 0,
     bindings: [
@@ -70,6 +99,8 @@ export function DialogProvider(props: ParentProps) {
         cmd: () => {
           const current = store.stack.at(-1);
           current?.onClose?.();
+          // Escape only pops the active layer. Call `clear()` from dialog actions
+          // when the whole modal workflow should be dismissed.
           setStore("stack", store.stack.slice(0, -1));
         },
       },
@@ -106,6 +137,12 @@ export function DialogProvider(props: ParentProps) {
   );
 }
 
+/**
+ * Returns the active dialog controller.
+ *
+ * Use this inside components rendered below `DialogProvider` to open or close
+ * modal UI. Calling it outside the provider is a programmer error and throws.
+ */
 export function useDialog(): DialogContextValue {
   const value = useContext(DialogContext);
   if (!value) {

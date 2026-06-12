@@ -1,7 +1,11 @@
 import { RGBA } from "@opentui/core";
 
 /**
- * These were taken from our website CSS styles
+ * Raw WTC brand color palette copied from the website design system.
+ *
+ * Prefer using `tokens` for component styling so UI code depends on semantic
+ * roles instead of raw brand names. Reach for `palette` only when defining new
+ * semantic tokens.
  */
 export const palette = {
   // Brand core
@@ -51,6 +55,13 @@ export const palette = {
   yellow75: "#f7a836",
 } as const;
 
+/**
+ * Semantic TUI design tokens expressed as OpenTUI `RGBA` values.
+ *
+ * These tokens are the stable styling contract for components. Keeping them in
+ * one file makes it easier to evolve contrast, overlays, and focus states
+ * without touching every screen.
+ */
 export const tokens = {
   // Surfaces
   bg: RGBA.fromHex(palette.black),
@@ -89,4 +100,5 @@ export const tokens = {
   borderFocus: RGBA.fromHex(palette.teal75),
 } as const;
 
+/** Type helper for consumers that need the full token object shape. */
 export type Tokens = typeof tokens;

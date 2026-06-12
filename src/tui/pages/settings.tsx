@@ -1,6 +1,7 @@
 import { TextAttributes } from "@opentui/core";
 import { tokens } from "../tokens.ts";
 
+/** Placeholder route for configuration and setup workflows. */
 export function SettingsPage() {
   return (
     <box flexDirection="column" flexGrow={1} justifyContent="center" alignItems="center" gap={1}>
