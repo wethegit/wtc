@@ -1,5 +1,3 @@
-# wtc — AI Agent Instructions
-
 ## Overview
 
 `wtc` is a CLI/TUI tool for managing GitHub repos, AWS Amplify projects, and Teamwork tasks. Built with Bun + OpenTUI Solid.
@@ -62,7 +60,10 @@ bun run build        # Build standalone binary
 - [ ] `bun run lint` passes
 - [ ] `bun run check` passes (tsc)
 - [ ] `bun test` passes
+- [ ] `bun run build` passes
 - [ ] No `any` types, no default exports
+
+**NEVER** run the binary compiled files.
 
 ## Testing Philosophy
 

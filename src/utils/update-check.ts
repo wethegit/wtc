@@ -1,4 +1,5 @@
 import { APP_VERSION } from "../config/consts";
+import { getCacheDir } from "../state/consts.ts";
 
 /** How long a successful GitHub release lookup remains fresh. */
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -6,8 +7,7 @@ const REPO = "wethegit/wtc";
 
 /** Returns the update cache location, allowing tests to override the directory. */
 function getCachePaths(): { cacheDir: string; cachePath: string } {
-  const homeDir = Bun.env.HOME ?? process.env.HOME ?? ".";
-  const cacheDir = process.env.WTC_CACHE_DIR ?? `${homeDir}/.cache/wtc`;
+  const cacheDir = getCacheDir();
   return { cacheDir, cachePath: `${cacheDir}/update-check.json` };
 }
 

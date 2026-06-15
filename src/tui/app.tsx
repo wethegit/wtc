@@ -11,6 +11,7 @@ import { COMMAND_PALETTE_COMMAND, CommandPaletteDialog } from "./components/comm
 import { Dashboard } from "./pages/dashboard.tsx";
 import { GitHubPage } from "./pages/github.tsx";
 import { SettingsPage } from "./pages/settings.tsx";
+import { StateProvider, useTuiState } from "./components/state-provider.tsx";
 import { StatusBarProvider } from "./components/status-bar.tsx";
 import { tokens } from "./tokens.ts";
 
@@ -21,7 +22,13 @@ function Home() {
   const dialog = useDialog();
   const keymap = useKeymap();
   const renderer = useRenderer();
-  const [route, setRoute] = createSignal<Route>("home");
+  const { state, updateState } = useTuiState();
+  const [route, setRoute] = createSignal<Route>(state.lastRoute);
+
+  const navigate = (newRoute: Route) => {
+    setRoute(newRoute);
+    updateState({ lastRoute: newRoute });
+  };
 
   const quit = () => {
     renderer.destroy();
@@ -46,7 +53,7 @@ function Home() {
         desc: "Repository workflows",
         category: "Navigation",
         run: () => {
-          setRoute("github");
+          navigate("github");
           dialog.clear();
         },
       },
@@ -56,7 +63,7 @@ function Home() {
         desc: "Configuration and setup",
         category: "Navigation",
         run: () => {
-          setRoute("settings");
+          navigate("settings");
           dialog.clear();
         },
       },
@@ -156,7 +163,9 @@ function App() {
             { key: "ctrl+c", label: "quit" },
           ]}
         >
-          <Home />
+          <StateProvider dir={process.cwd()}>
+            <Home />
+          </StateProvider>
         </StatusBarProvider>
       </DialogProvider>
     </KeymapProvider>
