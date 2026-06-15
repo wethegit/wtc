@@ -9,6 +9,7 @@ import {
 } from "../../config/manager.ts";
 import type { ProjectConfig, ResolvedConfig, UserConfig } from "../../config/schema.ts";
 
+import { ActionButton } from "../components/forms/action-button.tsx";
 import { TextField } from "../components/forms/text-field.tsx";
 import { Page } from "../components/layout/page.tsx";
 import { Section } from "../components/layout/section.tsx";
@@ -21,6 +22,10 @@ export interface SettingsFormState {
   /** Project-level Teamwork ID as input text so invalid edits can be displayed. */
   teamworkProjectId: string;
 }
+
+const SETTINGS_FOCUS_ORDER = ["workspaceName", "teamworkProjectId", "save", "reload"] as const;
+
+type SettingsFocusTarget = (typeof SETTINGS_FOCUS_ORDER)[number];
 
 /** Field-level validation messages keyed by settings form field. */
 export type SettingsFormErrors = Partial<Record<keyof SettingsFormState, string>>;
@@ -62,6 +67,18 @@ export function buildSettingsFormState(config: ResolvedConfig): SettingsFormStat
     workspaceName: config.user.workspaceName,
     teamworkProjectId: config.project?.teamworkProjectId?.toString() ?? "",
   };
+}
+
+/** Returns the next focusable Settings control, wrapping at either end. */
+export function getNextSettingsFocus(
+  current: SettingsFocusTarget,
+  direction: 1 | -1,
+): SettingsFocusTarget {
+  const currentIndex = SETTINGS_FOCUS_ORDER.indexOf(current);
+  const nextIndex =
+    (currentIndex + direction + SETTINGS_FOCUS_ORDER.length) % SETTINGS_FOCUS_ORDER.length;
+
+  return SETTINGS_FOCUS_ORDER[nextIndex] ?? SETTINGS_FOCUS_ORDER[0];
 }
 
 /** Returns the current validation error for settings form state, if any. */
@@ -108,6 +125,7 @@ export function SettingsPage() {
   });
   const [message, setMessage] = createSignal("Loading settings...");
   const [isSaving, setIsSaving] = createSignal(false);
+  const [focusedTarget, setFocusedTarget] = createSignal<SettingsFocusTarget>("workspaceName");
   const errors = createMemo(() => validateSettingsForm(form()));
   const error = createMemo(() => Object.values(errors())[0] ?? null);
   const hasUnsavedChanges = createMemo(() => {
@@ -128,6 +146,7 @@ export function SettingsPage() {
       setResolved(config);
       setSavedForm(nextForm);
       setForm(nextForm);
+      setFocusedTarget("workspaceName");
       setMessage("Settings loaded.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Failed to load settings.");
@@ -157,8 +176,57 @@ export function SettingsPage() {
     }
   };
 
+  const pressFocusedAction = () => {
+    if (focusedTarget() === "save") {
+      void save();
+      return;
+    }
+
+    if (focusedTarget() === "reload") {
+      void reload();
+    }
+  };
+
   useBindings(() => ({
     bindings: [
+      {
+        key: "tab",
+        desc: "Next settings field",
+        group: "Settings",
+        cmd: () => {
+          setFocusedTarget((target) => getNextSettingsFocus(target, 1));
+        },
+      },
+      {
+        key: "shift+tab",
+        desc: "Previous settings field",
+        group: "Settings",
+        cmd: () => {
+          setFocusedTarget((target) => getNextSettingsFocus(target, -1));
+        },
+      },
+      {
+        key: "down",
+        desc: "Next settings field",
+        group: "Settings",
+        cmd: () => {
+          setFocusedTarget((target) => getNextSettingsFocus(target, 1));
+        },
+      },
+      {
+        key: "up",
+        desc: "Previous settings field",
+        group: "Settings",
+        cmd: () => {
+          setFocusedTarget((target) => getNextSettingsFocus(target, -1));
+        },
+      },
+      {
+        key: "return",
+        desc: "Press focused settings action",
+        group: "Settings",
+        cmd: pressFocusedAction,
+      },
       {
         key: "ctrl+s",
         desc: "Save settings",
@@ -172,7 +240,7 @@ export function SettingsPage() {
         cmd: save,
       },
       {
-        key: "r",
+        key: "ctrl+r",
         desc: "Reload settings",
         group: "Settings",
         cmd: reload,
@@ -187,12 +255,12 @@ export function SettingsPage() {
   return (
     <Page
       title="Settings"
-      titleColor={tokens.warning}
       status={
         <text fg={hasUnsavedChanges() ? tokens.warning : tokens.textDim}>
           {hasUnsavedChanges() ? "unsaved changes" : "saved"}
         </text>
       }
+      message={<text fg={error() ? tokens.danger : tokens.textDim}>{message()}</text>}
     >
       {resolved() && (
         <box flexDirection="column" gap={1}>
@@ -203,6 +271,7 @@ export function SettingsPage() {
               value={form().workspaceName}
               placeholder="Workspace name"
               description="User-level placeholder while broader settings are designed."
+              focused={focusedTarget() === "workspaceName"}
               onInput={(value) => {
                 setForm((current) => ({ ...current, workspaceName: value }));
               }}
@@ -225,6 +294,7 @@ export function SettingsPage() {
               placeholder="12345"
               description="Leave blank until this repo is linked to Teamwork."
               error={errors().teamworkProjectId}
+              focused={focusedTarget() === "teamworkProjectId"}
               onInput={(value) => {
                 setForm((current) => ({ ...current, teamworkProjectId: value }));
               }}
@@ -233,16 +303,21 @@ export function SettingsPage() {
         </box>
       )}
 
-      <box flexDirection="row" gap={1}>
-        <box paddingX={2} backgroundColor={tokens.accent} onMouseUp={() => void save()}>
-          <text fg={tokens.textInverse}>{isSaving() ? "saving" : "save"}</text>
-        </box>
-        <box paddingX={2} backgroundColor={tokens.surfaceOverlay} onMouseUp={() => void reload()}>
-          <text fg={tokens.text}>reload</text>
-        </box>
+      <box flexDirection="row" gap={1} paddingTop={1} paddingBottom={1}>
+        <ActionButton
+          name="save-settings"
+          label={isSaving() ? "saving" : "save"}
+          variant="primary"
+          focused={focusedTarget() === "save"}
+          onPress={() => void save()}
+        />
+        <ActionButton
+          name="reload-settings"
+          label="reload"
+          focused={focusedTarget() === "reload"}
+          onPress={() => void reload()}
+        />
       </box>
-
-      <text fg={tokens.textDim}>{message()}</text>
     </Page>
   );
 }
