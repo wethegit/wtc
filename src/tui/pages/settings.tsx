@@ -1,5 +1,4 @@
 import { createMemo, createSignal, onMount } from "solid-js";
-import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 
 import {
@@ -10,6 +9,9 @@ import {
 } from "../../config/manager.ts";
 import type { ProjectConfig, ResolvedConfig, UserConfig } from "../../config/schema.ts";
 
+import { TextField } from "../components/forms/text-field.tsx";
+import { Page } from "../components/layout/page.tsx";
+import { Section } from "../components/layout/section.tsx";
 import { tokens } from "../tokens.ts";
 
 /** Editable Settings page form state. */
@@ -19,6 +21,30 @@ export interface SettingsFormState {
   /** Project-level Teamwork ID as input text so invalid edits can be displayed. */
   teamworkProjectId: string;
 }
+
+/** Field-level validation messages keyed by settings form field. */
+export type SettingsFormErrors = Partial<Record<keyof SettingsFormState, string>>;
+
+type SettingsFieldValidator = {
+  field: keyof SettingsFormState;
+  validate: (state: SettingsFormState) => string | null;
+};
+
+const settingsFieldValidators = [
+  {
+    field: "teamworkProjectId",
+    validate(state) {
+      if (
+        state.teamworkProjectId.trim() &&
+        parseTeamworkProjectId(state.teamworkProjectId) === null
+      ) {
+        return "Teamwork project ID must be a positive integer.";
+      }
+
+      return null;
+    },
+  },
+] satisfies readonly SettingsFieldValidator[];
 
 /** Converts a Teamwork project ID input value into persisted config shape. */
 export function parseTeamworkProjectId(value: string): number | null {
@@ -40,11 +66,19 @@ export function buildSettingsFormState(config: ResolvedConfig): SettingsFormStat
 
 /** Returns the current validation error for settings form state, if any. */
 export function getSettingsFormError(state: SettingsFormState): string | null {
-  if (state.teamworkProjectId.trim() && parseTeamworkProjectId(state.teamworkProjectId) === null) {
-    return "Teamwork project ID must be a positive integer.";
+  return Object.values(validateSettingsForm(state))[0] ?? null;
+}
+
+/** Validates every Settings field and returns errors keyed by field name. */
+export function validateSettingsForm(state: SettingsFormState): SettingsFormErrors {
+  const errors: SettingsFormErrors = {};
+
+  for (const validator of settingsFieldValidators) {
+    const message = validator.validate(state);
+    if (message) errors[validator.field] = message;
   }
 
-  return null;
+  return errors;
 }
 
 /** Converts editable form state back into user and project config objects. */
@@ -74,7 +108,8 @@ export function SettingsPage() {
   });
   const [message, setMessage] = createSignal("Loading settings...");
   const [isSaving, setIsSaving] = createSignal(false);
-  const error = createMemo(() => getSettingsFormError(form()));
+  const errors = createMemo(() => validateSettingsForm(form()));
+  const error = createMemo(() => Object.values(errors())[0] ?? null);
   const hasUnsavedChanges = createMemo(() => {
     const saved = savedForm();
     if (!saved) return false;
@@ -150,63 +185,53 @@ export function SettingsPage() {
   });
 
   return (
-    <box flexDirection="column" flexGrow={1} padding={2} gap={1}>
-      <box flexDirection="row" justifyContent="space-between">
-        <text attributes={TextAttributes.BOLD} fg={tokens.warning}>
-          Settings
-        </text>
+    <Page
+      title="Settings"
+      titleColor={tokens.warning}
+      status={
         <text fg={hasUnsavedChanges() ? tokens.warning : tokens.textDim}>
           {hasUnsavedChanges() ? "unsaved changes" : "saved"}
         </text>
-      </box>
-
+      }
+    >
       {resolved() && (
         <box flexDirection="column" gap={1}>
-          <box flexDirection="column" gap={0}>
-            <text attributes={TextAttributes.BOLD} fg={tokens.accent}>
-              User config
-            </text>
-            <text fg={tokens.textDim}>{resolved()?.paths.userConfigPath}</text>
-            <box flexDirection="row" gap={1}>
-              <text fg={tokens.text}>workspaceName</text>
-              <input
-                width={30}
-                value={form().workspaceName}
-                placeholder="Workspace name"
-                onInput={(value: string) => {
-                  setForm((current) => ({ ...current, workspaceName: value }));
-                }}
-              />
-            </box>
-          </box>
+          <Section title="User config" description={resolved()?.paths.userConfigPath}>
+            <TextField
+              name="workspaceName"
+              label="workspaceName"
+              value={form().workspaceName}
+              placeholder="Workspace name"
+              description="User-level placeholder while broader settings are designed."
+              onInput={(value) => {
+                setForm((current) => ({ ...current, workspaceName: value }));
+              }}
+            />
+          </Section>
 
-          <box flexDirection="column" gap={0}>
-            <text attributes={TextAttributes.BOLD} fg={tokens.accent}>
-              Project config
-            </text>
-            <text fg={tokens.textDim}>
-              {resolved()?.paths.projectConfigPath ??
-                ".wtc.json will be created in this directory on save"}
-            </text>
-            <text fg={tokens.textDim}>
-              Search start: {resolved()?.paths.projectConfigSearchStart}
-            </text>
-            <box flexDirection="row" gap={1}>
-              <text fg={tokens.text}>teamworkProjectId</text>
-              <input
-                width={18}
-                value={form().teamworkProjectId}
-                placeholder="12345"
-                onInput={(value: string) => {
-                  setForm((current) => ({ ...current, teamworkProjectId: value }));
-                }}
-              />
-            </box>
-          </box>
+          <Section
+            title="Project config"
+            description={[
+              resolved()?.paths.projectConfigPath ??
+                ".wtc.json will be created in this directory on save",
+              `Search start: ${resolved()?.paths.projectConfigSearchStart ?? ""}`,
+            ]}
+          >
+            <TextField
+              name="teamworkProjectId"
+              label="teamworkProjectId"
+              value={form().teamworkProjectId}
+              width={18}
+              placeholder="12345"
+              description="Leave blank until this repo is linked to Teamwork."
+              error={errors().teamworkProjectId}
+              onInput={(value) => {
+                setForm((current) => ({ ...current, teamworkProjectId: value }));
+              }}
+            />
+          </Section>
         </box>
       )}
-
-      {error() && <text fg={tokens.danger}>{error()}</text>}
 
       <box flexDirection="row" gap={1}>
         <box paddingX={2} backgroundColor={tokens.accent} onMouseUp={() => void save()}>
@@ -218,6 +243,6 @@ export function SettingsPage() {
       </box>
 
       <text fg={tokens.textDim}>{message()}</text>
-    </box>
+    </Page>
   );
 }
