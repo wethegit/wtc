@@ -31,6 +31,9 @@ Before making changes, read these files for context:
 
 Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 
+- Always check-in with user first before making the commit so they can check diff and ask for changes
+- Make small commits so it's easy to see progress and revert changes
+
 ### TypeScript
 
 - strict mode, no `any`, no `as` casts where avoidable
