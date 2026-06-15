@@ -12,9 +12,22 @@ import { Dashboard } from "./pages/dashboard.tsx";
 import { GitHubPage } from "./pages/github.tsx";
 import { SettingsPage } from "./pages/settings.tsx";
 import { StatusBar } from "./components/status-bar.tsx";
+import type { StatusBarHint } from "./components/status-bar.tsx";
 import { tokens } from "./tokens.ts";
 
 type Route = "home" | "github" | "settings";
+
+const DEFAULT_STATUS_HINTS: StatusBarHint[] = [
+  { key: "ctrl/cmd+p", label: "commands" },
+  { key: "q", label: "quit" },
+];
+
+const SETTINGS_STATUS_HINTS: StatusBarHint[] = [
+  { key: "ctrl/cmd+p", label: "commands" },
+  { key: "ctrl+s", label: "save" },
+  { key: "r", label: "reload" },
+  { key: "q", label: "quit" },
+];
 
 /** Main TUI screen controller rendered inside the app providers. */
 function Home() {
@@ -22,6 +35,7 @@ function Home() {
   const keymap = useKeymap();
   const renderer = useRenderer();
   const [route, setRoute] = createSignal<Route>("home");
+  const statusHints = () => (route() === "settings" ? SETTINGS_STATUS_HINTS : DEFAULT_STATUS_HINTS);
 
   const quit = () => {
     renderer.destroy();
@@ -137,7 +151,7 @@ function Home() {
       ) : (
         <Dashboard />
       )}
-      <StatusBar />
+      <StatusBar hints={statusHints()} />
     </box>
   );
 }
