@@ -1,7 +1,7 @@
 import { JSON5 } from "bun";
-import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
+import { getUserConfigDir } from "./consts.ts";
 import {
   PROJECT_CONFIG_VERSION,
   ProjectConfigSchema,
@@ -35,10 +35,6 @@ async function readJson(path: string): Promise<unknown> {
 
 async function writeJson(path: string, data: unknown): Promise<void> {
   await Bun.write(path, `${JSON5.stringify(data, null, 2)}\n`);
-}
-
-function getUserConfigDir(): string {
-  return process.env.WTC_CONFIG_DIR ?? join(homedir(), ".config", "wtc");
 }
 
 /** Returns the absolute path to the user-level WTC config file. */
