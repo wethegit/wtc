@@ -253,8 +253,6 @@ export function SettingsPage() {
   onMount(() => {
     void reload();
     setHints([
-      { key: "tab/↑↓", label: "controls" },
-      { key: "enter", label: "press" },
       { key: "ctrl+s", label: "save" },
       { key: "ctrl+r", label: "reload" },
     ]);
