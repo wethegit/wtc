@@ -5,6 +5,7 @@ import {
   buildSettingsFormState,
   getSettingsFormError,
   parseTeamworkProjectId,
+  validateSettingsForm,
 } from "../../src/tui/pages/settings.tsx";
 import type { ResolvedConfig } from "../../src/config/schema.ts";
 
@@ -46,6 +47,10 @@ describe("settings page helpers", () => {
   });
 
   test("validates invalid teamwork project id text", () => {
+    expect(validateSettingsForm({ workspaceName: "WTC", teamworkProjectId: "abc" })).toEqual({
+      teamworkProjectId: "Teamwork project ID must be a positive integer.",
+    });
+    expect(validateSettingsForm({ workspaceName: "WTC", teamworkProjectId: "" })).toEqual({});
     expect(getSettingsFormError({ workspaceName: "WTC", teamworkProjectId: "abc" })).toBe(
       "Teamwork project ID must be a positive integer.",
     );
