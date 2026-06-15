@@ -24,14 +24,26 @@ function descriptions(value: SectionProps["description"]): readonly string[] {
  */
 export function Section(props: SectionProps) {
   return (
-    <box flexDirection="column" gap={0}>
-      <text attributes={TextAttributes.BOLD} fg={tokens.accent}>
-        {props.title}
-      </text>
-      {descriptions(props.description).map((description) => (
-        <text fg={tokens.textDim}>{description}</text>
-      ))}
-      {props.children}
+    <box
+      flexDirection="row"
+      gap={1}
+      backgroundColor={tokens.surfaceOverlay}
+      border={["left"]}
+      borderColor={tokens.accentSoft}
+    >
+      <box flexDirection="column" gap={1} padding={1}>
+        <box flexDirection="column" gap={0}>
+          <text attributes={TextAttributes.BOLD} fg={tokens.text}>
+            {props.title}
+          </text>
+          {descriptions(props.description).map((description) => (
+            <text fg={tokens.textDim}>{description}</text>
+          ))}
+        </box>
+        <box flexDirection="column" paddingLeft={1}>
+          {props.children}
+        </box>
+      </box>
     </box>
   );
 }

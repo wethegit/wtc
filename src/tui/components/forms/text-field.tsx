@@ -1,3 +1,6 @@
+import { createEffect } from "solid-js";
+import type { InputRenderable } from "@opentui/core";
+
 import { tokens } from "../../tokens.ts";
 
 /** Props for the standard single-line TUI text field. */
@@ -16,6 +19,8 @@ export interface TextFieldProps {
   description?: string;
   /** Validation error shown below the input row. */
   error?: string | null;
+  /** Whether this field should receive keyboard focus. */
+  focused?: boolean;
   /** Called whenever OpenTUI reports input text changes. */
   onInput: (value: string) => void;
 }
@@ -28,22 +33,44 @@ export interface TextFieldProps {
  * Solid TUI design system.
  */
 export function TextField(props: TextFieldProps) {
+  let input: InputRenderable | undefined;
+
+  createEffect(() => {
+    if (!props.focused || !input || input.isDestroyed) return;
+
+    setTimeout(() => {
+      if (!input || input.isDestroyed) return;
+      input.focus();
+    }, 1);
+  });
+
   return (
     <box flexDirection="column" gap={0}>
       <box flexDirection="row" gap={1}>
+        <box width={1}>
+          <text fg={props.focused ? tokens.accent : tokens.textDim}>
+            {props.focused ? ">" : " "}
+          </text>
+        </box>
         <box width={20}>
-          <text fg={tokens.text}>{props.label}</text>
+          <text fg={props.focused ? tokens.accent : tokens.textDim}>{props.label}</text>
         </box>
         <input
           id={props.name}
+          ref={(renderable) => {
+            input = renderable;
+          }}
+          focused={props.focused}
           width={props.width ?? 30}
           value={props.value}
           placeholder={props.placeholder ?? ""}
           onInput={props.onInput}
         />
       </box>
-      {props.description && <text fg={tokens.textDim}>{props.description}</text>}
-      {props.error && <text fg={tokens.danger}>{props.error}</text>}
+      <box flexDirection="column" paddingLeft={23}>
+        {props.description && <text fg={tokens.textDim}>{props.description}</text>}
+        {props.error && <text fg={tokens.danger}>{props.error}</text>}
+      </box>
     </box>
   );
 }

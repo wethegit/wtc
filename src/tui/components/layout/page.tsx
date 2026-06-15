@@ -10,6 +10,8 @@ export interface PageProps extends ParentProps {
   title: string;
   /** Optional right-aligned header content, such as saved/dirty status. */
   status?: JSX.Element;
+  /** Optional status or feedback message shown directly below the header. */
+  message?: JSX.Element;
   /** Optional title color override. */
   titleColor?: RGBA;
 }
@@ -22,14 +24,15 @@ export interface PageProps extends ParentProps {
  */
 export function Page(props: PageProps) {
   return (
-    <box flexDirection="column" flexGrow={1} padding={2} gap={1}>
+    <box flexDirection="column" flexGrow={1} paddingX={2} paddingY={1} gap={1}>
       <box flexDirection="row" justifyContent="space-between">
         <text attributes={TextAttributes.BOLD} fg={props.titleColor ?? tokens.text}>
           {props.title}
         </text>
         {props.status}
       </box>
-      {props.children}
+      {props.message}
+      <scrollbox flexGrow={1}>{props.children}</scrollbox>
     </box>
   );
 }
