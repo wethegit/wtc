@@ -1,8 +1,7 @@
 # Phase 2 — Solid.js TUI Refactor
 
-## Status
+**Status: ✅ Completed**
 
-- **Started**: —
 - **Branch**: `feature/solid-js-integration` (suggested)
 - **TUI Stack**: `@opentui/solid` + `solid-js` + `@opentui/keymap`
 

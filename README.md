@@ -35,14 +35,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup instructions.
 ## Project Status
 
 - ✅ **Phase 1 (MVP):** Hello World dashboard with tooling, CI/CD, and distribution
-- **Phase 2:** Incorporate SolidJS
+- ✅ **Phase 2:** Incorporate SolidJS
 - **Phase 3:** GitHub repo creation
 - **Phase 4:** AWS Amplify project bootstrapping
 - **Phase 5:** Teamwork API integration
 - **Phase 6:** Full TUI dashboard with navigation
 - **Phase 7:** Distribution polish
 
-See [plans/PLAN.md](plans/PLAN.md) and [plans/MVP.md](plans/MVP.md) for the full roadmap.
+See [plans/PLAN.md](plans/PLAN.md) for the full roadmap.
 
 ## License
 
