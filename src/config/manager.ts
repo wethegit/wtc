@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { JSON5 } from "bun";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
@@ -26,21 +26,15 @@ const defaultProjectConfig: ProjectConfig = {
 };
 
 async function pathExists(path: string): Promise<boolean> {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
+  return Bun.file(path).exists();
 }
 
 async function readJson(path: string): Promise<unknown> {
-  return JSON.parse(await readFile(path, "utf-8"));
+  return JSON5.parse(await Bun.file(path).text());
 }
 
 async function writeJson(path: string, data: unknown): Promise<void> {
-  await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, `${JSON.stringify(data, null, 2)}\n`, "utf-8");
+  await Bun.write(path, `${JSON5.stringify(data, null, 2)}\n`);
 }
 
 function getUserConfigDir(): string {
