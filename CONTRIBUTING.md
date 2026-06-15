@@ -162,3 +162,13 @@ Maintainers create releases by merging the Changesets version PR. Tag creation, 
 ## Before Committing
 
 Pre-commit hooks will automatically run linting and formatting on staged files.
+
+## Development Notes
+
+### Solid JSX at dev time
+
+`bun run dev` uses `--preload=@opentui/solid/preload` to register a Bun runtime plugin that transforms Solid JSX on-the-fly. Do **not** move this preload to `bunfig.toml` — compiled binaries also read that config and crash because `@opentui/solid/preload` calls `registerBunPlugin()`, a Bun runtime API unavailable in standalone executables.
+
+### `--watch` is broken in Bun 1.3.x
+
+The `--watch` (and `--hot`) flags do not restart the process on file changes in this Bun release. This is a known Bun bug, not caused by the preload. Manual restart is required until a fix lands.
