@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** MVP complete — Phase 2 active
+- **Status:** MVP complete — Phase 2 complete — Phase 3 planned
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js
@@ -193,15 +193,19 @@ See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, 
 - Remove all `findDescendantById` patterns
 - Update test setup to cover logic only, not TUI rendering
 
-### Phase 3 - Config
+### Phase 3 — Config Setup
 
-- `wtc settings` command prints the parsed config with a path to the config files it read to build the final config
-- Create settings page for TUI
-- Settings page show project level settings from `.wtc.json` in the current directory the CLI was run on
-- Settings page show user level settings from `~/.config/wtc/wtc.json`
-- Edit settings in settings page
-- Only one field in user level settings for now which is a placeholder so we can test the set up
-- Only one field in project level settings for now which is the teamwork project ID
+See `CONFIG_SETUP.md` for the detailed implementation plan, config versioning model, CLI/TUI behavior, testing boundaries, and migration notes.
+
+- Add user-level config at `~/.config/wtc/wtc.json`
+- Add nearest-ancestor project config discovery for `.wtc.json`
+- Add layered config loading that returns both resolved config values and the paths used to build them
+- Add `wtc settings` command that prints config paths and resolved config JSON
+- Replace the placeholder Settings TUI page with an editable config page
+- Use explicit save for TUI edits; do not persist every keystroke
+- Start with one user-level field: `workspaceName`
+- Start with one project-level field: `teamworkProjectId`
+- Treat config `version` as a file format version, not the WTC application version
 
 ### Phase 4 — GitHub Repo Creation
 
