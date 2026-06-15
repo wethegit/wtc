@@ -83,6 +83,17 @@ See `CONFIG_SETUP.md` for the detailed implementation plan, config versioning mo
 - Start with one project-level field: `teamworkProjectId`
 - Treat config `version` as a file format version, not the WTC application version
 
+### Phase 3.5 — Persistent TUI State & Cache 🔨
+
+See `STATE_MANAGER.md` for the detailed implementation plan, schema, manager API, TUI integration, CLI command, and testing boundaries.
+
+- Add per-directory TUI state persistence (remember last route)
+- Cache directory at `~/.config/wtc/cache/` (deletable at will)
+- `wtc cache clean` CLI command to wipe all runtime data
+- Consolidate update-check cache into the shared cache directory
+- Solid `StateProvider` context for TUI components
+- Pure tests for schema and manager logic
+
 ### Phase 4 — GitHub Repo Creation
 
 #### Phase 4.1 - GitHub Repo Creation
