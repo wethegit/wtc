@@ -19,14 +19,16 @@ type Route = "home" | "github" | "settings";
 
 const DEFAULT_STATUS_HINTS: StatusBarHint[] = [
   { key: "ctrl/cmd+p", label: "commands" },
-  { key: "q", label: "quit" },
+  { key: "ctrl+c", label: "quit" },
 ];
 
 const SETTINGS_STATUS_HINTS: StatusBarHint[] = [
   { key: "ctrl/cmd+p", label: "commands" },
+  { key: "tab/↑↓", label: "controls" },
+  { key: "enter", label: "press" },
   { key: "ctrl+s", label: "save" },
-  { key: "r", label: "reload" },
-  { key: "q", label: "quit" },
+  { key: "ctrl+r", label: "reload" },
+  { key: "ctrl+c", label: "quit" },
 ];
 
 /** Main TUI screen controller rendered inside the app providers. */
@@ -98,12 +100,6 @@ function Home() {
         desc: "Command palette",
         group: "Global",
         cmd: COMMAND_PALETTE_COMMAND,
-      },
-      {
-        key: "q",
-        desc: "Quit",
-        group: "Global",
-        cmd: quit,
       },
       {
         key: "ctrl+c",

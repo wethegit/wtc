@@ -4,6 +4,7 @@ import {
   applySettingsFormState,
   buildSettingsFormState,
   getSettingsFormError,
+  getNextSettingsFocus,
   parseTeamworkProjectId,
   validateSettingsForm,
 } from "../../src/tui/pages/settings.tsx";
@@ -44,6 +45,14 @@ describe("settings page helpers", () => {
       workspaceName: "WTC",
       teamworkProjectId: "",
     });
+  });
+
+  test("cycles settings control focus", () => {
+    expect(getNextSettingsFocus("workspaceName", 1)).toBe("teamworkProjectId");
+    expect(getNextSettingsFocus("teamworkProjectId", 1)).toBe("save");
+    expect(getNextSettingsFocus("save", 1)).toBe("reload");
+    expect(getNextSettingsFocus("reload", 1)).toBe("workspaceName");
+    expect(getNextSettingsFocus("workspaceName", -1)).toBe("reload");
   });
 
   test("validates invalid teamwork project id text", () => {
