@@ -1,106 +1,138 @@
-/**
- *
- *
- *
- * Work in progress
- * This will manage TUI config
- *
- */
-import { mkdir, writeFile, readFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join } from "node:path";
-import { ConfigSchema } from "./schema.ts";
-import type { Config } from "./schema.ts";
-import { encrypt, decrypt } from "./crypto.ts";
-import type { EncryptedPayload } from "./crypto.ts";
+import { dirname, join, resolve } from "node:path";
 
-const CONFIG_DIR = join(homedir(), ".config", "wtc");
-const CONFIG_PATH = join(CONFIG_DIR, "config.json");
+import {
+  PROJECT_CONFIG_VERSION,
+  ProjectConfigSchema,
+  USER_CONFIG_VERSION,
+  UserConfigSchema,
+  type ProjectConfig,
+  type ResolvedConfig,
+  type UserConfig,
+} from "./schema.ts";
 
-/** Default config written on first run. */
-const defaultConfig: Config = {
-  version: 1,
-  encrypted: {
-    salt: "",
-    iv: "",
-    authTag: "",
-    data: "",
-  },
-  plain: {
-    aws: { profile: "default" },
-    github: { org: "" },
-    teamwork: { domain: "" },
-  },
+const USER_CONFIG_FILE = "wtc.json";
+const PROJECT_CONFIG_FILE = ".wtc.json";
+
+const defaultUserConfig: UserConfig = {
+  version: USER_CONFIG_VERSION,
+  workspaceName: "",
 };
 
-/** Decrypted secret values stored in the encrypted config payload. */
-export interface DecryptedSecrets {
-  /** GitHub personal access token or compatible API token. */
-  github?: { token: string };
-  /** Teamwork API key. */
-  teamwork?: { apiKey: string };
-}
+const defaultProjectConfig: ProjectConfig = {
+  version: PROJECT_CONFIG_VERSION,
+  teamworkProjectId: null,
+};
 
-/**
- * Ensures the WTC config directory and config file exist.
- *
- * This is safe to call before every read/write operation because it only creates
- * missing filesystem entries.
- */
-export async function initConfig(): Promise<void> {
-  if (!existsSync(CONFIG_DIR)) {
-    await mkdir(CONFIG_DIR, { recursive: true });
-  }
-
-  if (!existsSync(CONFIG_PATH)) {
-    await writeFile(CONFIG_PATH, JSON.stringify(defaultConfig, null, 2), "utf-8");
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
   }
 }
 
-/** Loads and validates the persisted WTC config file. */
-export async function loadConfig(): Promise<Config> {
-  await initConfig();
-
-  const raw = await readFile(CONFIG_PATH, "utf-8");
-  const parsed = JSON.parse(raw);
-
-  return ConfigSchema.parse(parsed);
+async function readJson(path: string): Promise<unknown> {
+  return JSON.parse(await readFile(path, "utf-8"));
 }
 
-/** Writes a validated config object to disk. */
-export async function saveConfig(config: Config): Promise<void> {
-  await initConfig();
-  await writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), "utf-8");
+async function writeJson(path: string, data: unknown): Promise<void> {
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, `${JSON.stringify(data, null, 2)}\n`, "utf-8");
 }
 
-/**
- * Encrypts and saves secret values into the config file.
- *
- * Non-secret `plain` config is preserved. The caller owns password collection;
- * this module only receives the password long enough to derive an encryption key.
- */
-export async function saveSecrets(decrypted: DecryptedSecrets, password: string): Promise<void> {
-  const config = await loadConfig();
-  const encryptedPayload: EncryptedPayload = encrypt(JSON.stringify(decrypted), password);
+function getUserConfigDir(): string {
+  return process.env.WTC_CONFIG_DIR ?? join(homedir(), ".config", "wtc");
+}
 
-  config.encrypted = encryptedPayload;
-  await saveConfig(config);
+/** Returns the absolute path to the user-level WTC config file. */
+export function getUserConfigPath(): string {
+  return join(getUserConfigDir(), USER_CONFIG_FILE);
 }
 
 /**
- * Loads and decrypts saved secret values.
+ * Finds the nearest project config by walking upward from `startDir`.
  *
- * Returns `null` when no encrypted payload has been saved yet. Throws if a
- * payload exists but cannot be decrypted with the provided password.
+ * This mirrors tools like Git: nested directories inherit the closest parent
+ * `.wtc.json`, and discovery stops at the filesystem root.
  */
-export async function loadSecrets(password: string): Promise<DecryptedSecrets | null> {
-  const config = await loadConfig();
+export async function getProjectConfigPath(startDir: string): Promise<string | null> {
+  let current = resolve(startDir);
 
-  if (!config.encrypted.salt) {
-    return null;
+  while (true) {
+    const candidate = join(current, PROJECT_CONFIG_FILE);
+    if (await pathExists(candidate)) return candidate;
+
+    const parent = dirname(current);
+    if (parent === current) return null;
+    current = parent;
   }
+}
 
-  const decrypted = decrypt(config.encrypted, password);
-  return JSON.parse(decrypted) as DecryptedSecrets;
+/** Ensures the user config file exists with Phase 3 defaults. */
+export async function initUserConfig(): Promise<void> {
+  const path = getUserConfigPath();
+  if (!(await pathExists(path))) {
+    await writeJson(path, defaultUserConfig);
+  }
+}
+
+/** Loads and validates the user-level config file. */
+export async function loadUserConfig(): Promise<UserConfig> {
+  await initUserConfig();
+  return UserConfigSchema.parse(await readJson(getUserConfigPath()));
+}
+
+/** Validates and saves the user-level config file. */
+export async function saveUserConfig(config: UserConfig): Promise<void> {
+  await writeJson(getUserConfigPath(), UserConfigSchema.parse(config));
+}
+
+/** Loads the nearest project config, or null when no `.wtc.json` exists. */
+export async function loadProjectConfig(startDir: string): Promise<ProjectConfig | null> {
+  const path = await getProjectConfigPath(startDir);
+  if (!path) return null;
+
+  return ProjectConfigSchema.parse(await readJson(path));
+}
+
+/**
+ * Saves project config to the nearest discovered `.wtc.json`.
+ *
+ * If discovery finds no project config, the file is created in `startDir`. The
+ * written path is returned so CLI/TUI callers can show users where changes went.
+ */
+export async function saveProjectConfig(config: ProjectConfig, startDir: string): Promise<string> {
+  const path =
+    (await getProjectConfigPath(startDir)) ?? join(resolve(startDir), PROJECT_CONFIG_FILE);
+  await writeJson(path, ProjectConfigSchema.parse(config));
+  return path;
+}
+
+/**
+ * Loads user config, nearest project config, and all paths used for resolution.
+ */
+export async function loadResolvedConfig(startDir: string): Promise<ResolvedConfig> {
+  const searchStart = resolve(startDir);
+  const userConfigPath = getUserConfigPath();
+  const projectConfigPath = await getProjectConfigPath(searchStart);
+
+  return {
+    user: await loadUserConfig(),
+    project: projectConfigPath
+      ? ProjectConfigSchema.parse(await readJson(projectConfigPath))
+      : null,
+    paths: {
+      userConfigPath,
+      projectConfigPath,
+      projectConfigSearchStart: searchStart,
+    },
+  };
+}
+
+/** Default project config used when callers need to create a new `.wtc.json`. */
+export function createDefaultProjectConfig(): ProjectConfig {
+  return { ...defaultProjectConfig };
 }
