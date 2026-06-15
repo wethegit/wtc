@@ -1,5 +1,6 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import { settings } from "./commands/settings.ts";
 import { upgrade } from "./commands/upgrade.ts";
 import { APP_VERSION } from "../config/consts.ts";
 
@@ -17,6 +18,14 @@ export async function runCli(): Promise<void> {
     .scriptName("wtc")
     .version(currentVersion)
     .help()
+    .command(
+      "settings",
+      "Print resolved config and config file paths",
+      (yargs) => yargs,
+      async () => {
+        await settings();
+      },
+    )
     .command(
       "upgrade",
       "Check for updates",
