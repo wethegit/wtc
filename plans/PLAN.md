@@ -174,7 +174,7 @@ Decrypted `data` contains:
 
 See `MVP.md` for detailed deliverables.
 
-### Phase 2 — TUI Refactor to Solid.js
+### Phase 2 — TUI Refactor to Solid.js ✅
 
 See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, design tokens, dialog/status bar/command palette architecture, testing boundaries, and migration sequence.
 
@@ -193,16 +193,32 @@ See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, 
 - Remove all `findDescendantById` patterns
 - Update test setup to cover logic only, not TUI rendering
 
-### Phase 3 — GitHub Repo Creation
+### Phase 3 - Config
 
+- `wtc settings` command prints the parsed config with a path to the config files it read to build the final config
+- Create settings page for TUI
+- Settings page show project level settings from `.wtc.json` in the current directory the CLI was run on
+- Settings page show user level settings from `~/.config/wtc/wtc.json`
+- Edit settings in settings page
+- Only one field in user level settings for now which is a placeholder so we can test the set up
+- Only one field in project level settings for now which is the teamwork project ID
+
+### Phase 4 — GitHub Repo Creation
+
+#### Phase 4.1 - GitHub Repo Creation
+
+- Integration of the Github SDK/API
 - `wtc repo create` command + TUI form
 - Fetch org templates via GitHub API
 - Create repo from template (source files only; settings like branch protection are NOT copied)
+
+#### Phase 4.2 - Advanced Repo Setup
+
 - Set up branch protection via GitHub API after creation
 - Optionally clone locally
 - Link repo to Teamwork project (writes `.wtc.json`)
 
-### Phase 4 — AWS Amplify Hosting
+### Phase 5 — AWS Amplify Hosting
 
 - `wtc amplify create` command + TUI form
 - Use @aws-sdk/client-amplify to create Amplify app
@@ -212,7 +228,7 @@ See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, 
 - Profile-based auth from ~/.aws/credentials
 - Full Terraform-backed config (details TBD)
 
-### Phase 5 — Teamwork Integration
+### Phase 6 — Teamwork Integration
 
 - Task ↔ PR linking by parsing branch names (`(feature|fix|chore)/TASK-XXXXX`)
 - `wtc teamwork timer start|stop|pause`
@@ -222,7 +238,7 @@ See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, 
 - Notification popup on timer events
 - Project↔Repo mapping in local config + per-repo `.wtc.json`
 
-### Phase 6 — TUI Dashboard & Settings
+### Phase 7 — TUI Dashboard & Settings
 
 - Sidebar navigation between GitHub, Amplify, Teamwork, Settings
 - Timer overview page
@@ -230,7 +246,7 @@ See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, 
 - Configuration layer with encrypted secrets
 - Status bar (timer status, git branch, AWS profile)
 
-### Phase 7 — Distribution Polish
+### Phase 8 — Distribution Polish
 
 - Documentation site or expanded docs
 - Release automation refinements
