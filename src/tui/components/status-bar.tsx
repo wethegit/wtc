@@ -1,30 +1,39 @@
+import { createContext, createSignal, useContext, type ParentProps } from "solid-js";
+
 import { tokens } from "../tokens.ts";
 
-/** Key hint displayed in the bottom status bar. */
 export interface StatusBarHint {
-  /** Keyboard shortcut text, for example `ctrl+s`. */
   key: string;
-  /** Human-readable action label, for example `save`. */
   label: string;
 }
 
-/** Props for contextual status bar content. */
-export interface StatusBarProps {
-  /** Ordered hints relevant to the current route or focus context. */
-  hints: readonly StatusBarHint[];
-  /** Optional short status message appended after the hints. */
-  message?: string;
+interface StatusBarContextValue {
+  setHints: (hints: StatusBarHint[]) => void;
 }
 
-/**
- * Bottom status strip for global hints and contextual state.
- *
- * Pages and the app shell should pass route-specific hints instead of hardcoding
- * text here. That keeps styling centralized while allowing Settings, GitHub, and
- * future Teamwork/AWS pages to advertise their own shortcuts.
- */
-export function StatusBar(props: StatusBarProps) {
-  const hints = () => props.hints.map((hint) => `${hint.key} ${hint.label}`).join(" · ");
+const StatusBarContext = createContext<StatusBarContextValue>();
+
+export function StatusBarProvider(props: { globalHints: StatusBarHint[] } & ParentProps) {
+  const [contextualHints, setContextualHints] = createSignal<StatusBarHint[]>([]);
+
+  return (
+    <StatusBarContext.Provider value={{ setHints: setContextualHints }}>
+      {props.children}
+      <StatusBar globalHints={props.globalHints} contextualHints={contextualHints()} />
+    </StatusBarContext.Provider>
+  );
+}
+
+interface InternalBarProps {
+  globalHints: StatusBarHint[];
+  contextualHints: StatusBarHint[];
+}
+
+function StatusBar(props: InternalBarProps) {
+  const hintsText = () =>
+    [...props.globalHints, ...props.contextualHints]
+      .map((hint) => `${hint.key} ${hint.label}`)
+      .join(" · ");
 
   return (
     <box
@@ -35,8 +44,15 @@ export function StatusBar(props: StatusBarProps) {
       paddingX={1}
       backgroundColor={tokens.surfaceOverlay}
     >
-      <text fg={tokens.textDim}>{hints()}</text>
-      {props.message && <text fg={tokens.textDim}> · {props.message}</text>}
+      <text fg={tokens.textDim}>{hintsText()}</text>
     </box>
   );
+}
+
+export function useStatusBar(): StatusBarContextValue {
+  const value = useContext(StatusBarContext);
+  if (!value) {
+    throw new Error("useStatusBar must be used within StatusBarProvider");
+  }
+  return value;
 }
