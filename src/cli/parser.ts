@@ -1,5 +1,6 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import { cacheClean } from "./commands/cache.ts";
 import { settings } from "./commands/settings.ts";
 import { upgrade } from "./commands/upgrade.ts";
 import { APP_VERSION } from "../config/consts.ts";
@@ -38,6 +39,22 @@ export async function runCli(): Promise<void> {
       async (argv) => {
         await upgrade({ check: argv.check ?? false });
       },
+    )
+    .command(
+      "cache",
+      "Manage local cache",
+      (yargs) =>
+        yargs
+          .command(
+            "clean",
+            "Delete all cached data",
+            () => {},
+            async () => {
+              await cacheClean();
+            },
+          )
+          .demandCommand(1, "Specify a cache subcommand: clean"),
+      () => {},
     );
 
   await parser.parse();
