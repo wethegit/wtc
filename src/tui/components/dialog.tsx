@@ -34,6 +34,8 @@ export interface DialogContextValue {
   replace(element: DialogElement, onClose?: () => void): void;
   /** Closes all dialogs and runs their close callbacks. */
   clear(): void;
+  /** Whether at least one dialog is currently open. */
+  active(): boolean;
 }
 
 const DialogContext = createContext<DialogContextValue>();
@@ -122,6 +124,9 @@ export function DialogProvider(props: ParentProps) {
         item.onClose?.();
       }
       setStore("stack", []);
+    },
+    active() {
+      return store.stack.length > 0;
     },
   };
 
