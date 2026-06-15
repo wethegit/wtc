@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** MVP complete — Phase 2 complete — Phase 3 planned
+- **Status:** Phase 3 Completed
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js
@@ -31,130 +31,6 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 ---
 
 ## Architecture
-
-### Directory Structure
-
-```
-wtc/
-├── src/
-│   ├── index.ts              # Entry point — opens TUI with no args, CLI parser with args
-│   ├── cli/
-│   │   ├── parser.ts         # yargs command definitions
-│   │   └── commands/         # Subcommand handlers
-│   │       ├── github.ts
-│   │       ├── amplify.ts
-│   │       ├── teamwork.ts
-│   │       ├── config.ts
-│   │       └── upgrade.ts        # `wtc upgrade --check` — version check
-│   ├── tui/
-│   │   ├── app.ts            # TUI launcher compatibility wrapper
-│   │   ├── app.tsx           # Main Solid TUI app shell
-│   │   ├── components/       # Reusable TUI components
-│   │   │   ├── status-bar.ts
-│   │   │   ├── sidebar.ts
-│   │   │   └── forms/
-│   │   └── pages/            # TUI screens
-│   │       ├── dashboard.ts
-│   │       ├── github.ts
-│   │       ├── amplify.ts
-│   │       ├── teamwork.ts
-│   │       └── settings.ts
-│   ├── config/
-│   │   ├── manager.ts        # CRUD for ~/.config/wtc/config.json
-│   │   ├── crypto.ts         # Encrypt/decrypt config
-│   │   └── schema.ts         # Zod schemas
-│   ├── api/
-│   │   ├── github.ts         # Octokit client
-│   │   ├── amplify.ts        # AWS SDK client
-│   │   ├── teamwork.ts       # Teamwork REST client
-│   │   └── aws-profiles.ts   # Parse ~/.aws/credentials
-│   └── utils/
-│       ├── branch.ts         # Branch name parsing
-│       ├── browser.ts        # Open URL in system browser
-│       ├── errors.ts         # Error types
-│       └── update-check.ts   # Version check against GitHub Releases
-├── scripts/
-│   ├── build.ts              # Bun.build --compile wrapper
-│   └── release.ts            # Tag/release helper
-├── tests/
-│   ├── config/
-│   │   ├── manager.test.ts
-│   │   ├── crypto.test.ts
-│   │   └── schema.test.ts
-│   ├── api/
-│   │   ├── github.test.ts
-│   │   ├── amplify.test.ts
-│   │   └── teamwork.test.ts
-│   └── tui/
-│       └── components.test.ts
-├── .changeset/
-│   ├── config.json            # Changesets configuration
-│   └── README.md              # Changesets contributor notes
-├── docs/
-│   ├── architecture.md
-│   ├── development.md
-│   ├── usage.md
-│   └── releases.md
-│
-├── AGENTS.md                 # AI agent instructions
-├── CONTRIBUTING.md           # Contributor guide
-├── oxlintrc.json             # Oxlint config
-├── .husky/
-│   └── pre-commit            # Pre-commit hook
-├── .lintstagedrc.json        # lint-staged config
-├── .github/
-│   ├── workflows/
-│   │   ├── ci.yml            # Lint + typecheck + test
-│   │   └── release.yml       # Changesets version PR + build + publish
-│   └── dependabot.yml
-├── package.json
-├── tsconfig.json
-└── README.md
-```
-
-### Config File: `~/.config/wtc/config.json`
-
-```json
-{
-  "version": 1,
-  "encrypted": {
-    "salt": "<hex>",
-    "iv": "<hex>",
-    "authTag": "<hex>",
-    "data": "<hex>"
-  },
-  "plain": {
-    "aws": {
-      "profile": "default"
-    },
-    "github": {
-      "org": "my-org"
-    },
-    "teamwork": {
-      "domain": "my-team.teamwork.com"
-    }
-  }
-}
-```
-
-Decrypted `data` contains:
-
-```json
-{
-  "github": { "token": "ghp_..." },
-  "teamwork": { "apiKey": "tw-..." }
-}
-```
-
-### Per-Repo Config: `.wtc.json`
-
-```json
-{
-  "teamworkProjectId": 12345
-}
-```
-
----
 
 ## Phases
 
@@ -193,7 +69,7 @@ See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, 
 - Remove all `findDescendantById` patterns
 - Update test setup to cover logic only, not TUI rendering
 
-### Phase 3 — Config Setup
+### Phase 3 — Config Setup ✅
 
 See `CONFIG_SETUP.md` for the detailed implementation plan, config versioning model, CLI/TUI behavior, testing boundaries, and migration notes.
 
