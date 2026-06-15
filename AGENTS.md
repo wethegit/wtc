@@ -2,7 +2,7 @@
 
 ## Overview
 
-`wtc` is a CLI/TUI tool for managing GitHub repos, AWS Amplify projects, and Teamwork tasks. Built with Bun + OpenTUI (core functional API, no JSX framework).
+`wtc` is a CLI/TUI tool for managing GitHub repos, AWS Amplify projects, and Teamwork tasks. Built with Bun + OpenTUI Solid.
 
 ## Important Files
 
@@ -33,6 +33,7 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 
 - Always check-in with user first before making the commit so they can check diff and ask for changes
 - Make small commits so it's easy to see progress and revert changes
+- Stop at a breakpoint before every commit and before continuing to the next main step. The user will inspect the diff themselves; do not commit or continue until they explicitly approve.
 
 ### TypeScript
 
