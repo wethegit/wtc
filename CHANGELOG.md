@@ -1,5 +1,11 @@
 # wtc
 
+## 0.2.0
+
+### Minor Changes
+
+- [#25](https://github.com/wethegit/wtc/pull/25) [`37a1455`](https://github.com/wethegit/wtc/commit/37a1455150de808a43d9babbdb33a743fc7e59b7) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - refactor: solidJS bindings
+
 ## 0.1.9
 
 ### Patch Changes
