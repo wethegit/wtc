@@ -8,13 +8,16 @@ import {
   saveUserConfig,
 } from "../../config/manager.ts";
 import type { ProjectConfig, ResolvedConfig, UserConfig } from "../../config/schema.ts";
-
 import { ActionButton } from "../components/forms/action-button.tsx";
 import { TextField } from "../components/forms/text-field.tsx";
 import { Page } from "../components/layout/page.tsx";
 import { Section } from "../components/layout/section.tsx";
 import { useStatusBar } from "../components/status-bar.tsx";
 import { tokens } from "../tokens.ts";
+
+const SETTINGS_FOCUS_ORDER = ["workspaceName", "teamworkProjectId", "save", "reload"] as const;
+
+type SettingsFocusTarget = (typeof SETTINGS_FOCUS_ORDER)[number];
 
 /** Editable Settings page form state. */
 export interface SettingsFormState {
@@ -23,10 +26,6 @@ export interface SettingsFormState {
   /** Project-level Teamwork ID as input text so invalid edits can be displayed. */
   teamworkProjectId: string;
 }
-
-const SETTINGS_FOCUS_ORDER = ["workspaceName", "teamworkProjectId", "save", "reload"] as const;
-
-type SettingsFocusTarget = (typeof SETTINGS_FOCUS_ORDER)[number];
 
 /** Field-level validation messages keyed by settings form field. */
 export type SettingsFormErrors = Partial<Record<keyof SettingsFormState, string>>;
@@ -51,70 +50,6 @@ const settingsFieldValidators = [
     },
   },
 ] satisfies readonly SettingsFieldValidator[];
-
-/** Converts a Teamwork project ID input value into persisted config shape. */
-export function parseTeamworkProjectId(value: string): number | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-
-  const parsed = Number(trimmed);
-  if (!Number.isInteger(parsed) || parsed <= 0) return null;
-  return parsed;
-}
-
-/** Builds editable form state from resolved config. */
-export function buildSettingsFormState(config: ResolvedConfig): SettingsFormState {
-  return {
-    workspaceName: config.user.workspaceName,
-    teamworkProjectId: config.project?.teamworkProjectId?.toString() ?? "",
-  };
-}
-
-/** Returns the next focusable Settings control, wrapping at either end. */
-export function getNextSettingsFocus(
-  current: SettingsFocusTarget,
-  direction: 1 | -1,
-): SettingsFocusTarget {
-  const currentIndex = SETTINGS_FOCUS_ORDER.indexOf(current);
-  const nextIndex =
-    (currentIndex + direction + SETTINGS_FOCUS_ORDER.length) % SETTINGS_FOCUS_ORDER.length;
-
-  return SETTINGS_FOCUS_ORDER[nextIndex] ?? SETTINGS_FOCUS_ORDER[0];
-}
-
-/** Returns the current validation error for settings form state, if any. */
-export function getSettingsFormError(state: SettingsFormState): string | null {
-  return Object.values(validateSettingsForm(state))[0] ?? null;
-}
-
-/** Validates every Settings field and returns errors keyed by field name. */
-export function validateSettingsForm(state: SettingsFormState): SettingsFormErrors {
-  const errors: SettingsFormErrors = {};
-
-  for (const validator of settingsFieldValidators) {
-    const message = validator.validate(state);
-    if (message) errors[validator.field] = message;
-  }
-
-  return errors;
-}
-
-/** Converts editable form state back into user and project config objects. */
-export function applySettingsFormState(state: SettingsFormState): {
-  user: UserConfig;
-  project: ProjectConfig;
-} {
-  return {
-    user: {
-      version: 1,
-      workspaceName: state.workspaceName,
-    },
-    project: {
-      ...createDefaultProjectConfig(),
-      teamworkProjectId: parseTeamworkProjectId(state.teamworkProjectId),
-    },
-  };
-}
 
 /** Settings route for viewing and editing Phase 3 config files. */
 export function SettingsPage() {
@@ -328,4 +263,68 @@ export function SettingsPage() {
       </box>
     </Page>
   );
+}
+
+/** Converts a Teamwork project ID input value into persisted config shape. */
+export function parseTeamworkProjectId(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const parsed = Number(trimmed);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
+}
+
+/** Builds editable form state from resolved config. */
+export function buildSettingsFormState(config: ResolvedConfig): SettingsFormState {
+  return {
+    workspaceName: config.user.workspaceName,
+    teamworkProjectId: config.project?.teamworkProjectId?.toString() ?? "",
+  };
+}
+
+/** Returns the next focusable Settings control, wrapping at either end. */
+export function getNextSettingsFocus(
+  current: SettingsFocusTarget,
+  direction: 1 | -1,
+): SettingsFocusTarget {
+  const currentIndex = SETTINGS_FOCUS_ORDER.indexOf(current);
+  const nextIndex =
+    (currentIndex + direction + SETTINGS_FOCUS_ORDER.length) % SETTINGS_FOCUS_ORDER.length;
+
+  return SETTINGS_FOCUS_ORDER[nextIndex] ?? SETTINGS_FOCUS_ORDER[0];
+}
+
+/** Returns the current validation error for settings form state, if any. */
+export function getSettingsFormError(state: SettingsFormState): string | null {
+  return Object.values(validateSettingsForm(state))[0] ?? null;
+}
+
+/** Validates every Settings field and returns errors keyed by field name. */
+export function validateSettingsForm(state: SettingsFormState): SettingsFormErrors {
+  const errors: SettingsFormErrors = {};
+
+  for (const validator of settingsFieldValidators) {
+    const message = validator.validate(state);
+    if (message) errors[validator.field] = message;
+  }
+
+  return errors;
+}
+
+/** Converts editable form state back into user and project config objects. */
+export function applySettingsFormState(state: SettingsFormState): {
+  user: UserConfig;
+  project: ProjectConfig;
+} {
+  return {
+    user: {
+      version: 1,
+      workspaceName: state.workspaceName,
+    },
+    project: {
+      ...createDefaultProjectConfig(),
+      teamworkProjectId: parseTeamworkProjectId(state.teamworkProjectId),
+    },
+  };
 }
