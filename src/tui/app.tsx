@@ -11,25 +11,10 @@ import { COMMAND_PALETTE_COMMAND, CommandPaletteDialog } from "./components/comm
 import { Dashboard } from "./pages/dashboard.tsx";
 import { GitHubPage } from "./pages/github.tsx";
 import { SettingsPage } from "./pages/settings.tsx";
-import { StatusBar } from "./components/status-bar.tsx";
-import type { StatusBarHint } from "./components/status-bar.tsx";
+import { StatusBarProvider } from "./components/status-bar.tsx";
 import { tokens } from "./tokens.ts";
 
 type Route = "home" | "github" | "settings";
-
-const DEFAULT_STATUS_HINTS: StatusBarHint[] = [
-  { key: "ctrl/cmd+p", label: "commands" },
-  { key: "ctrl+c", label: "quit" },
-];
-
-const SETTINGS_STATUS_HINTS: StatusBarHint[] = [
-  { key: "ctrl/cmd+p", label: "commands" },
-  { key: "tab/↑↓", label: "controls" },
-  { key: "enter", label: "press" },
-  { key: "ctrl+s", label: "save" },
-  { key: "ctrl+r", label: "reload" },
-  { key: "ctrl+c", label: "quit" },
-];
 
 /** Main TUI screen controller rendered inside the app providers. */
 function Home() {
@@ -37,7 +22,6 @@ function Home() {
   const keymap = useKeymap();
   const renderer = useRenderer();
   const [route, setRoute] = createSignal<Route>("home");
-  const statusHints = () => (route() === "settings" ? SETTINGS_STATUS_HINTS : DEFAULT_STATUS_HINTS);
 
   const quit = () => {
     renderer.destroy();
@@ -51,7 +35,10 @@ function Home() {
         title: "Show command palette",
         category: "System",
         hidden: true,
-        run: () => dialog.replace(() => <CommandPaletteDialog />),
+        run: () => {
+          if (dialog.active()) return;
+          dialog.replace(() => <CommandPaletteDialog />);
+        },
       },
       {
         name: "github.open",
@@ -124,7 +111,9 @@ function Home() {
     if (key.name === "p" && (key.ctrl || key.meta || key.super)) {
       key.preventDefault();
       key.stopPropagation();
-      keymap.dispatchCommand(COMMAND_PALETTE_COMMAND);
+      if (!dialog.active()) {
+        keymap.dispatchCommand(COMMAND_PALETTE_COMMAND);
+      }
     }
   });
 
@@ -147,7 +136,6 @@ function Home() {
       ) : (
         <Dashboard />
       )}
-      <StatusBar hints={statusHints()} />
     </box>
   );
 }
@@ -162,7 +150,14 @@ function App() {
     // need the keymap so they can register modal Escape/Return bindings.
     <KeymapProvider keymap={keymap}>
       <DialogProvider>
-        <Home />
+        <StatusBarProvider
+          globalHints={[
+            { key: "ctrl/cmd+p", label: "commands" },
+            { key: "ctrl+c", label: "quit" },
+          ]}
+        >
+          <Home />
+        </StatusBarProvider>
       </DialogProvider>
     </KeymapProvider>
   );

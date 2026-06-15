@@ -1,4 +1,4 @@
-import { createMemo, createSignal, onMount } from "solid-js";
+import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
 import {
@@ -13,6 +13,7 @@ import { ActionButton } from "../components/forms/action-button.tsx";
 import { TextField } from "../components/forms/text-field.tsx";
 import { Page } from "../components/layout/page.tsx";
 import { Section } from "../components/layout/section.tsx";
+import { useStatusBar } from "../components/status-bar.tsx";
 import { tokens } from "../tokens.ts";
 
 /** Editable Settings page form state. */
@@ -117,6 +118,7 @@ export function applySettingsFormState(state: SettingsFormState): {
 
 /** Settings route for viewing and editing Phase 3 config files. */
 export function SettingsPage() {
+  const { setHints } = useStatusBar();
   const [resolved, setResolved] = createSignal<ResolvedConfig | null>(null);
   const [savedForm, setSavedForm] = createSignal<SettingsFormState | null>(null);
   const [form, setForm] = createSignal<SettingsFormState>({
@@ -250,7 +252,15 @@ export function SettingsPage() {
 
   onMount(() => {
     void reload();
+    setHints([
+      { key: "tab/↑↓", label: "controls" },
+      { key: "enter", label: "press" },
+      { key: "ctrl+s", label: "save" },
+      { key: "ctrl+r", label: "reload" },
+    ]);
   });
+
+  onCleanup(() => setHints([]));
 
   return (
     <Page
