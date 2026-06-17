@@ -10,18 +10,17 @@ Before making changes, read these files for context:
 
 ## Tech Stack
 
-| Concern           | Choice                            |
-| ----------------- | --------------------------------- |
-| Runtime           | Bun                               |
-| TUI               | `@opentui/solid` + `solid-js`     |
-| CLI parser        | yargs                             |
-| Linter            | oxlint                            |
-| Formatter         | oxfmt                             |
-| Test runner       | bun test                          |
-| Pre-commit        | husky + lint-staged               |
-| Release versions  | Changesets                        |
-| Encryption        | Web Crypto (AES-256-GCM + PBKDF2) |
-| Config validation | zod                               |
+| Concern           | Choice                        |
+| ----------------- | ----------------------------- |
+| Runtime           | Bun                           |
+| TUI               | `@opentui/solid` + `solid-js` |
+| CLI parser        | yargs                         |
+| Linter            | oxlint                        |
+| Formatter         | oxfmt                         |
+| Test runner       | bun test                      |
+| Pre-commit        | husky + lint-staged           |
+| Release versions  | Changesets                    |
+| Config validation | zod                           |
 
 ## Conventions
 
