@@ -1,6 +1,6 @@
 # Phase 3.5 — Persistent TUI State & Cache
 
-**Status: 🔨 In Progress**
+**Status: ✅ Completed**
 
 Phase 3.5 adds per-directory UI state persistence and a centralized cache directory so the TUI remembers where the user was (e.g., which page they were on) between launches, scoped to the directory they launched from.
 
