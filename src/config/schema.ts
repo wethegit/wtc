@@ -7,7 +7,7 @@ export const USER_CONFIG_VERSION = 1;
 export const PROJECT_CONFIG_VERSION = 1;
 
 /**
- * User-level config schema for `~/.config/wtc/wtc.json`.
+ * User-level config schema for `~/.config/wtc/wtc.yaml`.
  *
  * `version` tracks the file format, not the WTC application version. Keep the
  * v1 schema named explicitly so future migrations have a clear source format.
@@ -18,7 +18,7 @@ export const UserConfigV1Schema = z.object({
 });
 
 /**
- * Project-level config schema for nearest-ancestor `.wtc.json` files.
+ * Project-level config schema for nearest-ancestor `.wtc.yaml` files.
  *
  * `teamworkProjectId` is nullable until a repo is linked to Teamwork.
  */
@@ -51,9 +51,9 @@ export interface ConfigPaths {
 
 /** Layered config result consumed by CLI and TUI settings views. */
 export interface ResolvedConfig {
-  /** User-level settings from `~/.config/wtc/wtc.json`. */
+  /** User-level settings from `~/.config/wtc/wtc.yaml`. */
   user: UserConfig;
-  /** Project-level settings from nearest `.wtc.json`, or null when absent. */
+  /** Project-level settings from nearest `.wtc.yaml`, or null when absent. */
   project: ProjectConfig | null;
   /** Paths used to build this resolved config. */
   paths: ConfigPaths;

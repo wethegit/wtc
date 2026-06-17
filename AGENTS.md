@@ -43,6 +43,25 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - Functions: `camelCase`
 - Tests: `*.test.ts` in `tests/` mirroring `src/` structure
 
+### File Organization / Helper Scope
+
+- Keep helpers scoped to the smallest place that needs them.
+- Put values/functions in `consts.ts` only when they are shared across modules or own environment-variable behavior.
+- Keep filenames, local paths, and one-module constants inside the module that uses them.
+- Do not export helpers only for tests unless they represent meaningful domain behavior.
+- Do not create helper functions for one-use expressions.
+- Prefer inline local constants over private one-line functions.
+- Manager modules should contain domain behavior, not generic wrappers around simple file reads/writes.
+- If a helper exists only to make a test easier, reconsider the test or test higher-level behavior instead.
+
+Examples:
+
+- `getCacheDir()` belongs in `src/state/consts.ts` because it is shared and owns `WTC_CACHE_DIR`.
+- `getUserConfigDir()` belongs in `src/config/consts.ts` because it owns `WTC_CONFIG_DIR`.
+- `STATE_FILE = "tui-state.json"` belongs in `src/state/manager.ts` because only the state manager uses it.
+- `getStatePath()` should not exist if it only appends `STATE_FILE` to `getCacheDir()` in one module.
+- `formatUserConfig()` is valid because Bun's YAML parser does not preserve comments, so config saves need explicit commented formatting.
+
 ## Commands
 
 ```bash

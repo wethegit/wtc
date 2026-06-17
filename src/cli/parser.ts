@@ -1,6 +1,7 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { cacheClean } from "./commands/cache.ts";
+import { configInit } from "./commands/config.ts";
 import { settings } from "./commands/settings.ts";
 import { upgrade } from "./commands/upgrade.ts";
 import { APP_VERSION } from "../config/consts.ts";
@@ -26,6 +27,22 @@ export async function runCli(): Promise<void> {
       async () => {
         await settings();
       },
+    )
+    .command(
+      "config",
+      "Manage WTC config files",
+      (yargs) =>
+        yargs
+          .command(
+            "init",
+            "Create a project config in the current directory",
+            () => {},
+            async () => {
+              await configInit();
+            },
+          )
+          .demandCommand(1, "Specify a config subcommand: init"),
+      () => {},
     )
     .command(
       "upgrade",

@@ -1,4 +1,5 @@
 import { describe, expect, test, beforeEach, afterAll } from "bun:test";
+import { rm } from "node:fs/promises";
 import { checkForUpdate } from "../../src/utils/update-check.ts";
 
 const CACHE_DIR = `${Bun.env.TMPDIR ?? "/tmp"}/wtc-update-tests-${process.pid}`;
@@ -11,11 +12,11 @@ async function writeUpdateCache(latestVersion: string): Promise<void> {
 describe("update-check", () => {
   beforeEach(async () => {
     process.env.WTC_CACHE_DIR = CACHE_DIR;
-    await Bun.$`rm -rf ${CACHE_DIR}`.quiet();
+    await rm(CACHE_DIR, { recursive: true, force: true });
   });
 
   afterAll(async () => {
-    await Bun.$`rm -rf ${CACHE_DIR}`.quiet();
+    await rm(CACHE_DIR, { recursive: true, force: true });
     delete process.env.WTC_CACHE_DIR;
   });
 

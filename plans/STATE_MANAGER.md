@@ -36,7 +36,7 @@ Create a lightweight, deletable runtime data layer:
 
 - Cache directory creation on first use
 - `tui-state.json` read/write keyed by CWD
-- Solid `StateProvider` context that loads on mount, persists on route change
+- Solid `StateProvider` context seeded before first render, persists on route change
 - Route restore in `app.tsx` from saved state
 - `wtc cache clean` CLI handler
 - Consolidate update-check cache path to shared cache dir
@@ -80,7 +80,7 @@ Create a lightweight, deletable runtime data layer:
 
 ```
 ~/.config/wtc/
-├── wtc.json                  # user config (persistent)
+├── wtc.yaml                  # user config (persistent)
 └── cache/                    # deletable runtime data
     ├── tui-state.json        # per-directory UI state
     └── update-check.json     # release version cache (consolidated)
@@ -135,15 +135,11 @@ File: `src/state/manager.ts`
 All functions use Bun-native APIs directly (`Bun.file().json()`, `Bun.write()`, `Bun.file().exists()`). No shared wrappers.
 
 ```ts
-import { CACHE_DIR } from "./consts.ts";
+import { getCacheDir } from "./consts.ts";
 import { TuiStateFileSchema, type TuiStateEntry } from "./schema.ts";
 import { resolve } from "node:path";
 
 const STATE_FILE = "tui-state.json";
-
-function getStatePath(): string {
-  return `${CACHE_DIR}/${STATE_FILE}`;
-}
 
 /** Loads state for a directory, returning defaults when missing. */
 export async function loadTuiState(dir: string): Promise<TuiStateEntry>;
@@ -155,7 +151,7 @@ export async function saveTuiState(dir: string, partial: Partial<TuiStateEntry>)
 export async function clearCache(): Promise<void>;
 ```
 
-`clearCache` uses `Bun.$ rm -rf` to nuke the cache dir and recreates it empty.
+`clearCache` removes and recreates the cache directory with cross-platform filesystem APIs.
 
 ---
 
@@ -263,15 +259,15 @@ File: `src/state/manager.ts`
 
 - `loadTuiState(dir)` — reads file, finds entry by key, returns entry or defaults
 - `saveTuiState(dir, partial)` — reads/creates file, merges entry, writes
-- `clearCache()` — `rm -rf` cache dir, recreate empty
+- `clearCache()` — remove cache dir with cross-platform filesystem APIs, recreate empty
 
 ### Step 4 — Build StateProvider
 
 File: `src/tui/components/state-provider.tsx`
 
-- `StateProvider` component with `dir` prop
+- `StateProvider` component with `dir` and `initialState` props
 - `useTuiState()` hook returning `{ state, updateState }`
-- Load on mount, write on `updateState` call
+- Load before first render, write on `updateState` call
 
 ### Step 5 — Wire into app.tsx
 
@@ -342,7 +338,6 @@ File: `tests/cli/commands/cache.test.ts`
 - [ ] `bun run check`
 - [ ] `bun test`
 - [ ] `bun run build`
-- [ ] `./dist/wtc-linux-x64 --version`
 - [ ] TUI restores the last active route for the current directory
 - [ ] Different directories remember different routes
 - [ ] `wtc cache clean` removes `~/.config/wtc/cache/`
