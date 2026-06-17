@@ -8,8 +8,8 @@ Phase 3 establishes WTC's configuration foundation before GitHub, AWS Amplify, a
 
 Create a reliable layered config system with:
 
-- User-level config at `~/.config/wtc/wtc.json`
-- Project-level config discovered from the nearest ancestor `.wtc.json`
+- User-level config at `~/.config/wtc/wtc.yaml`
+- Project-level config discovered from the nearest ancestor `.wtc.yaml`
 - A CLI command for inspecting resolved config
 - A TUI Settings page for viewing and editing config
 - Tests around config loading, validation, discovery, merging, and saving
@@ -17,8 +17,11 @@ Create a reliable layered config system with:
 ## Decisions
 
 - `version` is the file format version, not the WTC application version.
-- User config filename is `wtc.json`.
-- Project config discovery walks upward from the launch directory and uses the nearest `.wtc.json`.
+- User config filename is `wtc.yaml`.
+- Project config discovery walks upward from the launch directory and uses the nearest `.wtc.yaml`.
+- Config files are YAML parsed with Bun's native `YAML` API.
+- Generated user and project config files include comments explaining each setting.
+- Config writes use commented templates so known setting comments remain after saves.
 - The Phase 3 user-level placeholder field is `workspaceName`.
 - The Phase 3 project-level field is `teamworkProjectId`.
 - Settings page edits save explicitly; they do not persist on every keystroke.
@@ -54,16 +57,17 @@ Create a reliable layered config system with:
 Path:
 
 ```txt
-~/.config/wtc/wtc.json
+~/.config/wtc/wtc.yaml
 ```
 
 Initial schema:
 
-```json
-{
-  "version": 1,
-  "workspaceName": ""
-}
+```yaml
+# Config file format version. Do not edit unless a migration guide tells you to.
+version: 1
+
+# Friendly workspace label shown in WTC.
+workspaceName: ""
 ```
 
 ### Project Config
@@ -71,25 +75,27 @@ Initial schema:
 Path:
 
 ```txt
-.wtc.json
+.wtc.yaml
 ```
 
 Discovery:
 
 - Start from the directory where `wtc` was launched.
-- Walk upward until `.wtc.json` is found.
+- Walk upward until `.wtc.yaml` is found.
 - Stop at the filesystem root.
 - If no file exists, project config is absent.
-- Save operations from the Settings TUI should write to the nearest discovered `.wtc.json`.
-- If no project config exists, save should create `.wtc.json` in the launch directory.
+- Save operations from the Settings TUI should write to the nearest discovered `.wtc.yaml`.
+- If no project config exists, save should create `.wtc.yaml` in the launch directory.
 
 Initial schema:
 
-```json
-{
-  "version": 1,
-  "teamworkProjectId": null
-}
+```yaml
+# Config file format version. Do not edit unless a migration guide tells you to.
+version: 1
+
+# Teamwork project ID linked to this repository.
+# Leave empty until this repo is linked to Teamwork.
+teamworkProjectId:
 ```
 
 ## Versioning
@@ -160,9 +166,9 @@ The command should print:
 Example:
 
 ```txt
-User config: /home/marlon/.config/wtc/wtc.json
+User config: /home/marlon/.config/wtc/wtc.yaml
 Project search start: /home/marlon/dev/example
-Project config: /home/marlon/dev/example/.wtc.json
+Project config: /home/marlon/dev/example/.wtc.yaml
 
 {
   "user": {
@@ -254,8 +260,9 @@ export async function loadResolvedConfig(startDir: string): Promise<ResolvedConf
 
 Notes:
 
-- `saveProjectConfig` should write to a discovered `.wtc.json` when one exists.
-- If no project file exists, create `.wtc.json` in `startDir`.
+- `saveProjectConfig` should write to a discovered `.wtc.yaml` when one exists.
+- If no project file exists, create `.wtc.yaml` in `startDir`.
+- `initProjectConfig` should create a commented `.wtc.yaml` in `startDir` and fail if one already exists.
 - Avoid using `process.cwd()` directly inside core helpers except as a thin CLI/TUI default. Tests should pass explicit directories.
 
 ### Step 3 — Preserve Secret Helpers Carefully
@@ -280,6 +287,7 @@ Add:
 
 ```bash
 wtc settings
+wtc config init
 ```
 
 The handler should:
@@ -287,6 +295,8 @@ The handler should:
 - call `loadResolvedConfig(process.cwd())`
 - print paths
 - print resolved config JSON
+
+`wtc config init` should create a commented `.wtc.yaml` in the current directory.
 
 Keep output deterministic for tests.
 
@@ -386,9 +396,10 @@ Cover:
 - creates user config at overridden test path
 - loads user config
 - saves user config
-- discovers nearest ancestor `.wtc.json`
+- discovers nearest ancestor `.wtc.yaml`
 - returns null when no project config exists
 - creates project config in start directory when saving with no discovered file
+- creates commented project config with `wtc config init` logic
 - loads resolved config with both layers
 - loads resolved config with missing project layer
 
@@ -417,7 +428,6 @@ Before committing implementation work:
 - [ ] `bun run check`
 - [ ] `bun test`
 - [ ] `bun run build`
-- [ ] `./dist/wtc-linux-x64 --version`
 - [ ] `wtc settings` prints user path, project path/search info, and resolved JSON
 - [ ] TUI Settings page loads without blocking startup
 - [ ] TUI Settings page can edit `workspaceName`

@@ -15,8 +15,8 @@ describe("settings page helpers", () => {
     user: { version: 1, workspaceName: "WTC" },
     project: { version: 1, teamworkProjectId: 12345 },
     paths: {
-      userConfigPath: "/home/user/.config/wtc/wtc.json",
-      projectConfigPath: "/repo/.wtc.json",
+      userConfigPath: "/home/user/.config/wtc/wtc.yaml",
+      projectConfigPath: "/repo/.wtc.yaml",
       projectConfigSearchStart: "/repo",
     },
   };

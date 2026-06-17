@@ -9,15 +9,15 @@ describe("settings command", () => {
       user: { version: 1, workspaceName: "WTC" },
       project: { version: 1, teamworkProjectId: 12345 },
       paths: {
-        userConfigPath: "/home/user/.config/wtc/wtc.json",
-        projectConfigPath: "/repo/.wtc.json",
+        userConfigPath: "/home/user/.config/wtc/wtc.yaml",
+        projectConfigPath: "/repo/.wtc.yaml",
         projectConfigSearchStart: "/repo/packages/app",
       },
     };
 
-    expect(formatSettingsOutput(config)).toBe(`User config: /home/user/.config/wtc/wtc.json
+    expect(formatSettingsOutput(config)).toBe(`User config: /home/user/.config/wtc/wtc.yaml
 Project search start: /repo/packages/app
-Project config: /repo/.wtc.json
+Project config: /repo/.wtc.yaml
 
 {
   "user": {
@@ -36,7 +36,7 @@ Project config: /repo/.wtc.json
       user: { version: 1, workspaceName: "" },
       project: null,
       paths: {
-        userConfigPath: "/home/user/.config/wtc/wtc.json",
+        userConfigPath: "/home/user/.config/wtc/wtc.yaml",
         projectConfigPath: null,
         projectConfigSearchStart: "/repo",
       },

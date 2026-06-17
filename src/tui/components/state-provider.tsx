@@ -1,6 +1,6 @@
-import { createContext, createSignal, onMount, useContext, type ParentProps } from "solid-js";
+import { createContext, createSignal, useContext, type ParentProps } from "solid-js";
 
-import { loadTuiState, saveTuiState } from "../../state/manager.ts";
+import { saveTuiState } from "../../state/manager.ts";
 import type { TuiStateEntry } from "../../state/schema.ts";
 
 export interface StateContextValue {
@@ -12,15 +12,8 @@ export interface StateContextValue {
 
 const StateContext = createContext<StateContextValue>();
 
-export function StateProvider(props: { dir: string } & ParentProps) {
-  const [state, setState] = createSignal<TuiStateEntry>({
-    lastRoute: "home",
-    lastUpdated: new Date().toISOString(),
-  });
-
-  onMount(async () => {
-    setState(await loadTuiState(props.dir));
-  });
+export function StateProvider(props: { dir: string; initialState: TuiStateEntry } & ParentProps) {
+  const [state, setState] = createSignal<TuiStateEntry>(props.initialState);
 
   const value: StateContextValue = {
     get state() {

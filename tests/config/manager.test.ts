@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { mkdir, rm } from "node:fs/promises";
 
 import {
-  createDefaultProjectConfig,
   getProjectConfigPath,
   getUserConfigPath,
+  initProjectConfig,
   initUserConfig,
   loadProjectConfig,
   loadResolvedConfig,
@@ -17,8 +18,8 @@ const USER_CONFIG_DIR = `${TEST_ROOT}/user-config`;
 const PROJECT_ROOT = `${TEST_ROOT}/project`;
 
 async function resetTestRoot(): Promise<void> {
-  await Bun.$`rm -rf ${TEST_ROOT}`.quiet();
-  await Bun.$`mkdir -p ${PROJECT_ROOT}/packages/app`.quiet();
+  await rm(TEST_ROOT, { recursive: true, force: true });
+  await mkdir(`${PROJECT_ROOT}/packages/app`, { recursive: true });
 }
 
 describe("config manager", () => {
@@ -29,17 +30,25 @@ describe("config manager", () => {
 
   afterEach(async () => {
     delete process.env.WTC_CONFIG_DIR;
-    await Bun.$`rm -rf ${TEST_ROOT}`.quiet();
+    await rm(TEST_ROOT, { recursive: true, force: true });
   });
 
   test("creates and loads default user config", async () => {
     await initUserConfig();
 
-    expect(getUserConfigPath()).toBe(`${USER_CONFIG_DIR}/wtc.json`);
+    expect(getUserConfigPath()).toBe(`${USER_CONFIG_DIR}/wtc.yaml`);
     expect(await loadUserConfig()).toEqual({
       version: 1,
       workspaceName: "",
     });
+  });
+
+  test("creates default user config with comments", async () => {
+    await initUserConfig();
+
+    const content = await Bun.file(getUserConfigPath()).text();
+    expect(content).toContain("# WTC user-level configuration.");
+    expect(content).toContain("# Friendly workspace label shown in WTC.");
   });
 
   test("saves user config", async () => {
@@ -49,16 +58,16 @@ describe("config manager", () => {
       version: 1,
       workspaceName: "Marlon",
     });
+    expect(await Bun.file(getUserConfigPath()).text()).toContain(
+      "# Friendly workspace label shown in WTC.",
+    );
   });
 
   test("discovers nearest ancestor project config", async () => {
-    await Bun.write(
-      `${PROJECT_ROOT}/.wtc.json`,
-      JSON.stringify({ version: 1, teamworkProjectId: 12345 }),
-    );
+    await Bun.write(`${PROJECT_ROOT}/.wtc.yaml`, "version: 1\nteamworkProjectId: 12345\n");
 
     expect(await getProjectConfigPath(`${PROJECT_ROOT}/packages/app`)).toBe(
-      `${PROJECT_ROOT}/.wtc.json`,
+      `${PROJECT_ROOT}/.wtc.yaml`,
     );
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
@@ -67,17 +76,11 @@ describe("config manager", () => {
   });
 
   test("uses nearest project config when nested configs exist", async () => {
-    await Bun.write(
-      `${PROJECT_ROOT}/.wtc.json`,
-      JSON.stringify({ version: 1, teamworkProjectId: 1 }),
-    );
-    await Bun.write(
-      `${PROJECT_ROOT}/packages/.wtc.json`,
-      JSON.stringify({ version: 1, teamworkProjectId: 2 }),
-    );
+    await Bun.write(`${PROJECT_ROOT}/.wtc.yaml`, "version: 1\nteamworkProjectId: 1\n");
+    await Bun.write(`${PROJECT_ROOT}/packages/.wtc.yaml`, "version: 1\nteamworkProjectId: 2\n");
 
     expect(await getProjectConfigPath(`${PROJECT_ROOT}/packages/app`)).toBe(
-      `${PROJECT_ROOT}/packages/.wtc.json`,
+      `${PROJECT_ROOT}/packages/.wtc.yaml`,
     );
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
@@ -92,30 +95,51 @@ describe("config manager", () => {
 
   test("creates project config in start directory when none exists", async () => {
     const projectPath = await saveProjectConfig(
-      { ...createDefaultProjectConfig(), teamworkProjectId: 98765 },
+      { version: 1, teamworkProjectId: 98765 },
       `${PROJECT_ROOT}/packages/app`,
     );
 
-    expect(projectPath).toBe(`${PROJECT_ROOT}/packages/app/.wtc.json`);
+    expect(projectPath).toBe(`${PROJECT_ROOT}/packages/app/.wtc.yaml`);
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
       teamworkProjectId: 98765,
     });
+    expect(await Bun.file(projectPath).text()).toContain(
+      "# Teamwork project ID linked to this repository.",
+    );
+  });
+
+  test("initializes project config with comments", async () => {
+    const projectPath = await initProjectConfig(`${PROJECT_ROOT}/packages/app`);
+
+    expect(projectPath).toBe(`${PROJECT_ROOT}/packages/app/.wtc.yaml`);
+    const content = await Bun.file(projectPath).text();
+    expect(content).toContain("# WTC project-level configuration.");
+    expect(content).toContain("# Teamwork project ID linked to this repository.");
+    expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
+      version: 1,
+      teamworkProjectId: null,
+    });
+  });
+
+  test("project config init fails when config already exists", async () => {
+    await initProjectConfig(PROJECT_ROOT);
+
+    await expect(initProjectConfig(PROJECT_ROOT)).rejects.toThrow(
+      `Project config already exists: ${PROJECT_ROOT}/.wtc.yaml`,
+    );
   });
 
   test("loads resolved config with paths", async () => {
     await saveUserConfig({ version: 1, workspaceName: "WTC" });
-    await Bun.write(
-      `${PROJECT_ROOT}/.wtc.json`,
-      JSON.stringify({ version: 1, teamworkProjectId: 12345 }),
-    );
+    await Bun.write(`${PROJECT_ROOT}/.wtc.yaml`, "version: 1\nteamworkProjectId: 12345\n");
 
     expect(await loadResolvedConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       user: { version: 1, workspaceName: "WTC" },
       project: { version: 1, teamworkProjectId: 12345 },
       paths: {
-        userConfigPath: `${USER_CONFIG_DIR}/wtc.json`,
-        projectConfigPath: `${PROJECT_ROOT}/.wtc.json`,
+        userConfigPath: `${USER_CONFIG_DIR}/wtc.yaml`,
+        projectConfigPath: `${PROJECT_ROOT}/.wtc.yaml`,
         projectConfigSearchStart: `${PROJECT_ROOT}/packages/app`,
       },
     });
@@ -126,7 +150,7 @@ describe("config manager", () => {
       user: { version: 1, workspaceName: "" },
       project: null,
       paths: {
-        userConfigPath: `${USER_CONFIG_DIR}/wtc.json`,
+        userConfigPath: `${USER_CONFIG_DIR}/wtc.yaml`,
         projectConfigPath: null,
         projectConfigSearchStart: `${PROJECT_ROOT}/packages/app`,
       },

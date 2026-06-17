@@ -1,3 +1,5 @@
+import { mkdir } from "node:fs/promises";
+
 const pkg = (await Bun.file("./package.json").json()) as { version: string };
 const version = pkg.version;
 
@@ -27,7 +29,7 @@ const outfile = `wtc-${targetSuffix}`;
 const outdir = "dist";
 const outfilePath = `${outdir}/${outfile}`;
 
-await Bun.$`mkdir -p ${outdir}`.quiet();
+await mkdir(outdir, { recursive: true });
 
 console.log(`Building ${outfilePath} (v${version})...`);
 

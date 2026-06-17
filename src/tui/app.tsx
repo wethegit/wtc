@@ -4,6 +4,8 @@ import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings, useKeymap } from "@opentui/keymap/solid";
 
 import { checkForUpdate } from "../utils/update-check.ts";
+import { loadTuiState } from "../state/manager.ts";
+import type { TuiStateEntry } from "../state/schema.ts";
 
 import { DialogProvider, useDialog } from "./components/dialog.tsx";
 import { UpdateDialog } from "./components/update-dialog.tsx";
@@ -22,12 +24,12 @@ function Home() {
   const dialog = useDialog();
   const keymap = useKeymap();
   const renderer = useRenderer();
-  const { state, updateState } = useTuiState();
-  const [route, setRoute] = createSignal<Route>(state.lastRoute);
+  const tuiState = useTuiState();
+  const [route, setRoute] = createSignal<Route>(tuiState.state.lastRoute);
 
   const navigate = (newRoute: Route) => {
     setRoute(newRoute);
-    updateState({ lastRoute: newRoute });
+    tuiState.updateState({ lastRoute: newRoute });
   };
 
   const quit = () => {
@@ -148,7 +150,7 @@ function Home() {
 }
 
 /** Root provider tree for the Solid OpenTUI app. */
-function App() {
+function App(props: { dir: string; initialState: TuiStateEntry }) {
   const renderer = useRenderer();
   const keymap = createDefaultOpenTuiKeymap(renderer);
 
@@ -163,7 +165,7 @@ function App() {
             { key: "ctrl+c", label: "quit" },
           ]}
         >
-          <StateProvider dir={process.cwd()}>
+          <StateProvider dir={props.dir} initialState={props.initialState}>
             <Home />
           </StateProvider>
         </StatusBarProvider>
@@ -180,7 +182,10 @@ function App() {
  * graceful teardown through global key bindings.
  */
 export async function runTUI(): Promise<void> {
-  await render(() => <App />, {
+  const dir = process.cwd();
+  const initialState = await loadTuiState(dir);
+
+  await render(() => <App dir={dir} initialState={initialState} />, {
     exitOnCtrlC: false,
     backgroundColor: tokens.bg,
     useKittyKeyboard: {},

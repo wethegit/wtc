@@ -1,12 +1,7 @@
 import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
-import {
-  createDefaultProjectConfig,
-  loadResolvedConfig,
-  saveProjectConfig,
-  saveUserConfig,
-} from "../../config/manager.ts";
+import { loadResolvedConfig, saveProjectConfig, saveUserConfig } from "../../config/manager.ts";
 import type { ProjectConfig, ResolvedConfig, UserConfig } from "../../config/schema.ts";
 import { ActionButton } from "../components/forms/action-button.tsx";
 import { TextField } from "../components/forms/text-field.tsx";
@@ -225,7 +220,7 @@ export function SettingsPage() {
             title="Project config"
             description={[
               resolved()?.paths.projectConfigPath ??
-                ".wtc.json will be created in this directory on save",
+                ".wtc.yaml will be created in this directory on save",
               `Search start: ${resolved()?.paths.projectConfigSearchStart ?? ""}`,
             ]}
           >
@@ -323,7 +318,7 @@ export function applySettingsFormState(state: SettingsFormState): {
       workspaceName: state.workspaceName,
     },
     project: {
-      ...createDefaultProjectConfig(),
+      version: 1,
       teamworkProjectId: parseTeamworkProjectId(state.teamworkProjectId),
     },
   };

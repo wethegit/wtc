@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { rm } from "node:fs/promises";
 
 import { clearCache, loadTuiState, saveTuiState } from "../../src/state/manager.ts";
 import { getCacheDir } from "../../src/state/consts.ts";
@@ -12,7 +13,7 @@ describe("state manager", () => {
 
   afterEach(async () => {
     delete process.env.WTC_CACHE_DIR;
-    await Bun.$`rm -rf ${TEST_CACHE}`.quiet();
+    await rm(TEST_CACHE, { recursive: true, force: true });
   });
 
   test("missing file returns defaults", async () => {

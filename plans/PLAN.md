@@ -25,12 +25,28 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 | CI/CD             | GitHub Actions                    | Tight GitHub integration                     |
 | Release versions  | Changesets                        | Version PRs, changelog, automated tags       |
 | Encryption        | Web Crypto (AES-256-GCM + PBKDF2) | Built-in, no extra deps                      |
-| Config validation | zod                               | Schema validation for config.json            |
+| Config validation | zod                               | Schema validation for YAML config files      |
 | Distribution      | Install script + GitHub Releases  | Universal Linux, macOS                       |
 
 ---
 
 ## Architecture
+
+### File Organization Conventions
+
+- Keep helpers scoped to the smallest place that needs them.
+- Use `consts.ts` only for values/functions shared across modules or owning environment-variable behavior.
+- Keep filenames, local paths, and one-module constants inside the module that uses them.
+- Avoid helper functions for one-use expressions; prefer inline local constants.
+- Manager modules should contain domain behavior, not generic wrappers around simple file reads/writes.
+- Do not export helpers only for tests unless they represent meaningful domain behavior.
+
+Examples:
+
+- `getCacheDir()` lives in `src/state/consts.ts` because it is shared and owns `WTC_CACHE_DIR`.
+- `getUserConfigDir()` lives in `src/config/consts.ts` because it owns `WTC_CONFIG_DIR`.
+- `STATE_FILE = "tui-state.json"` stays in `src/state/manager.ts` because it is state-manager-only.
+- `getStatePath()` should not exist if it only appends `STATE_FILE` to `getCacheDir()` in one module.
 
 ## Phases
 
@@ -73,10 +89,11 @@ See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, 
 
 See `CONFIG_SETUP.md` for the detailed implementation plan, config versioning model, CLI/TUI behavior, testing boundaries, and migration notes.
 
-- Add user-level config at `~/.config/wtc/wtc.json`
-- Add nearest-ancestor project config discovery for `.wtc.json`
+- Add user-level config at `~/.config/wtc/wtc.yaml`
+- Add nearest-ancestor project config discovery for `.wtc.yaml`
 - Add layered config loading that returns both resolved config values and the paths used to build them
 - Add `wtc settings` command that prints config paths and resolved config JSON
+- Add `wtc config init` command that creates a commented project config
 - Replace the placeholder Settings TUI page with an editable config page
 - Use explicit save for TUI edits; do not persist every keystroke
 - Start with one user-level field: `workspaceName`
@@ -107,7 +124,7 @@ See `STATE_MANAGER.md` for the detailed implementation plan, schema, manager API
 
 - Set up branch protection via GitHub API after creation
 - Optionally clone locally
-- Link repo to Teamwork project (writes `.wtc.json`)
+- Link repo to Teamwork project (writes `.wtc.yaml`)
 
 ### Phase 5 — AWS Amplify Hosting
 
@@ -127,7 +144,7 @@ See `STATE_MANAGER.md` for the detailed implementation plan, schema, manager API
 - `wtc teamwork open` — open task in browser
 - Timer overview TUI page (active/paused timers)
 - Notification popup on timer events
-- Project↔Repo mapping in local config + per-repo `.wtc.json`
+- Project↔Repo mapping in local config + per-repo `.wtc.yaml`
 
 ### Phase 7 — TUI Dashboard & Settings
 

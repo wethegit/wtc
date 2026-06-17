@@ -1,4 +1,4 @@
-import { JSON5 } from "bun";
+import { YAML } from "bun";
 import { dirname, join, resolve } from "node:path";
 
 import { getUserConfigDir } from "./consts.ts";
@@ -11,31 +11,10 @@ import {
   type ResolvedConfig,
   type UserConfig,
 } from "./schema.ts";
+import { formatProjectConfig, formatUserConfig } from "./templates.ts";
 
-const USER_CONFIG_FILE = "wtc.json";
-const PROJECT_CONFIG_FILE = ".wtc.json";
-
-const defaultUserConfig: UserConfig = {
-  version: USER_CONFIG_VERSION,
-  workspaceName: "",
-};
-
-const defaultProjectConfig: ProjectConfig = {
-  version: PROJECT_CONFIG_VERSION,
-  teamworkProjectId: null,
-};
-
-async function pathExists(path: string): Promise<boolean> {
-  return Bun.file(path).exists();
-}
-
-async function readJson(path: string): Promise<unknown> {
-  return JSON5.parse(await Bun.file(path).text());
-}
-
-async function writeJson(path: string, data: unknown): Promise<void> {
-  await Bun.write(path, `${JSON5.stringify(data, null, 2)}\n`);
-}
+const USER_CONFIG_FILE = "wtc.yaml";
+const PROJECT_CONFIG_FILE = ".wtc.yaml";
 
 /** Returns the absolute path to the user-level WTC config file. */
 export function getUserConfigPath(): string {
@@ -46,14 +25,14 @@ export function getUserConfigPath(): string {
  * Finds the nearest project config by walking upward from `startDir`.
  *
  * This mirrors tools like Git: nested directories inherit the closest parent
- * `.wtc.json`, and discovery stops at the filesystem root.
+ * `.wtc.yaml`, and discovery stops at the filesystem root.
  */
 export async function getProjectConfigPath(startDir: string): Promise<string | null> {
   let current = resolve(startDir);
 
   while (true) {
     const candidate = join(current, PROJECT_CONFIG_FILE);
-    if (await pathExists(candidate)) return candidate;
+    if (await Bun.file(candidate).exists()) return candidate;
 
     const parent = dirname(current);
     if (parent === current) return null;
@@ -64,32 +43,46 @@ export async function getProjectConfigPath(startDir: string): Promise<string | n
 /** Ensures the user config file exists with Phase 3 defaults. */
 export async function initUserConfig(): Promise<void> {
   const path = getUserConfigPath();
-  if (!(await pathExists(path))) {
-    await writeJson(path, defaultUserConfig);
+  if (!(await Bun.file(path).exists())) {
+    await Bun.write(path, formatUserConfig({ version: USER_CONFIG_VERSION, workspaceName: "" }));
   }
+}
+
+/** Creates a project-level config file in `startDir`, failing if one already exists. */
+export async function initProjectConfig(startDir: string): Promise<string> {
+  const path = join(resolve(startDir), PROJECT_CONFIG_FILE);
+  if (await Bun.file(path).exists()) {
+    throw new Error(`Project config already exists: ${path}`);
+  }
+
+  await Bun.write(
+    path,
+    formatProjectConfig({ version: PROJECT_CONFIG_VERSION, teamworkProjectId: null }),
+  );
+  return path;
 }
 
 /** Loads and validates the user-level config file. */
 export async function loadUserConfig(): Promise<UserConfig> {
   await initUserConfig();
-  return UserConfigSchema.parse(await readJson(getUserConfigPath()));
+  return UserConfigSchema.parse(YAML.parse(await Bun.file(getUserConfigPath()).text()));
 }
 
 /** Validates and saves the user-level config file. */
 export async function saveUserConfig(config: UserConfig): Promise<void> {
-  await writeJson(getUserConfigPath(), UserConfigSchema.parse(config));
+  await Bun.write(getUserConfigPath(), formatUserConfig(UserConfigSchema.parse(config)));
 }
 
-/** Loads the nearest project config, or null when no `.wtc.json` exists. */
+/** Loads the nearest project config, or null when no `.wtc.yaml` exists. */
 export async function loadProjectConfig(startDir: string): Promise<ProjectConfig | null> {
   const path = await getProjectConfigPath(startDir);
   if (!path) return null;
 
-  return ProjectConfigSchema.parse(await readJson(path));
+  return ProjectConfigSchema.parse(YAML.parse(await Bun.file(path).text()));
 }
 
 /**
- * Saves project config to the nearest discovered `.wtc.json`.
+ * Saves project config to the nearest discovered `.wtc.yaml`.
  *
  * If discovery finds no project config, the file is created in `startDir`. The
  * written path is returned so CLI/TUI callers can show users where changes went.
@@ -97,7 +90,7 @@ export async function loadProjectConfig(startDir: string): Promise<ProjectConfig
 export async function saveProjectConfig(config: ProjectConfig, startDir: string): Promise<string> {
   const path =
     (await getProjectConfigPath(startDir)) ?? join(resolve(startDir), PROJECT_CONFIG_FILE);
-  await writeJson(path, ProjectConfigSchema.parse(config));
+  await Bun.write(path, formatProjectConfig(ProjectConfigSchema.parse(config)));
   return path;
 }
 
@@ -112,7 +105,7 @@ export async function loadResolvedConfig(startDir: string): Promise<ResolvedConf
   return {
     user: await loadUserConfig(),
     project: projectConfigPath
-      ? ProjectConfigSchema.parse(await readJson(projectConfigPath))
+      ? ProjectConfigSchema.parse(YAML.parse(await Bun.file(projectConfigPath).text()))
       : null,
     paths: {
       userConfigPath,
@@ -120,9 +113,4 @@ export async function loadResolvedConfig(startDir: string): Promise<ResolvedConf
       projectConfigSearchStart: searchStart,
     },
   };
-}
-
-/** Default project config used when callers need to create a new `.wtc.json`. */
-export function createDefaultProjectConfig(): ProjectConfig {
-  return { ...defaultProjectConfig };
 }
