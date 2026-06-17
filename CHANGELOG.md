@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.0
+
+### Minor Changes
+
+- [`bd80c48`](https://github.com/wethegit/wtc/commit/bd80c48c15d700c9d50229967e2ef14ef462dd1b) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - feature: adds a state manager and config manager
+
 ## 0.2.0
 
 ### Minor Changes
