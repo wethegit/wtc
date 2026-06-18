@@ -8,6 +8,7 @@ const STATE_FILE = "tui-state.json";
 
 const DEFAULT_ENTRY: TuiStateEntry = {
   lastRoute: "home",
+  lastTeamworkTab: "project",
   lastUpdated: new Date().toISOString(),
 };
 
