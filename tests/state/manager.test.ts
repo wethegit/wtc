@@ -20,6 +20,7 @@ describe("state manager", () => {
     const state = await loadTuiState("/some/dir");
 
     expect(state.lastRoute).toBe("home");
+    expect(state.lastTeamworkTab).toBe("project");
     expect(state.lastUpdated).toBeTruthy();
   });
 
@@ -29,7 +30,17 @@ describe("state manager", () => {
 
     const loaded = await loadTuiState(dir);
     expect(loaded.lastRoute).toBe("settings");
+    expect(loaded.lastTeamworkTab).toBe("project");
     expect(loaded.lastUpdated).toBeTruthy();
+  });
+
+  test("round-trip preserves Teamwork tab", async () => {
+    const dir = "/home/user/project";
+    await saveTuiState(dir, { lastRoute: "teamwork", lastTeamworkTab: "my-work" });
+
+    const loaded = await loadTuiState(dir);
+    expect(loaded.lastRoute).toBe("teamwork");
+    expect(loaded.lastTeamworkTab).toBe("my-work");
   });
 
   test("multiple directories produce independent entries", async () => {
