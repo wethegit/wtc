@@ -3,6 +3,8 @@ import { useBindings } from "@opentui/keymap/solid";
 
 import { loadResolvedConfig, saveProjectConfig, saveUserConfig } from "../../config/manager.ts";
 import type { ProjectConfig, ResolvedConfig, UserConfig } from "../../config/schema.ts";
+import { getTeamworkAuthStatus, setTeamworkApiToken } from "../../teamwork/auth.ts";
+import type { TeamworkAuthStatus } from "../../teamwork/auth.ts";
 import { ActionButton } from "../components/forms/action-button.tsx";
 import { TextField } from "../components/forms/text-field.tsx";
 import { Page } from "../components/layout/page.tsx";
@@ -10,7 +12,13 @@ import { Section } from "../components/layout/section.tsx";
 import { useStatusBar } from "../components/status-bar.tsx";
 import { tokens } from "../tokens.ts";
 
-const SETTINGS_FOCUS_ORDER = ["workspaceName", "teamworkProjectId", "save", "reload"] as const;
+const SETTINGS_FOCUS_ORDER = [
+  "workspaceName",
+  "teamworkProjectId",
+  "teamworkApiToken",
+  "save",
+  "reload",
+] as const;
 
 type SettingsFocusTarget = (typeof SETTINGS_FOCUS_ORDER)[number];
 
@@ -20,6 +28,8 @@ export interface SettingsFormState {
   workspaceName: string;
   /** Project-level Teamwork ID as input text so invalid edits can be displayed. */
   teamworkProjectId: string;
+  /** Token input stays blank because stored secrets must only be represented by status. */
+  teamworkApiToken: string;
 }
 
 /** Field-level validation messages keyed by settings form field. */
@@ -54,7 +64,9 @@ export function SettingsPage() {
   const [form, setForm] = createSignal<SettingsFormState>({
     workspaceName: "",
     teamworkProjectId: "",
+    teamworkApiToken: "",
   });
+  const [teamworkAuthStatus, setTeamworkAuthStatus] = createSignal<TeamworkAuthStatus>("missing");
   const [message, setMessage] = createSignal("Loading settings...");
   const [isSaving, setIsSaving] = createSignal(false);
   const [focusedTarget, setFocusedTarget] = createSignal<SettingsFocusTarget>("workspaceName");
@@ -65,7 +77,8 @@ export function SettingsPage() {
     if (!saved) return false;
     return (
       saved.workspaceName !== form().workspaceName ||
-      saved.teamworkProjectId !== form().teamworkProjectId
+      saved.teamworkProjectId !== form().teamworkProjectId ||
+      saved.teamworkApiToken !== form().teamworkApiToken
     );
   });
 
@@ -75,7 +88,9 @@ export function SettingsPage() {
     try {
       const config = await loadResolvedConfig(process.cwd());
       const nextForm = buildSettingsFormState(config);
+      const authStatus = await getTeamworkAuthStatus();
       setResolved(config);
+      setTeamworkAuthStatus(authStatus);
       setSavedForm(nextForm);
       setForm(nextForm);
       setFocusedTarget("workspaceName");
@@ -97,8 +112,11 @@ export function SettingsPage() {
 
     try {
       const nextConfig = applySettingsFormState(form(), resolved()?.project ?? null);
+      const teamworkApiToken = parseTeamworkApiTokenInput(form().teamworkApiToken);
       await saveUserConfig(nextConfig.user);
       await saveProjectConfig(nextConfig.project, process.cwd());
+      // Blank token input means "leave the existing OS secret unchanged".
+      if (teamworkApiToken) await setTeamworkApiToken(teamworkApiToken);
       await reload();
       setMessage("Settings saved.");
     } catch (error) {
@@ -238,6 +256,21 @@ export function SettingsPage() {
               }}
             />
           </Section>
+
+          <Section title="Teamwork auth" description={`Status: ${teamworkAuthStatus()}`}>
+            <TextField
+              name="teamworkApiToken"
+              label="teamworkApiToken"
+              value={form().teamworkApiToken}
+              width={40}
+              placeholder="Paste new token"
+              description="Stored token is never displayed; this field clears after save."
+              focused={focusedTarget() === "teamworkApiToken"}
+              onInput={(value) => {
+                setForm((current) => ({ ...current, teamworkApiToken: value }));
+              }}
+            />
+          </Section>
         </box>
       )}
 
@@ -270,11 +303,18 @@ export function parseTeamworkProjectId(value: string): number | null {
   return parsed;
 }
 
+/** Blank input intentionally preserves the existing Teamwork token secret. */
+export function parseTeamworkApiTokenInput(value: string): string | null {
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
 /** Builds editable form state from resolved config. */
 export function buildSettingsFormState(config: ResolvedConfig): SettingsFormState {
   return {
     workspaceName: config.user.workspaceName,
     teamworkProjectId: config.project?.teamwork.projectId?.toString() ?? "",
+    teamworkApiToken: "",
   };
 }
 

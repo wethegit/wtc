@@ -1,6 +1,9 @@
+// Keep one stable OS-secret identity so CLI and TUI auth flows read/write the
+// same Teamwork API token without ever storing it in YAML config files.
 const TEAMWORK_SECRET_SERVICE = "wtc";
 const TEAMWORK_TOKEN_SECRET_NAME = "teamwork-api-token";
 
+/** Safe-to-display auth state. The token value itself must never be surfaced. */
 export type TeamworkAuthStatus = "configured" | "missing";
 
 export async function getTeamworkApiToken(): Promise<string | null> {
@@ -32,6 +35,7 @@ export async function getTeamworkAuthStatus(): Promise<TeamworkAuthStatus> {
   return (await getTeamworkApiToken()) ? "configured" : "missing";
 }
 
+/** Teamwork Basic auth expects the API token in the username position. */
 export function createTeamworkAuthorizationHeader(token: string): string {
   return `Basic ${btoa(`${token}:password`)}`;
 }

@@ -20,7 +20,8 @@ export const UserConfigV1Schema = z.object({
 /**
  * Project-level config schema for nearest-ancestor `.wtc.yaml` files.
  *
- * Teamwork project IDs are nullable until a repo is linked to Teamwork.
+ * Project config is split into domain sections so Teamwork, GitHub, Amplify,
+ * and generic project metadata can grow independently without root-key sprawl.
  */
 const ProjectLinkSchema = z.object({
   name: z.string().min(1),
