@@ -20,11 +20,25 @@ export const UserConfigV1Schema = z.object({
 /**
  * Project-level config schema for nearest-ancestor `.wtc.yaml` files.
  *
- * `teamworkProjectId` is nullable until a repo is linked to Teamwork.
+ * Teamwork project IDs are nullable until a repo is linked to Teamwork.
  */
+const ProjectLinkSchema = z.object({
+  name: z.string().min(1),
+  url: z.url(),
+});
+
 export const ProjectConfigV1Schema = z.object({
   version: z.literal(PROJECT_CONFIG_VERSION),
-  teamworkProjectId: z.number().int().positive().nullable().default(null),
+  project: z
+    .object({
+      links: z.array(ProjectLinkSchema).default([]),
+    })
+    .default({ links: [] }),
+  teamwork: z
+    .object({
+      projectId: z.number().int().positive().nullable().default(null),
+    })
+    .default({ projectId: null }),
 });
 
 /** Active user config schema. Alias this to a newer schema when v2 exists. */

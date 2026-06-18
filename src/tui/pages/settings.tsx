@@ -96,7 +96,7 @@ export function SettingsPage() {
     setMessage("Saving settings...");
 
     try {
-      const nextConfig = applySettingsFormState(form());
+      const nextConfig = applySettingsFormState(form(), resolved()?.project ?? null);
       await saveUserConfig(nextConfig.user);
       await saveProjectConfig(nextConfig.project, process.cwd());
       await reload();
@@ -274,7 +274,7 @@ export function parseTeamworkProjectId(value: string): number | null {
 export function buildSettingsFormState(config: ResolvedConfig): SettingsFormState {
   return {
     workspaceName: config.user.workspaceName,
-    teamworkProjectId: config.project?.teamworkProjectId?.toString() ?? "",
+    teamworkProjectId: config.project?.teamwork.projectId?.toString() ?? "",
   };
 }
 
@@ -308,7 +308,10 @@ export function validateSettingsForm(state: SettingsFormState): SettingsFormErro
 }
 
 /** Converts editable form state back into user and project config objects. */
-export function applySettingsFormState(state: SettingsFormState): {
+export function applySettingsFormState(
+  state: SettingsFormState,
+  currentProject: ProjectConfig | null = null,
+): {
   user: UserConfig;
   project: ProjectConfig;
 } {
@@ -319,7 +322,8 @@ export function applySettingsFormState(state: SettingsFormState): {
     },
     project: {
       version: 1,
-      teamworkProjectId: parseTeamworkProjectId(state.teamworkProjectId),
+      project: { links: currentProject?.project.links ?? [] },
+      teamwork: { projectId: parseTeamworkProjectId(state.teamworkProjectId) },
     },
   };
 }

@@ -13,7 +13,7 @@ import type { ResolvedConfig } from "../../src/config/schema.ts";
 describe("settings page helpers", () => {
   const resolvedConfig: ResolvedConfig = {
     user: { version: 1, workspaceName: "WTC" },
-    project: { version: 1, teamworkProjectId: 12345 },
+    project: { version: 1, project: { links: [] }, teamwork: { projectId: 12345 } },
     paths: {
       userConfigPath: "/home/user/.config/wtc/wtc.yaml",
       projectConfigPath: "/repo/.wtc.yaml",
@@ -69,7 +69,27 @@ describe("settings page helpers", () => {
   test("applies settings form state to config objects", () => {
     expect(applySettingsFormState({ workspaceName: "New", teamworkProjectId: "98765" })).toEqual({
       user: { version: 1, workspaceName: "New" },
-      project: { version: 1, teamworkProjectId: 98765 },
+      project: { version: 1, project: { links: [] }, teamwork: { projectId: 98765 } },
+    });
+  });
+
+  test("preserves existing project links when applying settings form state", () => {
+    expect(
+      applySettingsFormState(
+        { workspaceName: "New", teamworkProjectId: "98765" },
+        {
+          version: 1,
+          project: { links: [{ name: "Figma", url: "https://figma.com/file/abc" }] },
+          teamwork: { projectId: 12345 },
+        },
+      ),
+    ).toEqual({
+      user: { version: 1, workspaceName: "New" },
+      project: {
+        version: 1,
+        project: { links: [{ name: "Figma", url: "https://figma.com/file/abc" }] },
+        teamwork: { projectId: 98765 },
+      },
     });
   });
 });
