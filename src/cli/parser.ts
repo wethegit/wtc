@@ -1,7 +1,13 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { cacheClean } from "./commands/cache.ts";
-import { configInit } from "./commands/config.ts";
+import {
+  CONFIG_AUTH_PROVIDERS,
+  configAuthDelete,
+  configAuthSet,
+  configAuthStatus,
+  configInit,
+} from "./commands/config.ts";
 import { settings } from "./commands/settings.ts";
 import { upgrade } from "./commands/upgrade.ts";
 import { APP_VERSION } from "../config/consts.ts";
@@ -41,7 +47,60 @@ export async function runCli(): Promise<void> {
               await configInit();
             },
           )
-          .demandCommand(1, "Specify a config subcommand: init"),
+          .command(
+            "auth",
+            "Manage provider credentials",
+            (yargs) =>
+              yargs
+                .command(
+                  "set <provider>",
+                  "Store a provider API token",
+                  (yargs) =>
+                    yargs
+                      .positional("provider", {
+                        type: "string",
+                        choices: CONFIG_AUTH_PROVIDERS,
+                        describe: "Auth provider",
+                      })
+                      .option("token", {
+                        type: "string",
+                        describe: "API token to store",
+                        demandOption: true,
+                      }),
+                  async (argv) => {
+                    await configAuthSet({ provider: argv.provider ?? "", token: argv.token });
+                  },
+                )
+                .command(
+                  "status <provider>",
+                  "Show provider auth status",
+                  (yargs) =>
+                    yargs.positional("provider", {
+                      type: "string",
+                      choices: CONFIG_AUTH_PROVIDERS,
+                      describe: "Auth provider",
+                    }),
+                  async (argv) => {
+                    await configAuthStatus({ provider: argv.provider ?? "" });
+                  },
+                )
+                .command(
+                  "delete <provider>",
+                  "Delete provider auth",
+                  (yargs) =>
+                    yargs.positional("provider", {
+                      type: "string",
+                      choices: CONFIG_AUTH_PROVIDERS,
+                      describe: "Auth provider",
+                    }),
+                  async (argv) => {
+                    await configAuthDelete({ provider: argv.provider ?? "" });
+                  },
+                )
+                .demandCommand(1, "Specify an auth subcommand: set, status, delete"),
+            () => {},
+          )
+          .demandCommand(1, "Specify a config subcommand: init, auth"),
       () => {},
     )
     .command(
