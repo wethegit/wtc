@@ -1,0 +1,37 @@
+const TEAMWORK_SECRET_SERVICE = "wtc";
+const TEAMWORK_TOKEN_SECRET_NAME = "teamwork-api-token";
+
+export type TeamworkAuthStatus = "configured" | "missing";
+
+export async function getTeamworkApiToken(): Promise<string | null> {
+  return Bun.secrets.get({
+    service: TEAMWORK_SECRET_SERVICE,
+    name: TEAMWORK_TOKEN_SECRET_NAME,
+  });
+}
+
+export async function setTeamworkApiToken(token: string): Promise<void> {
+  const value = token.trim();
+  if (!value) throw new Error("Teamwork API token cannot be empty.");
+
+  await Bun.secrets.set({
+    service: TEAMWORK_SECRET_SERVICE,
+    name: TEAMWORK_TOKEN_SECRET_NAME,
+    value,
+  });
+}
+
+export async function deleteTeamworkApiToken(): Promise<boolean> {
+  return Bun.secrets.delete({
+    service: TEAMWORK_SECRET_SERVICE,
+    name: TEAMWORK_TOKEN_SECRET_NAME,
+  });
+}
+
+export async function getTeamworkAuthStatus(): Promise<TeamworkAuthStatus> {
+  return (await getTeamworkApiToken()) ? "configured" : "missing";
+}
+
+export function createTeamworkAuthorizationHeader(token: string): string {
+  return `Basic ${btoa(`${token}:password`)}`;
+}
