@@ -57,7 +57,11 @@ export async function initProjectConfig(startDir: string): Promise<string> {
 
   await Bun.write(
     path,
-    formatProjectConfig({ version: PROJECT_CONFIG_VERSION, teamworkProjectId: null }),
+    formatProjectConfig({
+      version: PROJECT_CONFIG_VERSION,
+      project: { links: [] },
+      teamwork: { projectId: null },
+    }),
   );
   return path;
 }

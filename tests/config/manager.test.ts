@@ -64,27 +64,38 @@ describe("config manager", () => {
   });
 
   test("discovers nearest ancestor project config", async () => {
-    await Bun.write(`${PROJECT_ROOT}/.wtc.yaml`, "version: 1\nteamworkProjectId: 12345\n");
+    await Bun.write(
+      `${PROJECT_ROOT}/.wtc.yaml`,
+      "version: 1\nproject:\n  links: []\nteamwork:\n  projectId: 12345\n",
+    );
 
     expect(await getProjectConfigPath(`${PROJECT_ROOT}/packages/app`)).toBe(
       `${PROJECT_ROOT}/.wtc.yaml`,
     );
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
-      teamworkProjectId: 12345,
+      project: { links: [] },
+      teamwork: { projectId: 12345 },
     });
   });
 
   test("uses nearest project config when nested configs exist", async () => {
-    await Bun.write(`${PROJECT_ROOT}/.wtc.yaml`, "version: 1\nteamworkProjectId: 1\n");
-    await Bun.write(`${PROJECT_ROOT}/packages/.wtc.yaml`, "version: 1\nteamworkProjectId: 2\n");
+    await Bun.write(
+      `${PROJECT_ROOT}/.wtc.yaml`,
+      "version: 1\nproject:\n  links: []\nteamwork:\n  projectId: 1\n",
+    );
+    await Bun.write(
+      `${PROJECT_ROOT}/packages/.wtc.yaml`,
+      "version: 1\nproject:\n  links: []\nteamwork:\n  projectId: 2\n",
+    );
 
     expect(await getProjectConfigPath(`${PROJECT_ROOT}/packages/app`)).toBe(
       `${PROJECT_ROOT}/packages/.wtc.yaml`,
     );
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
-      teamworkProjectId: 2,
+      project: { links: [] },
+      teamwork: { projectId: 2 },
     });
   });
 
@@ -95,18 +106,37 @@ describe("config manager", () => {
 
   test("creates project config in start directory when none exists", async () => {
     const projectPath = await saveProjectConfig(
-      { version: 1, teamworkProjectId: 98765 },
+      { version: 1, project: { links: [] }, teamwork: { projectId: 98765 } },
       `${PROJECT_ROOT}/packages/app`,
     );
 
     expect(projectPath).toBe(`${PROJECT_ROOT}/packages/app/.wtc.yaml`);
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
-      teamworkProjectId: 98765,
+      project: { links: [] },
+      teamwork: { projectId: 98765 },
     });
     expect(await Bun.file(projectPath).text()).toContain(
       "# Teamwork project ID linked to this repository.",
     );
+  });
+
+  test("saves project links", async () => {
+    const projectPath = await saveProjectConfig(
+      {
+        version: 1,
+        project: { links: [{ name: "Figma", url: "https://figma.com/file/abc" }] },
+        teamwork: { projectId: null },
+      },
+      PROJECT_ROOT,
+    );
+
+    expect(await loadProjectConfig(PROJECT_ROOT)).toEqual({
+      version: 1,
+      project: { links: [{ name: "Figma", url: "https://figma.com/file/abc" }] },
+      teamwork: { projectId: null },
+    });
+    expect(await Bun.file(projectPath).text()).toContain('links:\n    - name: "Figma"');
   });
 
   test("initializes project config with comments", async () => {
@@ -118,7 +148,8 @@ describe("config manager", () => {
     expect(content).toContain("# Teamwork project ID linked to this repository.");
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
-      teamworkProjectId: null,
+      project: { links: [] },
+      teamwork: { projectId: null },
     });
   });
 
@@ -132,11 +163,14 @@ describe("config manager", () => {
 
   test("loads resolved config with paths", async () => {
     await saveUserConfig({ version: 1, workspaceName: "WTC" });
-    await Bun.write(`${PROJECT_ROOT}/.wtc.yaml`, "version: 1\nteamworkProjectId: 12345\n");
+    await Bun.write(
+      `${PROJECT_ROOT}/.wtc.yaml`,
+      "version: 1\nproject:\n  links: []\nteamwork:\n  projectId: 12345\n",
+    );
 
     expect(await loadResolvedConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       user: { version: 1, workspaceName: "WTC" },
-      project: { version: 1, teamworkProjectId: 12345 },
+      project: { version: 1, project: { links: [] }, teamwork: { projectId: 12345 } },
       paths: {
         userConfigPath: `${USER_CONFIG_DIR}/wtc.yaml`,
         projectConfigPath: `${PROJECT_ROOT}/.wtc.yaml`,

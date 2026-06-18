@@ -23,7 +23,8 @@ describe("config command", () => {
 
     const content = await Bun.file(`${TEST_ROOT}/.wtc.yaml`).text();
     expect(content).toContain("# WTC project-level configuration.");
-    expect(content).toContain("teamworkProjectId:");
+    expect(content).toContain("teamwork:");
+    expect(content).toContain("projectId:");
   });
 
   test("config init fails when project config exists", async () => {
