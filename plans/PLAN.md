@@ -39,6 +39,8 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 - Avoid helper functions for one-use expressions; prefer inline local constants.
 - Manager modules should contain domain behavior, not generic wrappers around simple file reads/writes.
 - Do not export helpers only for tests unless they represent meaningful domain behavior.
+- Comments should explain why code exists or why a tradeoff was chosen, not restate obvious mechanics.
+- Add comments to TypeScript interfaces/types when they clarify domain meaning or intended usage.
 
 Examples:
 

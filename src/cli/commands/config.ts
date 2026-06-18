@@ -6,9 +6,11 @@ import {
   type TeamworkAuthStatus,
 } from "../../teamwork/auth.ts";
 
+/** Shared with yargs so accepted CLI providers and handler validation stay in sync. */
 export const CONFIG_AUTH_PROVIDERS = ["teamwork"] as const;
 export type ConfigAuthProvider = (typeof CONFIG_AUTH_PROVIDERS)[number];
 
+/** Auth dependency boundary so command tests do not touch the OS secret store. */
 interface ConfigAuthActions {
   setTeamworkApiToken: (token: string) => Promise<void>;
   getTeamworkAuthStatus: () => Promise<TeamworkAuthStatus>;

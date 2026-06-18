@@ -5,6 +5,7 @@ import {
   buildSettingsFormState,
   getSettingsFormError,
   getNextSettingsFocus,
+  parseTeamworkApiTokenInput,
   parseTeamworkProjectId,
   validateSettingsForm,
 } from "../../src/tui/pages/settings.tsx";
@@ -37,6 +38,7 @@ describe("settings page helpers", () => {
     expect(buildSettingsFormState(resolvedConfig)).toEqual({
       workspaceName: "WTC",
       teamworkProjectId: "12345",
+      teamworkApiToken: "",
     });
   });
 
@@ -44,30 +46,57 @@ describe("settings page helpers", () => {
     expect(buildSettingsFormState({ ...resolvedConfig, project: null })).toEqual({
       workspaceName: "WTC",
       teamworkProjectId: "",
+      teamworkApiToken: "",
     });
   });
 
   test("cycles settings control focus", () => {
     expect(getNextSettingsFocus("workspaceName", 1)).toBe("teamworkProjectId");
-    expect(getNextSettingsFocus("teamworkProjectId", 1)).toBe("save");
+    expect(getNextSettingsFocus("teamworkProjectId", 1)).toBe("teamworkApiToken");
+    expect(getNextSettingsFocus("teamworkApiToken", 1)).toBe("save");
     expect(getNextSettingsFocus("save", 1)).toBe("reload");
     expect(getNextSettingsFocus("reload", 1)).toBe("workspaceName");
     expect(getNextSettingsFocus("workspaceName", -1)).toBe("reload");
   });
 
   test("validates invalid teamwork project id text", () => {
-    expect(validateSettingsForm({ workspaceName: "WTC", teamworkProjectId: "abc" })).toEqual({
+    expect(
+      validateSettingsForm({
+        workspaceName: "WTC",
+        teamworkProjectId: "abc",
+        teamworkApiToken: "",
+      }),
+    ).toEqual({
       teamworkProjectId: "Teamwork project ID must be a positive integer.",
     });
-    expect(validateSettingsForm({ workspaceName: "WTC", teamworkProjectId: "" })).toEqual({});
-    expect(getSettingsFormError({ workspaceName: "WTC", teamworkProjectId: "abc" })).toBe(
-      "Teamwork project ID must be a positive integer.",
-    );
-    expect(getSettingsFormError({ workspaceName: "WTC", teamworkProjectId: "" })).toBeNull();
+    expect(
+      validateSettingsForm({ workspaceName: "WTC", teamworkProjectId: "", teamworkApiToken: "" }),
+    ).toEqual({});
+    expect(
+      getSettingsFormError({
+        workspaceName: "WTC",
+        teamworkProjectId: "abc",
+        teamworkApiToken: "",
+      }),
+    ).toBe("Teamwork project ID must be a positive integer.");
+    expect(
+      getSettingsFormError({ workspaceName: "WTC", teamworkProjectId: "", teamworkApiToken: "" }),
+    ).toBeNull();
+  });
+
+  test("normalizes teamwork API token input", () => {
+    expect(parseTeamworkApiTokenInput("  abc123  ")).toBe("abc123");
+    expect(parseTeamworkApiTokenInput("   ")).toBeNull();
   });
 
   test("applies settings form state to config objects", () => {
-    expect(applySettingsFormState({ workspaceName: "New", teamworkProjectId: "98765" })).toEqual({
+    expect(
+      applySettingsFormState({
+        workspaceName: "New",
+        teamworkProjectId: "98765",
+        teamworkApiToken: "abc123",
+      }),
+    ).toEqual({
       user: { version: 1, workspaceName: "New" },
       project: { version: 1, project: { links: [] }, teamwork: { projectId: 98765 } },
     });
@@ -76,7 +105,7 @@ describe("settings page helpers", () => {
   test("preserves existing project links when applying settings form state", () => {
     expect(
       applySettingsFormState(
-        { workspaceName: "New", teamworkProjectId: "98765" },
+        { workspaceName: "New", teamworkProjectId: "98765", teamworkApiToken: "" },
         {
           version: 1,
           project: { links: [{ name: "Figma", url: "https://figma.com/file/abc" }] },

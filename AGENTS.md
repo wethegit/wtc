@@ -42,6 +42,14 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - Functions: `camelCase`
 - Tests: `*.test.ts` in `tests/` mirroring `src/` structure
 
+### Comments
+
+- Do not add comments that restate obvious code mechanics.
+- Add comments when they explain why code exists, why a tradeoff was chosen, or how a non-obvious constraint affects implementation.
+- Add comments for complex systems, security-sensitive flows, persistence formats, API boundaries, and cache/invalidation behavior.
+- Prefer comments on TypeScript interfaces/types when they clarify domain meaning or intended usage.
+- If code needs a comment to justify an abstraction, first consider whether the abstraction should be removed instead.
+
 ### File Organization / Helper Scope
 
 - Keep helpers scoped to the smallest place that needs them.
