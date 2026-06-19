@@ -1,6 +1,7 @@
 import { createEffect } from "solid-js";
 import type { BoxRenderable } from "@opentui/core";
 
+import { usePageScroll } from "../layout/scroll-context.tsx";
 import { tokens } from "../../tokens.ts";
 
 /** Props for a keyboard-reachable form action button. */
@@ -26,6 +27,7 @@ export interface ActionButtonProps {
  */
 export function ActionButton(props: ActionButtonProps) {
   let button: BoxRenderable | undefined;
+  const scroll = usePageScroll();
 
   createEffect(() => {
     if (!props.focused || !button || button.isDestroyed) return;
@@ -33,6 +35,7 @@ export function ActionButton(props: ActionButtonProps) {
     setTimeout(() => {
       if (!button || button.isDestroyed) return;
       button.focus();
+      scroll?.scrollChildIntoView(props.name);
     }, 1);
   });
 

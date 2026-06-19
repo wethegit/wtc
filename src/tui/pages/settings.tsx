@@ -1,4 +1,4 @@
-import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
 import { loadResolvedConfig, saveProjectConfig, saveUserConfig } from "../../config/manager.ts";
@@ -6,81 +6,93 @@ import type { ProjectConfig, ResolvedConfig, UserConfig } from "../../config/sch
 import { getTeamworkAuthStatus, setTeamworkApiToken } from "../../teamwork/auth.ts";
 import type { TeamworkAuthStatus } from "../../teamwork/auth.ts";
 import { ActionButton } from "../components/forms/action-button.tsx";
+import { DynamicList } from "../components/forms/dynamic-list.tsx";
 import { TextField } from "../components/forms/text-field.tsx";
+import { AccordionSection } from "../components/layout/accordion-section.tsx";
 import { Page } from "../components/layout/page.tsx";
-import { Section } from "../components/layout/section.tsx";
 import { useStatusBar } from "../components/status-bar.tsx";
 import { tokens } from "../tokens.ts";
 
-const SETTINGS_FOCUS_ORDER = [
-  "workspaceName",
-  "teamworkApiToken",
-  "teamworkProjectId",
-  "save",
-  "reload",
-] as const;
-
-type SettingsFocusTarget = (typeof SETTINGS_FOCUS_ORDER)[number];
-
-/** Editable Settings page form state. */
-export interface SettingsFormState {
-  /** User-level workspace label. */
-  workspaceName: string;
-  /** Project-level Teamwork ID as input text so invalid edits can be displayed. */
-  teamworkProjectId: string;
-  /** Token input stays blank because stored secrets must only be represented by status. */
-  teamworkApiToken: string;
+interface ProjectLinkFormState {
+  name: string;
+  url: string;
 }
 
-/** Field-level validation messages keyed by settings form field. */
-export type SettingsFormErrors = Partial<Record<keyof SettingsFormState, string>>;
+interface PinnedTaskListFormState {
+  name: string;
+  id: string;
+}
 
-type SettingsFieldValidator = {
-  field: keyof SettingsFormState;
-  validate: (state: SettingsFormState) => string | null;
+/** Editable Settings page form state grouped by config ownership. */
+export interface SettingsFormState {
+  /** User-level settings and user-owned secrets. */
+  user: {
+    workspaceName: string;
+    teamworkApiToken: string;
+  };
+  /** Project-level `.wtc.yaml` settings. */
+  project: {
+    teamworkProjectId: string;
+    links: ProjectLinkFormState[];
+    pinnedTaskLists: PinnedTaskListFormState[];
+  };
+}
+
+export type SettingsFormErrors = Record<string, string>;
+
+export type SettingsFocusTarget =
+  | { type: "field"; name: "workspaceName" | "teamworkApiToken" | "teamworkProjectId" }
+  | { type: "projectLink"; index: number; field: "name" | "url" }
+  | { type: "pinnedTaskList"; index: number; field: "name" | "id" }
+  | {
+      type: "listAction";
+      list: "projectLinks" | "pinnedTaskLists";
+      action: "add" | "remove";
+      index?: number;
+    }
+  | { type: "action"; name: "save" | "reload" };
+
+interface SettingsExpandedSections {
+  user: boolean;
+  project: boolean;
+  links: boolean;
+  pinnedTaskLists: boolean;
+}
+
+const DEFAULT_EXPANDED_SECTIONS: SettingsExpandedSections = {
+  user: true,
+  project: true,
+  links: true,
+  pinnedTaskLists: true,
 };
 
-const settingsFieldValidators = [
-  {
-    field: "teamworkProjectId",
-    validate(state) {
-      if (
-        state.teamworkProjectId.trim() &&
-        parseTeamworkProjectId(state.teamworkProjectId) === null
-      ) {
-        return "Teamwork project ID must be a positive integer.";
-      }
+const FIRST_FOCUS: SettingsFocusTarget = { type: "field", name: "workspaceName" };
 
-      return null;
-    },
-  },
-] satisfies readonly SettingsFieldValidator[];
-
-/** Settings route for viewing and editing Phase 3 config files. */
+/** Settings route for viewing and editing WTC config files. */
 export function SettingsPage() {
   const { setHints } = useStatusBar();
   const [resolved, setResolved] = createSignal<ResolvedConfig | null>(null);
   const [savedForm, setSavedForm] = createSignal<SettingsFormState | null>(null);
   const [form, setForm] = createSignal<SettingsFormState>({
-    workspaceName: "",
-    teamworkProjectId: "",
-    teamworkApiToken: "",
+    user: { workspaceName: "", teamworkApiToken: "" },
+    project: { teamworkProjectId: "", links: [], pinnedTaskLists: [] },
   });
+  const [expandedSections, setExpandedSections] =
+    createSignal<SettingsExpandedSections>(DEFAULT_EXPANDED_SECTIONS);
   const [teamworkAuthStatus, setTeamworkAuthStatus] = createSignal<TeamworkAuthStatus>("missing");
   const [message, setMessage] = createSignal("Loading settings...");
   const [isSaving, setIsSaving] = createSignal(false);
-  const [focusedTarget, setFocusedTarget] = createSignal<SettingsFocusTarget>("workspaceName");
+  const [focusedTarget, setFocusedTarget] = createSignal<SettingsFocusTarget>(FIRST_FOCUS);
   const errors = createMemo(() => validateSettingsForm(form()));
   const error = createMemo(() => Object.values(errors())[0] ?? null);
   const hasUnsavedChanges = createMemo(() => {
     const saved = savedForm();
-    if (!saved) return false;
-    return (
-      saved.workspaceName !== form().workspaceName ||
-      saved.teamworkProjectId !== form().teamworkProjectId ||
-      saved.teamworkApiToken !== form().teamworkApiToken
-    );
+    return saved ? JSON.stringify(saved) !== JSON.stringify(form()) : false;
   });
+
+  const toggleSection = (section: keyof SettingsExpandedSections) => {
+    setExpandedSections((current) => ({ ...current, [section]: !current[section] }));
+  };
 
   const reload = async () => {
     setMessage("Loading settings...");
@@ -93,7 +105,7 @@ export function SettingsPage() {
       setTeamworkAuthStatus(authStatus);
       setSavedForm(nextForm);
       setForm(nextForm);
-      setFocusedTarget("workspaceName");
+      setFocusedTarget(FIRST_FOCUS);
       setMessage("Settings loaded.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Failed to load settings.");
@@ -111,8 +123,8 @@ export function SettingsPage() {
     setMessage("Saving settings...");
 
     try {
-      const nextConfig = applySettingsFormState(form(), resolved()?.project ?? null);
-      const teamworkApiToken = parseTeamworkApiTokenInput(form().teamworkApiToken);
+      const nextConfig = applySettingsFormState(form());
+      const teamworkApiToken = parseTeamworkApiTokenInput(form().user.teamworkApiToken);
       await saveUserConfig(nextConfig.user);
       await saveProjectConfig(nextConfig.project, process.cwd());
       // Blank token input means "leave the existing OS secret unchanged".
@@ -126,14 +138,93 @@ export function SettingsPage() {
     }
   };
 
+  const addProjectLink = () => {
+    const index = form().project.links.length;
+    setForm((current) => ({
+      ...current,
+      project: { ...current.project, links: [...current.project.links, { name: "", url: "" }] },
+    }));
+    setFocusedTarget({ type: "projectLink", index, field: "name" });
+  };
+
+  const removeProjectLink = (index: number) => {
+    setForm((current) => ({
+      ...current,
+      project: {
+        ...current.project,
+        links: current.project.links.filter((_, currentIndex) => currentIndex !== index),
+      },
+    }));
+    setFocusedTarget({ type: "listAction", list: "projectLinks", action: "add" });
+  };
+
+  const addPinnedTaskList = () => {
+    const index = form().project.pinnedTaskLists.length;
+    setForm((current) => ({
+      ...current,
+      project: {
+        ...current.project,
+        pinnedTaskLists: [...current.project.pinnedTaskLists, { name: "", id: "" }],
+      },
+    }));
+    setFocusedTarget({ type: "pinnedTaskList", index, field: "name" });
+  };
+
+  const removePinnedTaskList = (index: number) => {
+    setForm((current) => ({
+      ...current,
+      project: {
+        ...current.project,
+        pinnedTaskLists: current.project.pinnedTaskLists.filter(
+          (_, currentIndex) => currentIndex !== index,
+        ),
+      },
+    }));
+    setFocusedTarget({ type: "listAction", list: "pinnedTaskLists", action: "add" });
+  };
+
   const pressFocusedAction = () => {
-    if (focusedTarget() === "save") {
+    const target = focusedTarget();
+
+    if (target.type === "action" && target.name === "save") {
       void save();
       return;
     }
 
-    if (focusedTarget() === "reload") {
+    if (target.type === "action" && target.name === "reload") {
       void reload();
+      return;
+    }
+
+    if (target.type === "listAction" && target.list === "projectLinks" && target.action === "add") {
+      addProjectLink();
+      return;
+    }
+
+    if (
+      target.type === "listAction" &&
+      target.list === "projectLinks" &&
+      target.action === "remove"
+    ) {
+      removeProjectLink(target.index ?? 0);
+      return;
+    }
+
+    if (
+      target.type === "listAction" &&
+      target.list === "pinnedTaskLists" &&
+      target.action === "add"
+    ) {
+      addPinnedTaskList();
+      return;
+    }
+
+    if (
+      target.type === "listAction" &&
+      target.list === "pinnedTaskLists" &&
+      target.action === "remove"
+    ) {
+      removePinnedTaskList(target.index ?? 0);
     }
   };
 
@@ -144,7 +235,7 @@ export function SettingsPage() {
         desc: "Next settings field",
         group: "Settings",
         cmd: () => {
-          setFocusedTarget((target) => getNextSettingsFocus(target, 1));
+          setFocusedTarget((target) => getNextSettingsFocus(target, form(), 1, expandedSections()));
         },
       },
       {
@@ -152,7 +243,9 @@ export function SettingsPage() {
         desc: "Previous settings field",
         group: "Settings",
         cmd: () => {
-          setFocusedTarget((target) => getNextSettingsFocus(target, -1));
+          setFocusedTarget((target) =>
+            getNextSettingsFocus(target, form(), -1, expandedSections()),
+          );
         },
       },
       {
@@ -160,7 +253,7 @@ export function SettingsPage() {
         desc: "Next settings field",
         group: "Settings",
         cmd: () => {
-          setFocusedTarget((target) => getNextSettingsFocus(target, 1));
+          setFocusedTarget((target) => getNextSettingsFocus(target, form(), 1, expandedSections()));
         },
       },
       {
@@ -168,7 +261,9 @@ export function SettingsPage() {
         desc: "Previous settings field",
         group: "Settings",
         cmd: () => {
-          setFocusedTarget((target) => getNextSettingsFocus(target, -1));
+          setFocusedTarget((target) =>
+            getNextSettingsFocus(target, form(), -1, expandedSections()),
+          );
         },
       },
       {
@@ -218,19 +313,30 @@ export function SettingsPage() {
       }
       message={<text fg={error() ? tokens.danger : tokens.textDim}>{message()}</text>}
     >
-      {resolved() && (
+      <Show when={resolved()}>
         <box flexDirection="column" gap={1}>
-          <Section title="User config" description={resolved()?.paths.userConfigPath}>
+          <AccordionSection
+            title="User config"
+            description={resolved()?.paths.userConfigPath}
+            expanded={expandedSections().user}
+            onToggle={() => toggleSection("user")}
+          >
             <box flexDirection="column" gap={1}>
               <TextField
                 name="workspaceName"
                 label="workspaceName"
-                value={form().workspaceName}
+                value={form().user.workspaceName}
                 placeholder="Workspace name"
                 description="User-level placeholder while broader settings are designed."
-                focused={focusedTarget() === "workspaceName"}
+                focused={isSettingsFocusTarget(focusedTarget(), {
+                  type: "field",
+                  name: "workspaceName",
+                })}
                 onInput={(value) => {
-                  setForm((current) => ({ ...current, workspaceName: value }));
+                  setForm((current) => ({
+                    ...current,
+                    user: { ...current.user, workspaceName: value },
+                  }));
                 }}
               />
 
@@ -248,55 +354,232 @@ export function SettingsPage() {
                 <TextField
                   name="teamworkApiToken"
                   label="teamworkApiToken"
-                  value={form().teamworkApiToken}
+                  value={form().user.teamworkApiToken}
                   width={40}
                   placeholder="Paste new token"
                   description="User-level secret stored outside YAML; this field clears after save."
-                  focused={focusedTarget() === "teamworkApiToken"}
+                  focused={isSettingsFocusTarget(focusedTarget(), {
+                    type: "field",
+                    name: "teamworkApiToken",
+                  })}
                   onInput={(value) => {
-                    setForm((current) => ({ ...current, teamworkApiToken: value }));
+                    setForm((current) => ({
+                      ...current,
+                      user: { ...current.user, teamworkApiToken: value },
+                    }));
                   }}
                 />
               </box>
             </box>
-          </Section>
+          </AccordionSection>
 
-          <Section
+          <AccordionSection
             title="Project config"
             description={[
               resolved()?.paths.projectConfigPath ??
                 ".wtc.yaml will be created in this directory on save",
             ]}
+            expanded={expandedSections().project}
+            onToggle={() => toggleSection("project")}
           >
             <TextField
               name="teamworkProjectId"
               label="teamworkProjectId"
-              value={form().teamworkProjectId}
+              value={form().project.teamworkProjectId}
               width={18}
               placeholder="12345"
               description="Leave blank until this repo is linked to Teamwork."
               error={errors().teamworkProjectId}
-              focused={focusedTarget() === "teamworkProjectId"}
+              focused={isSettingsFocusTarget(focusedTarget(), {
+                type: "field",
+                name: "teamworkProjectId",
+              })}
               onInput={(value) => {
-                setForm((current) => ({ ...current, teamworkProjectId: value }));
+                setForm((current) => ({
+                  ...current,
+                  project: { ...current.project, teamworkProjectId: value },
+                }));
               }}
             />
-          </Section>
+          </AccordionSection>
+
+          <AccordionSection
+            title="Project links"
+            status={`${form().project.links.length}`}
+            expanded={expandedSections().links}
+            onToggle={() => toggleSection("links")}
+          >
+            <DynamicList
+              items={form().project.links}
+              emptyMessage="No project links configured."
+              addLabel="add link"
+              addFocused={isSettingsFocusTarget(focusedTarget(), {
+                type: "listAction",
+                list: "projectLinks",
+                action: "add",
+              })}
+              onAdd={addProjectLink}
+              removeFocused={(index) =>
+                isSettingsFocusTarget(focusedTarget(), {
+                  type: "listAction",
+                  list: "projectLinks",
+                  action: "remove",
+                  index,
+                })
+              }
+              onRemove={removeProjectLink}
+              renderItem={(link, index) => (
+                <box flexDirection="column" gap={1}>
+                  <TextField
+                    name={`project-link-${index}-name`}
+                    label="name"
+                    value={link.name}
+                    placeholder="Figma"
+                    error={errors()[`projectLinks.${index}.name`]}
+                    focused={isSettingsFocusTarget(focusedTarget(), {
+                      type: "projectLink",
+                      index,
+                      field: "name",
+                    })}
+                    onInput={(value) => {
+                      setForm((current) => ({
+                        ...current,
+                        project: {
+                          ...current.project,
+                          links: current.project.links.map((currentLink, currentIndex) =>
+                            currentIndex === index ? { ...currentLink, name: value } : currentLink,
+                          ),
+                        },
+                      }));
+                    }}
+                  />
+                  <TextField
+                    name={`project-link-${index}-url`}
+                    label="url"
+                    value={link.url}
+                    placeholder="https://figma.com/..."
+                    error={errors()[`projectLinks.${index}.url`]}
+                    focused={isSettingsFocusTarget(focusedTarget(), {
+                      type: "projectLink",
+                      index,
+                      field: "url",
+                    })}
+                    onInput={(value) => {
+                      setForm((current) => ({
+                        ...current,
+                        project: {
+                          ...current.project,
+                          links: current.project.links.map((currentLink, currentIndex) =>
+                            currentIndex === index ? { ...currentLink, url: value } : currentLink,
+                          ),
+                        },
+                      }));
+                    }}
+                  />
+                </box>
+              )}
+            />
+          </AccordionSection>
+
+          <AccordionSection
+            title="Teamwork pinned task lists"
+            status={`${form().project.pinnedTaskLists.length}`}
+            expanded={expandedSections().pinnedTaskLists}
+            onToggle={() => toggleSection("pinnedTaskLists")}
+          >
+            <DynamicList
+              items={form().project.pinnedTaskLists}
+              emptyMessage="No pinned task lists configured."
+              addLabel="add task list"
+              addFocused={isSettingsFocusTarget(focusedTarget(), {
+                type: "listAction",
+                list: "pinnedTaskLists",
+                action: "add",
+              })}
+              onAdd={addPinnedTaskList}
+              removeFocused={(index) =>
+                isSettingsFocusTarget(focusedTarget(), {
+                  type: "listAction",
+                  list: "pinnedTaskLists",
+                  action: "remove",
+                  index,
+                })
+              }
+              onRemove={removePinnedTaskList}
+              renderItem={(taskList, index) => (
+                <box flexDirection="column">
+                  <TextField
+                    name={`pinned-task-list-${index}-name`}
+                    label="name"
+                    value={taskList.name}
+                    placeholder="General Tasks"
+                    error={errors()[`pinnedTaskLists.${index}.name`]}
+                    focused={isSettingsFocusTarget(focusedTarget(), {
+                      type: "pinnedTaskList",
+                      index,
+                      field: "name",
+                    })}
+                    onInput={(value) => {
+                      setForm((current) => ({
+                        ...current,
+                        project: {
+                          ...current.project,
+                          pinnedTaskLists: current.project.pinnedTaskLists.map(
+                            (currentTaskList, currentIndex) =>
+                              currentIndex === index
+                                ? { ...currentTaskList, name: value }
+                                : currentTaskList,
+                          ),
+                        },
+                      }));
+                    }}
+                  />
+                  <TextField
+                    name={`pinned-task-list-${index}-id`}
+                    label="id"
+                    value={taskList.id}
+                    width={18}
+                    placeholder="1597639"
+                    error={errors()[`pinnedTaskLists.${index}.id`]}
+                    focused={isSettingsFocusTarget(focusedTarget(), {
+                      type: "pinnedTaskList",
+                      index,
+                      field: "id",
+                    })}
+                    onInput={(value) => {
+                      setForm((current) => ({
+                        ...current,
+                        project: {
+                          ...current.project,
+                          pinnedTaskLists: current.project.pinnedTaskLists.map(
+                            (currentTaskList, currentIndex) =>
+                              currentIndex === index
+                                ? { ...currentTaskList, id: value }
+                                : currentTaskList,
+                          ),
+                        },
+                      }));
+                    }}
+                  />
+                </box>
+              )}
+            />
+          </AccordionSection>
         </box>
-      )}
+      </Show>
 
       <box flexDirection="row" gap={1} paddingTop={1} paddingBottom={1}>
         <ActionButton
           name="save-settings"
           label={isSaving() ? "saving" : "save"}
           variant="primary"
-          focused={focusedTarget() === "save"}
+          focused={isSettingsFocusTarget(focusedTarget(), { type: "action", name: "save" })}
           onPress={() => void save()}
         />
         <ActionButton
           name="reload-settings"
           label="reload"
-          focused={focusedTarget() === "reload"}
+          focused={isSettingsFocusTarget(focusedTarget(), { type: "action", name: "reload" })}
           onPress={() => void reload()}
         />
       </box>
@@ -304,8 +587,16 @@ export function SettingsPage() {
   );
 }
 
-/** Converts a Teamwork project ID input value into persisted config shape. */
 export function parseTeamworkProjectId(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const parsed = Number(trimmed);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
+}
+
+export function parsePinnedTaskListId(value: string): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
 
@@ -320,63 +611,153 @@ export function parseTeamworkApiTokenInput(value: string): string | null {
   return trimmed || null;
 }
 
-/** Builds editable form state from resolved config. */
 export function buildSettingsFormState(config: ResolvedConfig): SettingsFormState {
   return {
-    workspaceName: config.user.workspaceName,
-    teamworkProjectId: config.project?.teamwork.projectId?.toString() ?? "",
-    teamworkApiToken: "",
+    user: {
+      workspaceName: config.user.workspaceName,
+      teamworkApiToken: "",
+    },
+    project: {
+      teamworkProjectId: config.project?.teamwork.projectId?.toString() ?? "",
+      links:
+        config.project?.project.links.map((link) => ({ name: link.name, url: link.url })) ?? [],
+      pinnedTaskLists:
+        config.project?.teamwork.pinnedTaskLists.map((taskList) => ({
+          name: taskList.name,
+          id: taskList.id.toString(),
+        })) ?? [],
+    },
   };
 }
 
-/** Returns the next focusable Settings control, wrapping at either end. */
-export function getNextSettingsFocus(
+export function isSettingsFocusTarget(
   current: SettingsFocusTarget,
-  direction: 1 | -1,
-): SettingsFocusTarget {
-  const currentIndex = SETTINGS_FOCUS_ORDER.indexOf(current);
-  const nextIndex =
-    (currentIndex + direction + SETTINGS_FOCUS_ORDER.length) % SETTINGS_FOCUS_ORDER.length;
-
-  return SETTINGS_FOCUS_ORDER[nextIndex] ?? SETTINGS_FOCUS_ORDER[0];
+  expected: SettingsFocusTarget,
+): boolean {
+  return JSON.stringify(current) === JSON.stringify(expected);
 }
 
-/** Returns the current validation error for settings form state, if any. */
+export function getSettingsFocusOrder(
+  state: SettingsFormState,
+  expanded: SettingsExpandedSections = DEFAULT_EXPANDED_SECTIONS,
+): SettingsFocusTarget[] {
+  const order: SettingsFocusTarget[] = [];
+
+  if (expanded.user) {
+    order.push({ type: "field", name: "workspaceName" });
+    order.push({ type: "field", name: "teamworkApiToken" });
+  }
+
+  if (expanded.project) order.push({ type: "field", name: "teamworkProjectId" });
+
+  if (expanded.links) {
+    order.push({ type: "listAction", list: "projectLinks", action: "add" });
+    for (let index = 0; index < state.project.links.length; index += 1) {
+      order.push({ type: "projectLink", index, field: "name" });
+      order.push({ type: "projectLink", index, field: "url" });
+      order.push({ type: "listAction", list: "projectLinks", action: "remove", index });
+    }
+  }
+
+  if (expanded.pinnedTaskLists) {
+    order.push({ type: "listAction", list: "pinnedTaskLists", action: "add" });
+    for (let index = 0; index < state.project.pinnedTaskLists.length; index += 1) {
+      order.push({ type: "pinnedTaskList", index, field: "name" });
+      order.push({ type: "pinnedTaskList", index, field: "id" });
+      order.push({ type: "listAction", list: "pinnedTaskLists", action: "remove", index });
+    }
+  }
+
+  order.push({ type: "action", name: "save" });
+  order.push({ type: "action", name: "reload" });
+
+  return order;
+}
+
+export function getNextSettingsFocus(
+  current: SettingsFocusTarget,
+  state: SettingsFormState,
+  direction: 1 | -1,
+  expanded: SettingsExpandedSections = DEFAULT_EXPANDED_SECTIONS,
+): SettingsFocusTarget {
+  const order = getSettingsFocusOrder(state, expanded);
+  const currentIndex = order.findIndex((target) => isSettingsFocusTarget(target, current));
+  const fallbackIndex = direction === 1 ? 0 : order.length - 1;
+  const nextIndex =
+    currentIndex === -1 ? fallbackIndex : (currentIndex + direction + order.length) % order.length;
+
+  return order[nextIndex] ?? FIRST_FOCUS;
+}
+
 export function getSettingsFormError(state: SettingsFormState): string | null {
   return Object.values(validateSettingsForm(state))[0] ?? null;
 }
 
-/** Validates every Settings field and returns errors keyed by field name. */
 export function validateSettingsForm(state: SettingsFormState): SettingsFormErrors {
   const errors: SettingsFormErrors = {};
 
-  for (const validator of settingsFieldValidators) {
-    const message = validator.validate(state);
-    if (message) errors[validator.field] = message;
+  if (
+    state.project.teamworkProjectId.trim() &&
+    parseTeamworkProjectId(state.project.teamworkProjectId) === null
+  ) {
+    errors.teamworkProjectId = "Teamwork project ID must be a positive integer.";
+  }
+
+  for (const [index, link] of state.project.links.entries()) {
+    const name = link.name.trim();
+    const url = link.url.trim();
+    if (!name && !url) continue;
+    if (!name) errors[`projectLinks.${index}.name`] = "Project link name is required.";
+    if (!url) {
+      errors[`projectLinks.${index}.url`] = "Project link URL is required.";
+      continue;
+    }
+
+    try {
+      new URL(url);
+    } catch {
+      errors[`projectLinks.${index}.url`] = "Project link URL must be valid.";
+    }
+  }
+
+  for (const [index, taskList] of state.project.pinnedTaskLists.entries()) {
+    const name = taskList.name.trim();
+    const id = taskList.id.trim();
+    if (!name && !id) continue;
+    if (!name) errors[`pinnedTaskLists.${index}.name`] = "Pinned task list name is required.";
+    if (parsePinnedTaskListId(id) === null) {
+      errors[`pinnedTaskLists.${index}.id`] = "Pinned task list ID must be a positive integer.";
+    }
   }
 
   return errors;
 }
 
-/** Converts editable form state back into user and project config objects. */
-export function applySettingsFormState(
-  state: SettingsFormState,
-  currentProject: ProjectConfig | null = null,
-): {
+export function applySettingsFormState(state: SettingsFormState): {
   user: UserConfig;
   project: ProjectConfig;
 } {
   return {
     user: {
       version: 1,
-      workspaceName: state.workspaceName,
+      workspaceName: state.user.workspaceName,
     },
     project: {
       version: 1,
-      project: { links: currentProject?.project.links ?? [] },
+      project: {
+        links: state.project.links.flatMap((link) => {
+          const name = link.name.trim();
+          const url = link.url.trim();
+          return name && url ? [{ name, url }] : [];
+        }),
+      },
       teamwork: {
-        projectId: parseTeamworkProjectId(state.teamworkProjectId),
-        pinnedTaskLists: currentProject?.teamwork.pinnedTaskLists ?? [],
+        projectId: parseTeamworkProjectId(state.project.teamworkProjectId),
+        pinnedTaskLists: state.project.pinnedTaskLists.flatMap((taskList) => {
+          const name = taskList.name.trim();
+          const id = parsePinnedTaskListId(taskList.id);
+          return name && id ? [{ name, id }] : [];
+        }),
       },
     },
   };
