@@ -336,6 +336,7 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - Types: `PascalCase`
 - Functions: `camelCase`
 - Tests: `*.test.ts` in `tests/` mirroring `src/`
+- Schema tests should protect WTC-owned contracts such as versions, defaults, migrations, and intentional forward-compat behavior; do not retest basic Zod validation.
 
 ### Code Quality
 

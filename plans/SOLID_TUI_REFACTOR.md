@@ -299,7 +299,7 @@ Per the testing philosophy in `AGENTS.md`:
 - The status bar is intentionally simple — it can become richer (git branch, AWS profile, timer status) in Phase 5-6.
 - The command palette starts with GitHub and Settings navigation commands; add real commands as feature pages mature.
 - DialogProvider supports a stack but we only use single-dialog mode for now. Stack semantics are ready for multi-dialog flows like wizards.
-- Routing is intentionally local app state for now (`home`, `github`, `settings`). Add a larger router only when route complexity requires it.
+- Routing is intentionally local app state for now, persisted as `{ page, tab }` so pages like Teamwork can restore their active tab. Add a larger router only when route complexity requires it.
 
 ---
 

@@ -381,13 +381,12 @@ Test logic only.
 
 File: `tests/config/schema.test.ts`
 
-Cover:
+Do not add tests that only prove Zod accepts valid config shapes or rejects invalid primitive types. Schema tests should protect WTC-owned config contracts only:
 
-- valid user config
-- valid project config
-- defaults
-- invalid `version`
-- invalid `teamworkProjectId`
+- Supported/unsupported `version` behavior
+- Defaults or migrations the app relies on
+- Forward-compat behavior for unknown fields when intentional
+- Cross-field policy that is not already obvious from primitive schema validation
 
 File: `tests/config/manager.test.ts`
 
