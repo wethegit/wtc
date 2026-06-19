@@ -28,8 +28,7 @@ Before making changes, read these files for context:
 
 Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 
-- Always check-in with user first before making the commit so they can check diff and ask for changes
-- Make small commits so it's easy to see progress and revert changes
+- Do note make a commit unless requested, always check-in with user first before making the commit so they can check diff and ask for changes
 - Stop at a breakpoint before every commit and before continuing to the next main step. The user will inspect the diff themselves; do not commit or continue until they explicitly approve.
 
 ### TypeScript
@@ -66,7 +65,6 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - Manager modules should contain domain behavior, not generic wrappers around simple file reads/writes.
 - If a helper exists only to make a test easier, reconsider the test or test higher-level behavior instead.
 - Do not split one workflow into private helpers unless those helpers are reused or represent meaningful domain behavior; keep the workflow in one function and add a clarifying comment when needed.
-- Do not create separate abstractions like helpers unless those helpers are reused across or encode meaningful domain behavior, prefer adding a comment over those sections.
 
 ### Third-Party API Requests
 
@@ -84,22 +82,17 @@ Examples:
 
 ## Commands
 
+ONLY run these commands and nothing else.
+
 ```bash
-bun run lint         # oxlint
-bun run fmt          # oxfmt (write)
-bun run fmt:check    # oxfmt (check only)
 bun run check        # tsc --noEmit
 bun test             # Run all tests
-bun run build        # Build standalone binary
 ```
 
 ## Code Quality Rules
 
-- [ ] `bun run fmt` passes
-- [ ] `bun run lint` passes
 - [ ] `bun run check` passes (tsc)
 - [ ] `bun test` passes
-- [ ] `bun run build` passes
 - [ ] No `any` types, no default exports
 
 **NEVER** run the binary compiled files.
