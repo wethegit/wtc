@@ -148,6 +148,7 @@ teamwork:
 - Start by making all config editable in the existing Settings page.
 - Add enough structure to keep Settings navigable as config grows.
 - Plan for a summary/details or accordion-style component for grouped settings: User settings, Project links, Teamwork settings, future GitHub settings, and future Amplify settings.
+- Display Teamwork auth under user-level settings because the token applies across all projects, even though the secret itself lives outside YAML.
 - Domain routes may later offer contextual edit actions, but Settings remains the source of truth for broad configuration.
 
 #### Teamwork Auth
