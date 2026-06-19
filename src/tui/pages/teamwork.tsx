@@ -1,7 +1,14 @@
-import { For, onCleanup, onMount } from "solid-js";
+import { createSignal, For, onCleanup, onMount } from "solid-js";
 import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 
+import { loadResolvedConfig } from "../../config/manager.ts";
+import type { ResolvedConfig } from "../../config/schema.ts";
+import { getTeamworkAuthStatus, type TeamworkAuthStatus } from "../../teamwork/auth.ts";
+import {
+  getTeamworkProjectMetadata,
+  type TeamworkProjectMetadataResult,
+} from "../../teamwork/project-metadata.ts";
 import { Page } from "../components/layout/page.tsx";
 import { Section } from "../components/layout/section.tsx";
 import { useStatusBar } from "../components/status-bar.tsx";
@@ -40,6 +47,46 @@ export function TeamworkPage(props: {
   };
 
   const { setHints } = useStatusBar();
+  const [resolved, setResolved] = createSignal<ResolvedConfig | null>(null);
+  const [teamworkAuthStatus, setTeamworkAuthStatus] = createSignal<TeamworkAuthStatus>("missing");
+  const [projectMetadata, setProjectMetadata] = createSignal<TeamworkProjectMetadataResult | null>(
+    null,
+  );
+  const [projectMessage, setProjectMessage] = createSignal("Loading project context...");
+
+  const loadProjectContext = async () => {
+    setProjectMessage("Loading project context...");
+    setProjectMetadata(null);
+
+    try {
+      const config = await loadResolvedConfig(process.cwd());
+      const authStatus = await getTeamworkAuthStatus();
+      const projectId = config.project?.teamwork.projectId ?? null;
+
+      setResolved(config);
+      setTeamworkAuthStatus(authStatus);
+
+      if (!config.project) {
+        setProjectMessage("No project config found. Use Settings to create .wtc.yaml.");
+        return;
+      }
+
+      if (!projectId) {
+        setProjectMessage("Set teamwork.projectId in Settings to load Teamwork metadata.");
+        return;
+      }
+
+      const metadata = await getTeamworkProjectMetadata(projectId);
+      setProjectMetadata(metadata);
+      setProjectMessage(
+        metadata.source === "cache"
+          ? "Using cached Teamwork project metadata."
+          : "Fetched Teamwork project metadata.",
+      );
+    } catch (error) {
+      setProjectMessage(error instanceof Error ? error.message : "Failed to load project context.");
+    }
+  };
 
   useBindings(() => ({
     bindings: [
@@ -59,7 +106,8 @@ export function TeamworkPage(props: {
   }));
 
   onMount(() => {
-    setHints([{ key: "ctrl+left/right", label: "tabs" }]);
+    setHints([{ key: "ctrl+←/→", label: "tabs" }]);
+    void loadProjectContext();
   });
 
   onCleanup(() => setHints([]));
@@ -88,8 +136,43 @@ export function TeamworkPage(props: {
             title="Project Teamwork"
             description="Project-specific Teamwork context from the nearest .wtc.yaml."
           >
-            <text fg={tokens.text}>Project metadata, links, and tasks will appear here.</text>
-            <text fg={tokens.textDim}>Use Settings to configure teamwork.projectId for now.</text>
+            <box flexDirection="column" gap={1}>
+              <box flexDirection="column" gap={0}>
+                <text fg={tokens.textDim}>
+                  Project config: {resolved()?.paths.projectConfigPath ?? "not found"}
+                </text>
+                <text fg={tokens.textDim}>
+                  Teamwork project ID: {resolved()?.project?.teamwork.projectId ?? "not configured"}
+                </text>
+                <text fg={tokens.textDim}>Teamwork auth: {teamworkAuthStatus()}</text>
+              </box>
+
+              {projectMetadata() ? (
+                <box flexDirection="column" gap={0}>
+                  <text fg={tokens.text}>Teamwork project: {projectMetadata()?.project.name}</text>
+                  <text fg={tokens.textDim}>{projectMessage()}</text>
+                </box>
+              ) : (
+                <text fg={tokens.textDim}>{projectMessage()}</text>
+              )}
+
+              <box flexDirection="column" gap={0}>
+                <text attributes={TextAttributes.BOLD} fg={tokens.text}>
+                  Project links
+                </text>
+                {resolved()?.project?.project.links.length ? (
+                  <For each={resolved()?.project?.project.links ?? []}>
+                    {(link) => (
+                      <text fg={tokens.textDim}>
+                        {link.name}: {link.url}
+                      </text>
+                    )}
+                  </For>
+                ) : (
+                  <text fg={tokens.textDim}>No project links configured.</text>
+                )}
+              </box>
+            </box>
           </Section>
         ) : (
           <Section
