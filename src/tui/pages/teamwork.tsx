@@ -7,24 +7,38 @@ import { Section } from "../components/layout/section.tsx";
 import { useStatusBar } from "../components/status-bar.tsx";
 import { tokens } from "../tokens.ts";
 
-export type TeamworkTab = "my-work" | "project";
+const TEAMWORK_TABS = ["my-work", "project"] as const;
 
-const TEAMWORK_TABS = [
+export type TeamworkTab = (typeof TEAMWORK_TABS)[number];
+
+const TABS = [
   { id: "my-work", label: "My Work" },
   { id: "project", label: "Project" },
-] as const satisfies readonly { id: TeamworkTab; label: string }[];
+] as const;
 
 export function getNextTeamworkTab(current: TeamworkTab, direction: 1 | -1): TeamworkTab {
-  const currentIndex = TEAMWORK_TABS.findIndex((tab) => tab.id === current);
-  const nextIndex = (currentIndex + direction + TEAMWORK_TABS.length) % TEAMWORK_TABS.length;
+  const currentIndex = TABS.findIndex((tab) => tab.id === current);
+  const nextIndex = (currentIndex + direction + TABS.length) % TABS.length;
 
-  return TEAMWORK_TABS[nextIndex]?.id ?? "project";
+  return TABS[nextIndex]?.id ?? "project";
+}
+
+function isValidTab(tab: string): tab is TeamworkTab {
+  return TEAMWORK_TABS.includes(tab as TeamworkTab);
 }
 
 export function TeamworkPage(props: {
-  activeTab: TeamworkTab;
+  activeTab: string;
   onTabChange: (tab: TeamworkTab) => void;
 }) {
+  const activeTab = () => {
+    const current = props.activeTab;
+    if (!isValidTab(current)) {
+      throw Error(`Invalid teamwork tab: ${current}`);
+    }
+    return current;
+  };
+
   const { setHints } = useStatusBar();
 
   useBindings(() => ({
@@ -33,13 +47,13 @@ export function TeamworkPage(props: {
         key: "left",
         desc: "Previous Teamwork tab",
         group: "Teamwork",
-        cmd: () => props.onTabChange(getNextTeamworkTab(props.activeTab, -1)),
+        cmd: () => props.onTabChange(getNextTeamworkTab(activeTab(), -1)),
       },
       {
         key: "right",
         desc: "Next Teamwork tab",
         group: "Teamwork",
-        cmd: () => props.onTabChange(getNextTeamworkTab(props.activeTab, 1)),
+        cmd: () => props.onTabChange(getNextTeamworkTab(activeTab(), 1)),
       },
     ],
   }));
@@ -53,25 +67,23 @@ export function TeamworkPage(props: {
   return (
     <Page
       title="Teamwork"
-      status={
-        <text fg={tokens.textDim}>{props.activeTab === "project" ? "project" : "my work"}</text>
-      }
+      status={<text fg={tokens.textDim}>{activeTab() === "project" ? "project" : "my work"}</text>}
     >
       <box flexDirection="column" gap={1}>
         <box flexDirection="row" gap={2}>
-          <For each={TEAMWORK_TABS}>
+          <For each={TABS}>
             {(tab) => (
               <text
-                attributes={props.activeTab === tab.id ? TextAttributes.BOLD : undefined}
-                fg={props.activeTab === tab.id ? tokens.accent : tokens.textDim}
+                attributes={activeTab() === tab.id ? TextAttributes.BOLD : undefined}
+                fg={activeTab() === tab.id ? tokens.accent : tokens.textDim}
               >
-                {props.activeTab === tab.id ? `[${tab.label}]` : tab.label}
+                {activeTab() === tab.id ? `[${tab.label}]` : tab.label}
               </text>
             )}
           </For>
         </box>
 
-        {props.activeTab === "project" ? (
+        {activeTab() === "project" ? (
           <Section
             title="Project Teamwork"
             description="Project-specific Teamwork context from the nearest .wtc.yaml."

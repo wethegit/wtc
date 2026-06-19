@@ -7,8 +7,10 @@ import { TuiStateFileSchema, type TuiStateEntry, type TuiStateFile } from "./sch
 const STATE_FILE = "tui-state.json";
 
 const DEFAULT_ENTRY: TuiStateEntry = {
-  lastRoute: "home",
-  lastTeamworkTab: "project",
+  lastRoute: {
+    page: "home",
+    tab: "index",
+  },
   lastUpdated: new Date().toISOString(),
 };
 

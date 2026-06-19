@@ -1,9 +1,12 @@
 import { z } from "zod";
 
+import { ROUTE_PAGES } from "../tui/app";
+
 export const TuiStateEntrySchema = z.object({
-  lastRoute: z.enum(["home", "github", "settings", "teamwork"]).default("home"),
-  // Default to the project tab because Phase 4 focuses on project-specific Teamwork setup first.
-  lastTeamworkTab: z.enum(["my-work", "project"]).default("project"),
+  lastRoute: z.object({
+    page: z.enum(ROUTE_PAGES).default("home"),
+    tab: z.string().default("index"),
+  }),
   lastUpdated: z.string(),
 });
 

@@ -5,18 +5,19 @@ import { TuiStateEntrySchema, TuiStateFileSchema } from "../../src/state/schema.
 describe("TuiStateEntrySchema", () => {
   test("parses a valid entry", () => {
     expect(
-      TuiStateEntrySchema.parse({ lastRoute: "settings", lastUpdated: "2026-06-15T10:00:00Z" }),
+      TuiStateEntrySchema.parse({
+        lastRoute: { page: "settings", tab: "index" },
+        lastUpdated: "2026-06-15T10:00:00Z",
+      }),
     ).toEqual({
-      lastRoute: "settings",
-      lastTeamworkTab: "project",
+      lastRoute: { page: "settings", tab: "project" },
       lastUpdated: "2026-06-15T10:00:00Z",
     });
   });
 
   test("defaults lastRoute to home when missing", () => {
     expect(TuiStateEntrySchema.parse({ lastUpdated: "2026-06-15T10:00:00Z" })).toEqual({
-      lastRoute: "home",
-      lastTeamworkTab: "project",
+      lastRoute: { page: "home", tab: "project" },
       lastUpdated: "2026-06-15T10:00:00Z",
     });
   });
@@ -24,13 +25,11 @@ describe("TuiStateEntrySchema", () => {
   test("stores the last Teamwork tab", () => {
     expect(
       TuiStateEntrySchema.parse({
-        lastRoute: "teamwork",
-        lastTeamworkTab: "my-work",
+        lastRoute: { page: "teamwork", tab: "my-work" },
         lastUpdated: "2026-06-15T10:00:00Z",
       }),
     ).toEqual({
-      lastRoute: "teamwork",
-      lastTeamworkTab: "my-work",
+      lastRoute: { page: "teamwork", tab: "my-work" },
       lastUpdated: "2026-06-15T10:00:00Z",
     });
   });
@@ -38,20 +37,22 @@ describe("TuiStateEntrySchema", () => {
   test("accepts extra unknown fields for forward compat", () => {
     expect(
       TuiStateEntrySchema.parse({
-        lastRoute: "github",
+        lastRoute: { page: "github", tab: "index" },
         lastUpdated: "2026-06-15T10:00:00Z",
         scrollY: 42,
       }),
     ).toEqual({
-      lastRoute: "github",
-      lastTeamworkTab: "project",
+      lastRoute: { page: "github", tab: "project" },
       lastUpdated: "2026-06-15T10:00:00Z",
     });
   });
 
   test("rejects invalid lastRoute value", () => {
     expect(() =>
-      TuiStateEntrySchema.parse({ lastRoute: "invalid", lastUpdated: "2026-06-15T10:00:00Z" }),
+      TuiStateEntrySchema.parse({
+        lastRoute: { page: "invalid", tab: "index" },
+        lastUpdated: "2026-06-15T10:00:00Z",
+      }),
     ).toThrow();
   });
 });
@@ -63,8 +64,7 @@ describe("TuiStateFileSchema", () => {
         version: 1,
         entries: {
           "/home/user/project": {
-            lastRoute: "settings",
-            lastTeamworkTab: "project",
+            lastRoute: { page: "settings", tab: "project" },
             lastUpdated: "2026-06-15T10:00:00Z",
           },
         },
@@ -73,8 +73,7 @@ describe("TuiStateFileSchema", () => {
       version: 1,
       entries: {
         "/home/user/project": {
-          lastRoute: "settings",
-          lastTeamworkTab: "project",
+          lastRoute: { page: "settings", tab: "project" },
           lastUpdated: "2026-06-15T10:00:00Z",
         },
       },
@@ -86,10 +85,12 @@ describe("TuiStateFileSchema", () => {
       TuiStateFileSchema.parse({
         version: 1,
         entries: {
-          "/home/user/a": { lastRoute: "github", lastUpdated: "2026-06-15T10:00:00Z" },
+          "/home/user/a": {
+            lastRoute: { page: "github", tab: "index" },
+            lastUpdated: "2026-06-15T10:00:00Z",
+          },
           "/home/user/b": {
-            lastRoute: "teamwork",
-            lastTeamworkTab: "project",
+            lastRoute: { page: "teamwork", tab: "project" },
             lastUpdated: "2026-06-15T11:00:00Z",
           },
         },
@@ -98,13 +99,11 @@ describe("TuiStateFileSchema", () => {
       version: 1,
       entries: {
         "/home/user/a": {
-          lastRoute: "github",
-          lastTeamworkTab: "project",
+          lastRoute: { page: "github", tab: "project" },
           lastUpdated: "2026-06-15T10:00:00Z",
         },
         "/home/user/b": {
-          lastRoute: "teamwork",
-          lastTeamworkTab: "project",
+          lastRoute: { page: "teamwork", tab: "project" },
           lastUpdated: "2026-06-15T11:00:00Z",
         },
       },

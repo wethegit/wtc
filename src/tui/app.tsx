@@ -13,12 +13,19 @@ import { COMMAND_PALETTE_COMMAND, CommandPaletteDialog } from "./components/comm
 import { Dashboard } from "./pages/dashboard.tsx";
 import { GitHubPage } from "./pages/github.tsx";
 import { SettingsPage } from "./pages/settings.tsx";
-import { TeamworkPage, type TeamworkTab } from "./pages/teamwork.tsx";
+import { TeamworkPage } from "./pages/teamwork.tsx";
 import { StateProvider, useTuiState } from "./components/state-provider.tsx";
 import { StatusBarProvider } from "./components/status-bar.tsx";
 import { tokens } from "./tokens.ts";
 
-type Route = "home" | "github" | "settings" | "teamwork";
+export const ROUTE_PAGES = ["home", "github", "settings", "teamwork"] as const;
+
+type RoutePage = (typeof ROUTE_PAGES)[number];
+
+interface Route {
+  page: RoutePage;
+  tab: string;
+}
 
 /** Main TUI screen controller rendered inside the app providers. */
 function Home() {
@@ -27,22 +34,14 @@ function Home() {
   const renderer = useRenderer();
   const tuiState = useTuiState();
   const [route, setRoute] = createSignal<Route>(tuiState.state.lastRoute);
-  const [teamworkTab, setTeamworkTab] = createSignal<TeamworkTab>(tuiState.state.lastTeamworkTab);
 
-  const navigate = (newRoute: Route) => {
-    setRoute(newRoute);
-    tuiState.updateState({ lastRoute: newRoute });
-  };
+  const navigate = (newRoute: Partial<Route>) => {
+    const defaults = { ...route() };
 
-  const navigateTeamwork = (tab: TeamworkTab) => {
-    setRoute("teamwork");
-    setTeamworkTab(tab);
-    tuiState.updateState({ lastRoute: "teamwork", lastTeamworkTab: tab });
-  };
+    if (!newRoute.tab) defaults.tab = "index";
 
-  const updateTeamworkTab = (tab: TeamworkTab) => {
-    setTeamworkTab(tab);
-    tuiState.updateState({ lastRoute: "teamwork", lastTeamworkTab: tab });
+    setRoute(defaults);
+    tuiState.updateState({ lastRoute: defaults });
   };
 
   const quit = () => {
@@ -68,7 +67,7 @@ function Home() {
         desc: "Repository workflows",
         category: "Navigation",
         run: () => {
-          navigate("github");
+          navigate({ page: "github" });
           dialog.clear();
         },
       },
@@ -78,7 +77,10 @@ function Home() {
         desc: "My assigned work",
         category: "Navigation",
         run: () => {
-          navigateTeamwork("my-work");
+          navigate({
+            page: "teamwork",
+            tab: "my-work",
+          });
           dialog.clear();
         },
       },
@@ -88,7 +90,7 @@ function Home() {
         desc: "Project-specific Teamwork context",
         category: "Navigation",
         run: () => {
-          navigateTeamwork("project");
+          navigate({ page: "teamwork", tab: "project" });
           dialog.clear();
         },
       },
@@ -98,7 +100,7 @@ function Home() {
         desc: "Configuration and setup",
         category: "Navigation",
         run: () => {
-          navigate("settings");
+          navigate({ page: "settings" });
           dialog.clear();
         },
       },
@@ -171,11 +173,11 @@ function Home() {
 
   return (
     <box flexDirection="column" flexGrow={1} backgroundColor={tokens.bg}>
-      {route() === "github" ? (
+      {route().page === "github" ? (
         <GitHubPage />
-      ) : route() === "teamwork" ? (
-        <TeamworkPage activeTab={teamworkTab()} onTabChange={updateTeamworkTab} />
-      ) : route() === "settings" ? (
+      ) : route().page === "teamwork" ? (
+        <TeamworkPage activeTab={route().tab} onTabChange={(tab: string) => navigate({ tab })} />
+      ) : route().page === "settings" ? (
         <SettingsPage />
       ) : (
         <Dashboard />
