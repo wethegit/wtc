@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** Phase 3.5 in progress; Phase 4 Teamwork Foundation planned next
+- **Status:** Phase 5 Teamwork Foundation in progress
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js
@@ -112,29 +112,29 @@ See `STATE_MANAGER.md` for the detailed implementation plan, schema, manager API
 - Solid `StateProvider` context for TUI components
 - Pure tests for schema and manager logic
 
-### Phase 5 — Teamwork Foundation
+### Phase 5 — Teamwork Workflow
 
-Phase 4 shifts focus from GitHub creation to Teamwork-centered project workflow. The goal is to make WTC useful inside an existing project by surfacing project context, Teamwork metadata, important links, and eventually task/timer workflows.
+Teamwork work is split into detailed subphase plans under [`plans/teamwork/`](teamwork/README.md).
 
-- Show whether a project config was found.
-- Show Teamwork auth status without displaying the stored token.
-- Show/edit `teamwork.projectId` through Settings first.
-- Display configured project links.
-- Display cached/fetched Teamwork project metadata.
-- Prepare the route for later task/timer actions: assigned project tasks, start/stop time tracking, branch creation, and PR workflows from tasks.
+#### Phase 5.1 — [Teamwork Foundation](teamwork/5.1-foundation.md)
 
-### Phase 5.1 — Teamwork Workflow Expansion
+Auth, project config, Teamwork route, project metadata, project links, and shared Teamwork HTTP client.
 
-- Task ↔ PR linking by parsing branch names (`(feature|fix|chore)/TASK-XXXXX`)
-- `wtc teamwork timer start|stop|pause`
-- `wtc teamwork link` — link current branch to Teamwork task
-- `wtc teamwork open` — open task in browser
-- Show project tasks assigned to the current user
-- Start/stop time tracking from a selected task
-- Start a branch or PR from a selected task
-- Timer overview TUI page (active/paused timers)
-- Notification popup on timer events
-- Project↔Repo mapping in local config + per-repo `.wtc.yaml`
+#### Phase 5.2 — [Pinned Project Task Lists](teamwork/5.2-pinned-project-task-lists.md)
+
+Project-configured Teamwork task lists for recurring project tasks such as code review, meetings, miscellaneous work, project management, and documentation.
+
+#### Phase 5.3 — [My Work Tasks](teamwork/5.3-my-work-tasks.md)
+
+Assigned Teamwork tasks for the current user with selection and basic task actions.
+
+#### Phase 5.4 — [Timers and Time Tracking](teamwork/5.4-timers-and-time-tracking.md)
+
+Timer overview, task timer indicators, start/pause/delete actions, timesheet access, and timer conflict confirmations.
+
+#### Phase 5.5 — [Branch and PR Workflow](teamwork/5.5-branch-and-pr-workflow.md)
+
+Create branches and draft PRs from Teamwork tasks with timer prompts and useful PR body links.
 
 ### Phase 6 — GitHub Repo Creation
 

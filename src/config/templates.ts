@@ -23,6 +23,14 @@ export function formatProjectConfig(config: ProjectConfig): string {
         .join("")}`
     : `  links: []\n  # - name: Figma\n  #   url: https://figma.com/...\n`;
 
+  const pinnedTaskLists = config.teamwork.pinnedTaskLists.length
+    ? `  pinnedTaskLists:\n${config.teamwork.pinnedTaskLists
+        .map(
+          (taskList) => `    - name: ${JSON.stringify(taskList.name)}\n      id: ${taskList.id}\n`,
+        )
+        .join("")}`
+    : `  pinnedTaskLists: []\n  # - name: General Tasks\n  #   id: 1597639\n`;
+
   return `# WTC project-level configuration.
 
 # Config file format version. Do not edit unless a migration guide tells you to.
@@ -36,5 +44,8 @@ teamwork:
   # Teamwork project ID linked to this repository.
   # Leave empty until this repo is linked to Teamwork.
   projectId: ${config.teamwork.projectId ?? ""}
+
+  # Project-level task lists to surface in the Teamwork Project tab.
+${pinnedTaskLists}
 `;
 }

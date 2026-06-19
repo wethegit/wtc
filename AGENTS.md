@@ -54,6 +54,11 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - When displaying keys to users in status bars, help text, docs, or command descriptions, prefer glyphs for arrows: `←`, `→`, `↑`, `↓` instead of `left`, `right`, `up`, `down`.
 - Keybinding registration strings should still use the names expected by `@opentui/keymap` such as `ctrl+left` and `ctrl+right`.
 
+### Solid TUI Rendering
+
+- Prefer Solid control-flow primitives such as `<Switch>`, `<Match>`, `<Show>`, and `<For>` for component-level conditional rendering and lists instead of nested JSX ternaries.
+- Small inline value conditionals are fine when they keep markup clearer than an extracted control-flow block.
+
 ### File Organization / Helper Scope
 
 - Keep helpers scoped to the smallest place that needs them.
@@ -71,6 +76,7 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - For read operations, use REST-style names like `getTeamworkProjectMetadata()` rather than `load*` or `fetch*` when callers should not care whether data comes from cache or network.
 - A `get*` API should own the full read path: check cache when applicable, fetch from the service when needed, save cache when applicable, and return the result.
 - Keep shared HTTP behavior, such as base URLs, auth headers, JSON parsing, timeouts, and status handling, in a provider client module so individual endpoint modules do not duplicate it.
+- Do not create separate cache-read/cache-write/fetch helpers for every endpoint unless those helpers are reused across endpoints or encode meaningful domain behavior.
 
 Examples:
 
