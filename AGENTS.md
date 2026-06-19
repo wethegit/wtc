@@ -28,7 +28,7 @@ Before making changes, read these files for context:
 
 Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 
-- Do note make a commit unless requested, always check-in with user first before making the commit so they can check diff and ask for changes
+- Do not make a commit unless requested, always check-in with user first before making the commit so they can check diff and ask for changes
 - Stop at a breakpoint before every commit and before continuing to the next main step. The user will inspect the diff themselves; do not commit or continue until they explicitly approve.
 
 ### TypeScript
