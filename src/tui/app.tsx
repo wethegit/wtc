@@ -5,7 +5,7 @@ import { KeymapProvider, useBindings, useKeymap } from "@opentui/keymap/solid";
 
 import { checkForUpdate } from "../utils/update-check.ts";
 import { loadTuiState } from "../state/manager.ts";
-import type { TuiStateEntry } from "../state/schema.ts";
+import type { Route, TuiStateEntry } from "../state/schema.ts";
 
 import { DialogProvider, useDialog } from "./components/dialog.tsx";
 import { UpdateDialog } from "./components/update-dialog.tsx";
@@ -18,15 +18,6 @@ import { StateProvider, useTuiState } from "./components/state-provider.tsx";
 import { StatusBarProvider } from "./components/status-bar.tsx";
 import { tokens } from "./tokens.ts";
 
-export const ROUTE_PAGES = ["home", "github", "settings", "teamwork"] as const;
-
-type RoutePage = (typeof ROUTE_PAGES)[number];
-
-interface Route {
-  page: RoutePage;
-  tab: string;
-}
-
 /** Main TUI screen controller rendered inside the app providers. */
 function Home() {
   const dialog = useDialog();
@@ -36,12 +27,14 @@ function Home() {
   const [route, setRoute] = createSignal<Route>(tuiState.state.lastRoute);
 
   const navigate = (newRoute: Partial<Route>) => {
-    const defaults = { ...route() };
+    const current = route();
+    const page = newRoute.page ?? current.page;
+    const tab =
+      newRoute.tab ?? (newRoute.page && newRoute.page !== current.page ? "index" : current.tab);
+    const nextRoute = { page, tab };
 
-    if (!newRoute.tab) defaults.tab = "index";
-
-    setRoute(defaults);
-    tuiState.updateState({ lastRoute: defaults });
+    setRoute(nextRoute);
+    tuiState.updateState({ lastRoute: nextRoute });
   };
 
   const quit = () => {

@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-import { ROUTE_PAGES } from "../tui/app";
+export const ROUTE_PAGES = ["home", "github", "settings", "teamwork"] as const;
+
+export type RoutePage = (typeof ROUTE_PAGES)[number];
 
 export const TuiStateEntrySchema = z.object({
   lastRoute: z.object({
@@ -11,6 +13,8 @@ export const TuiStateEntrySchema = z.object({
 });
 
 export type TuiStateEntry = z.infer<typeof TuiStateEntrySchema>;
+
+export type Route = TuiStateEntry["lastRoute"];
 
 export const TuiStateFileSchema = z.object({
   version: z.literal(1),

@@ -94,6 +94,7 @@ bun run build        # Build standalone binary
 ## Testing Philosophy
 
 - **Test logic, not layout.** Tests should cover pure functions, business logic, API clients, and utility modules. Do not test TUI rendering (box position, text content, styling against OpenTUI components) — that's the framework's job.
+- **Do not retest Zod.** Schema tests should cover WTC-owned contracts only: supported config/state versions, defaults or migrations the app relies on, forward-compat behavior, or other non-obvious policy. Do not add tests that only prove Zod accepts valid shapes or rejects invalid primitive types.
 - **No mocks of the OpenTUI renderer.** Module-mocking `@opentui/core` (Box, Text, createCliRenderer, t) adds fragility and tests the mock, not the real behavior. If a function delegates to OpenTUI, trust the function; test what it computes, not how it renders.
 - **Prefer real calls over mocks.** For utilities like `checkForUpdate`, test with a real (or near-real) API surface — mock at the HTTP layer only if necessary.
 - **Integration tests for CLI flows** are acceptable only when they invoke the binary as a subprocess (e.g., `wtc --version`), but are deferred until Phase 2+.

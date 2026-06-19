@@ -95,12 +95,21 @@ File: `src/state/schema.ts`
 ```ts
 import { z } from "zod";
 
+export const ROUTE_PAGES = ["home", "github", "settings", "teamwork"] as const;
+
+export type RoutePage = (typeof ROUTE_PAGES)[number];
+
 export const TuiStateEntrySchema = z.object({
-  lastRoute: z.enum(["home", "github", "settings"]).default("home"),
+  lastRoute: z.object({
+    page: z.enum(ROUTE_PAGES).default("home"),
+    tab: z.string().default("index"),
+  }),
   lastUpdated: z.string(), // ISO 8601
 });
 
 export type TuiStateEntry = z.infer<typeof TuiStateEntrySchema>;
+
+export type Route = TuiStateEntry["lastRoute"];
 
 export const TuiStateFileSchema = z.object({
   version: z.literal(1),
@@ -117,12 +126,17 @@ Persisted shape:
   "version": 1,
   "entries": {
     "/home/user/project-a": {
-      "lastRoute": "settings",
+      "lastRoute": {
+        "page": "teamwork",
+        "tab": "project"
+      },
       "lastUpdated": "2026-06-15T10:30:00Z"
     }
   }
 }
 ```
+
+Single-tab pages use `tab: "index"`; multi-tab pages such as Teamwork persist their active tab.
 
 The `z.record(...)` pattern makes future fields (scroll position, collapsed sections, etc.) additive — just append keys to the entry schema.
 
@@ -161,14 +175,16 @@ File: `src/tui/components/state-provider.tsx`
 
 ```tsx
 // Exposes:
-export function StateProvider(props: { dir: string } & ParentProps): JSX.Element;
+export function StateProvider(
+  props: { dir: string; initialState: TuiStateEntry } & ParentProps,
+): JSX.Element;
 export function useTuiState(): {
   state: TuiStateEntry;
   updateState: (p: Partial<TuiStateEntry>) => void;
 };
 ```
 
-- Loads state from disk on mount.
+- Receives state loaded before first render so route restore happens before the first screen paints.
 - `updateState` merges the partial into the current entry and writes to disk.
 - No debounce — writes are cheap (small JSON, local file).
 
@@ -178,7 +194,7 @@ export function useTuiState(): {
 
 ```tsx
 // Provider wraps Home:
-<StateProvider dir={process.cwd()}>
+<StateProvider dir={process.cwd()} initialState={initialState}>
   <Home />
 </StateProvider>;
 
@@ -186,9 +202,15 @@ export function useTuiState(): {
 const { state, updateState } = useTuiState();
 const [route, setRoute] = createSignal<Route>(state.lastRoute);
 
-function navigate(newRoute: Route) {
-  setRoute(newRoute);
-  updateState({ lastRoute: newRoute });
+function navigate(newRoute: Partial<Route>) {
+  const current = route();
+  const page = newRoute.page ?? current.page;
+  const tab =
+    newRoute.tab ?? (newRoute.page && newRoute.page !== current.page ? "index" : current.tab);
+  const nextRoute = { page, tab };
+
+  setRoute(nextRoute);
+  updateState({ lastRoute: nextRoute });
 }
 ```
 
@@ -242,7 +264,7 @@ This brings both caches under one deletable roof.
 
 File: `src/state/schema.ts`
 
-- `TuiStateEntrySchema` with `lastRoute` enum + `lastUpdated` string
+- `TuiStateEntrySchema` with nested `lastRoute: { page, tab }` + `lastUpdated` string
 - `TuiStateFileSchema` with `version: 1` + `entries` record
 
 ### Step 2 — Create state consts
@@ -306,11 +328,11 @@ Test logic only. No TUI rendering tests.
 
 File: `tests/state/schema.test.ts`
 
-- Valid state file with one entry
-- Valid state file with multiple entries
-- Default `lastRoute` when field is missing
+Do not add tests that only prove Zod accepts valid state shapes or rejects invalid primitive types. Schema tests should protect WTC-owned persistence contracts only:
+
 - Rejects unsupported `version`
-- Accepts extra unknown fields in entry (forward compat)
+- Preserves defaults or migration behavior the app relies on
+- Accepts/drops extra unknown fields when that forward-compat behavior is intentional
 
 ### State Manager Tests
 
