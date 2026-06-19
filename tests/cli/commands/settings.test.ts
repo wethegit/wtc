@@ -7,7 +7,11 @@ describe("settings command", () => {
   test("formats resolved config with project config path", () => {
     const config: ResolvedConfig = {
       user: { version: 1, workspaceName: "WTC" },
-      project: { version: 1, project: { links: [] }, teamwork: { projectId: 12345 } },
+      project: {
+        version: 1,
+        project: { links: [] },
+        teamwork: { projectId: 12345, pinnedTaskLists: [] },
+      },
       paths: {
         userConfigPath: "/home/user/.config/wtc/wtc.yaml",
         projectConfigPath: "/repo/.wtc.yaml",
@@ -30,7 +34,8 @@ Project config: /repo/.wtc.yaml
       "links": []
     },
     "teamwork": {
-      "projectId": 12345
+      "projectId": 12345,
+      "pinnedTaskLists": []
     }
   }
 }`);

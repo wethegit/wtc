@@ -374,7 +374,10 @@ export function applySettingsFormState(
     project: {
       version: 1,
       project: { links: currentProject?.project.links ?? [] },
-      teamwork: { projectId: parseTeamworkProjectId(state.teamworkProjectId) },
+      teamwork: {
+        projectId: parseTeamworkProjectId(state.teamworkProjectId),
+        pinnedTaskLists: currentProject?.teamwork.pinnedTaskLists ?? [],
+      },
     },
   };
 }

@@ -60,7 +60,7 @@ export async function initProjectConfig(startDir: string): Promise<string> {
     formatProjectConfig({
       version: PROJECT_CONFIG_VERSION,
       project: { links: [] },
-      teamwork: { projectId: null },
+      teamwork: { projectId: null, pinnedTaskLists: [] },
     }),
   );
   return path;

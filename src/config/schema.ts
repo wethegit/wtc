@@ -28,6 +28,11 @@ const ProjectLinkSchema = z.object({
   url: z.url(),
 });
 
+const PinnedTaskListSchema = z.object({
+  name: z.string().min(1),
+  id: z.number().int().positive(),
+});
+
 export const ProjectConfigV1Schema = z.object({
   version: z.literal(PROJECT_CONFIG_VERSION),
   project: z
@@ -38,8 +43,9 @@ export const ProjectConfigV1Schema = z.object({
   teamwork: z
     .object({
       projectId: z.number().int().positive().nullable().default(null),
+      pinnedTaskLists: z.array(PinnedTaskListSchema).default([]),
     })
-    .default({ projectId: null }),
+    .default({ projectId: null, pinnedTaskLists: [] }),
 });
 
 /** Active user config schema. Alias this to a newer schema when v2 exists. */

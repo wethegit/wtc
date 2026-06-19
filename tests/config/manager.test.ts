@@ -75,7 +75,7 @@ describe("config manager", () => {
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
       project: { links: [] },
-      teamwork: { projectId: 12345 },
+      teamwork: { projectId: 12345, pinnedTaskLists: [] },
     });
   });
 
@@ -95,7 +95,7 @@ describe("config manager", () => {
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
       project: { links: [] },
-      teamwork: { projectId: 2 },
+      teamwork: { projectId: 2, pinnedTaskLists: [] },
     });
   });
 
@@ -106,7 +106,7 @@ describe("config manager", () => {
 
   test("creates project config in start directory when none exists", async () => {
     const projectPath = await saveProjectConfig(
-      { version: 1, project: { links: [] }, teamwork: { projectId: 98765 } },
+      { version: 1, project: { links: [] }, teamwork: { projectId: 98765, pinnedTaskLists: [] } },
       `${PROJECT_ROOT}/packages/app`,
     );
 
@@ -114,7 +114,7 @@ describe("config manager", () => {
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
       project: { links: [] },
-      teamwork: { projectId: 98765 },
+      teamwork: { projectId: 98765, pinnedTaskLists: [] },
     });
     expect(await Bun.file(projectPath).text()).toContain(
       "# Teamwork project ID linked to this repository.",
@@ -126,7 +126,7 @@ describe("config manager", () => {
       {
         version: 1,
         project: { links: [{ name: "Figma", url: "https://figma.com/file/abc" }] },
-        teamwork: { projectId: null },
+        teamwork: { projectId: null, pinnedTaskLists: [] },
       },
       PROJECT_ROOT,
     );
@@ -134,9 +134,35 @@ describe("config manager", () => {
     expect(await loadProjectConfig(PROJECT_ROOT)).toEqual({
       version: 1,
       project: { links: [{ name: "Figma", url: "https://figma.com/file/abc" }] },
-      teamwork: { projectId: null },
+      teamwork: { projectId: null, pinnedTaskLists: [] },
     });
     expect(await Bun.file(projectPath).text()).toContain('links:\n    - name: "Figma"');
+  });
+
+  test("saves pinned Teamwork task lists", async () => {
+    const projectPath = await saveProjectConfig(
+      {
+        version: 1,
+        project: { links: [] },
+        teamwork: {
+          projectId: 362632,
+          pinnedTaskLists: [{ name: "General Tasks", id: 1597639 }],
+        },
+      },
+      PROJECT_ROOT,
+    );
+
+    expect(await loadProjectConfig(PROJECT_ROOT)).toEqual({
+      version: 1,
+      project: { links: [] },
+      teamwork: {
+        projectId: 362632,
+        pinnedTaskLists: [{ name: "General Tasks", id: 1597639 }],
+      },
+    });
+    expect(await Bun.file(projectPath).text()).toContain(
+      'pinnedTaskLists:\n    - name: "General Tasks"',
+    );
   });
 
   test("initializes project config with comments", async () => {
@@ -149,7 +175,7 @@ describe("config manager", () => {
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       version: 1,
       project: { links: [] },
-      teamwork: { projectId: null },
+      teamwork: { projectId: null, pinnedTaskLists: [] },
     });
   });
 
@@ -170,7 +196,11 @@ describe("config manager", () => {
 
     expect(await loadResolvedConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
       user: { version: 1, workspaceName: "WTC" },
-      project: { version: 1, project: { links: [] }, teamwork: { projectId: 12345 } },
+      project: {
+        version: 1,
+        project: { links: [] },
+        teamwork: { projectId: 12345, pinnedTaskLists: [] },
+      },
       paths: {
         userConfigPath: `${USER_CONFIG_DIR}/wtc.yaml`,
         projectConfigPath: `${PROJECT_ROOT}/.wtc.yaml`,
