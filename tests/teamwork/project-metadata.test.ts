@@ -1,13 +1,16 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { rm } from "node:fs/promises";
 
-import {
-  createTeamworkAuthorizationHeader,
-  deleteTeamworkApiToken,
-  setTeamworkApiToken,
-} from "../../src/teamwork/auth.ts";
+mock.module("../../src/teamwork/auth.ts", () => ({
+  createTeamworkAuthorizationHeader(token: string) {
+    return `Basic ${btoa(`${token}:password`)}`;
+  },
+  getTeamworkApiToken: async () => "token-123",
+}));
+
+const { createTeamworkAuthorizationHeader } = await import("../../src/teamwork/auth.ts");
+const { getTeamworkProjectMetadata } = await import("../../src/teamwork/project-metadata.ts");
 import { TEAMWORK_API_BASE_URL } from "../../src/teamwork/consts.ts";
-import { getTeamworkProjectMetadata } from "../../src/teamwork/project-metadata.ts";
 
 const TEST_CACHE = `/tmp/wtc-teamwork-project-tests-${process.pid}`;
 const originalFetch = globalThis.fetch;
@@ -19,7 +22,6 @@ describe("teamwork project metadata", () => {
 
   afterEach(async () => {
     globalThis.fetch = originalFetch;
-    await deleteTeamworkApiToken();
     delete process.env.WTC_CACHE_DIR;
     await rm(TEST_CACHE, { recursive: true, force: true });
   });
@@ -43,9 +45,6 @@ describe("teamwork project metadata", () => {
       },
       { preconnect: originalFetch.preconnect },
     );
-
-    await setTeamworkApiToken("token-123");
-
     const result = await getTeamworkProjectMetadata(12345);
 
     expect(result).toEqual({
@@ -70,9 +69,6 @@ describe("teamwork project metadata", () => {
       },
       { preconnect: originalFetch.preconnect },
     );
-
-    await setTeamworkApiToken("token-123");
-
     const first = await getTeamworkProjectMetadata(12345);
     const second = await getTeamworkProjectMetadata(12345);
 
