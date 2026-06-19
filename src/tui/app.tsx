@@ -1,4 +1,4 @@
-import { createSignal, onMount } from "solid-js";
+import { createSignal, ErrorBoundary, Match, onMount, Switch } from "solid-js";
 import { render, useKeyboard, useRenderer } from "@opentui/solid";
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings, useKeymap } from "@opentui/keymap/solid";
@@ -17,6 +17,18 @@ import { TeamworkPage } from "./pages/teamwork.tsx";
 import { StateProvider, useTuiState } from "./components/state-provider.tsx";
 import { StatusBarProvider } from "./components/status-bar.tsx";
 import { tokens } from "./tokens.ts";
+
+function RouteErrorFallback(props: { error: unknown }) {
+  const message = props.error instanceof Error ? props.error.message : "Unexpected TUI error.";
+
+  return (
+    <box flexDirection="column" gap={1} padding={1} backgroundColor={tokens.surfaceOverlay}>
+      <text fg={tokens.danger}>Something went wrong while rendering this page.</text>
+      <text fg={tokens.textDim}>{message}</text>
+      <text fg={tokens.textDim}>Use the command palette to navigate elsewhere.</text>
+    </box>
+  );
+}
 
 /** Main TUI screen controller rendered inside the app providers. */
 function Home() {
@@ -166,15 +178,22 @@ function Home() {
 
   return (
     <box flexDirection="column" flexGrow={1} backgroundColor={tokens.bg}>
-      {route().page === "github" ? (
-        <GitHubPage />
-      ) : route().page === "teamwork" ? (
-        <TeamworkPage activeTab={route().tab} onTabChange={(tab: string) => navigate({ tab })} />
-      ) : route().page === "settings" ? (
-        <SettingsPage />
-      ) : (
-        <Dashboard />
-      )}
+      <ErrorBoundary fallback={RouteErrorFallback}>
+        <Switch fallback={<Dashboard />}>
+          <Match when={route().page === "github"}>
+            <GitHubPage />
+          </Match>
+          <Match when={route().page === "teamwork"}>
+            <TeamworkPage
+              activeTab={route().tab}
+              onTabChange={(tab: string) => navigate({ tab })}
+            />
+          </Match>
+          <Match when={route().page === "settings"}>
+            <SettingsPage />
+          </Match>
+        </Switch>
+      </ErrorBoundary>
     </box>
   );
 }

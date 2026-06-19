@@ -1,0 +1,23 @@
+import { createTeamworkAuthorizationHeader, getTeamworkApiToken } from "./auth.ts";
+import { TEAMWORK_API_BASE_URL } from "./consts.ts";
+
+export async function fetchTeamworkApiJson(path: string, init: RequestInit = {}): Promise<unknown> {
+  const token = await getTeamworkApiToken();
+  if (!token) throw new Error("Teamwork API token is missing.");
+
+  const headers = new Headers(init.headers);
+  if (!headers.has("Accept")) headers.set("Accept", "application/json");
+  headers.set("Authorization", createTeamworkAuthorizationHeader(token));
+
+  const response = await fetch(`${TEAMWORK_API_BASE_URL}${path}`, {
+    ...init,
+    headers,
+    signal: init.signal ?? AbortSignal.timeout(5000),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Teamwork API responded with ${response.status}`);
+  }
+
+  return response.json();
+}

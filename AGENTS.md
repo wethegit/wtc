@@ -50,6 +50,11 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - Prefer comments on TypeScript interfaces/types when they clarify domain meaning or intended usage.
 - If code needs a comment to justify an abstraction, first consider whether the abstraction should be removed instead.
 
+### TUI Key Labels
+
+- When displaying keys to users in status bars, help text, docs, or command descriptions, prefer glyphs for arrows: `←`, `→`, `↑`, `↓` instead of `left`, `right`, `up`, `down`.
+- Keybinding registration strings should still use the names expected by `@opentui/keymap` such as `ctrl+left` and `ctrl+right`.
+
 ### File Organization / Helper Scope
 
 - Keep helpers scoped to the smallest place that needs them.
@@ -60,6 +65,14 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - Prefer inline local constants over private one-line functions.
 - Manager modules should contain domain behavior, not generic wrappers around simple file reads/writes.
 - If a helper exists only to make a test easier, reconsider the test or test higher-level behavior instead.
+- Do not split one workflow into private helpers unless those helpers are reused or represent meaningful domain behavior; keep the workflow in one function and add a clarifying comment when needed.
+- Do not create separate abstractions like helpers unless those helpers are reused across or encode meaningful domain behavior, prefer adding a comment over those sections.
+
+### Third-Party API Requests
+
+- For read operations, use REST-style names like `getTeamworkProjectMetadata()` rather than `load*` or `fetch*` when callers should not care whether data comes from cache or network.
+- A `get*` API should own the full read path: check cache when applicable, fetch from the service when needed, save cache when applicable, and return the result.
+- Keep shared HTTP behavior, such as base URLs, auth headers, JSON parsing, timeouts, and status handling, in a provider client module so individual endpoint modules do not duplicate it.
 
 Examples:
 

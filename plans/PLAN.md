@@ -180,12 +180,14 @@ wtc config auth delete teamwork
 
 - Do not build a reusable generic cache system yet.
 - Add only a tiny purpose-built disk cache for Teamwork project metadata because project names rarely change and Teamwork rate limits are low.
+- Store Teamwork project metadata cache under the shared WTC cache directory so `wtc cache clean` removes it.
 - Task lists, timers, and mutations should start with direct fetch/refresh behavior until real usage proves a shared cache/query abstraction is needed.
 - Reconsider `@tanstack/solid-query` or a shared cache manager when dynamic Teamwork task/timer flows become complex enough to justify it.
 
 #### Initial Teamwork Project View
 
 - Show whether a project config was found.
+- Show Teamwork auth status without displaying the stored token.
 - Show/edit `teamwork.projectId` through Settings first.
 - Display configured project links.
 - Display cached/fetched Teamwork project metadata.
@@ -338,6 +340,11 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - Functions: `camelCase`
 - Tests: `*.test.ts` in `tests/` mirroring `src/`
 - Schema tests should protect WTC-owned contracts such as versions, defaults, migrations, and intentional forward-compat behavior; do not retest basic Zod validation.
+
+### TUI Key Labels
+
+- User-facing key labels should use arrow glyphs (`←`, `→`, `↑`, `↓`) instead of spelled-out arrow names.
+- Keep keybinding registration strings in the format expected by `@opentui/keymap`.
 
 ### Code Quality
 
