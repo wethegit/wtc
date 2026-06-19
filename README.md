@@ -37,11 +37,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup instructions.
 - ✅ **Phase 1 (MVP):** Foundation, tooling, CI/CD, and distribution
 - ✅ **Phase 2:** Solid/OpenTUI refactor with command palette and Settings route
 - ✅ **Phase 3:** YAML config setup with user/project config files
-- ✅ **Phase 3.5:** Persistent TUI state and shared cache directory
-- 🔨 **Phase 4:** Teamwork Foundation
-- **Phase 5:** GitHub repo creation
-- **Phase 6:** AWS Amplify project bootstrapping
-- **Phase 7:** Teamwork workflow expansion
+- ✅ **Phase 4:** Persistent TUI state and shared cache directory
+- 🔨 **Phase 5:** Teamwork Foundation
+- **Phase 6:** GitHub repo creation
+- **Phase 7:** AWS Amplify project bootstrapping
 - **Phase 8:** Full TUI dashboard polish
 - **Phase 9:** Distribution polish
 
