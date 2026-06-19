@@ -19,36 +19,36 @@ describe("state manager", () => {
   test("missing file returns defaults", async () => {
     const state = await loadTuiState("/some/dir");
 
-    expect(state.lastRoute).toBe("home");
-    expect(state.lastTeamworkTab).toBe("project");
+    expect(state.lastRoute.page).toBe("home");
+    expect(state.lastRoute.tab).toBe("project");
     expect(state.lastUpdated).toBeTruthy();
   });
 
   test("round-trip returns matching entry", async () => {
     const dir = "/home/user/project";
-    await saveTuiState(dir, { lastRoute: "settings" });
+    await saveTuiState(dir, { lastRoute: { page: "settings", tab: "index" } });
 
     const loaded = await loadTuiState(dir);
-    expect(loaded.lastRoute).toBe("settings");
-    expect(loaded.lastTeamworkTab).toBe("project");
+    expect(loaded.lastRoute.page).toBe("settings");
+    expect(loaded.lastRoute.tab).toBe("project");
     expect(loaded.lastUpdated).toBeTruthy();
   });
 
   test("round-trip preserves Teamwork tab", async () => {
     const dir = "/home/user/project";
-    await saveTuiState(dir, { lastRoute: "teamwork", lastTeamworkTab: "my-work" });
+    await saveTuiState(dir, { lastRoute: { page: "teamwork", tab: "my-work" } });
 
     const loaded = await loadTuiState(dir);
-    expect(loaded.lastRoute).toBe("teamwork");
-    expect(loaded.lastTeamworkTab).toBe("my-work");
+    expect(loaded.lastRoute.page).toBe("teamwork");
+    expect(loaded.lastRoute.tab).toBe("my-work");
   });
 
   test("multiple directories produce independent entries", async () => {
-    await saveTuiState("/project/a", { lastRoute: "github" });
-    await saveTuiState("/project/b", { lastRoute: "settings" });
+    await saveTuiState("/project/a", { lastRoute: { page: "github", tab: "index" } });
+    await saveTuiState("/project/b", { lastRoute: { page: "settings", tab: "index" } });
 
-    expect((await loadTuiState("/project/a")).lastRoute).toBe("github");
-    expect((await loadTuiState("/project/b")).lastRoute).toBe("settings");
+    expect((await loadTuiState("/project/a")).lastRoute.page).toBe("github");
+    expect((await loadTuiState("/project/b")).lastRoute.page).toBe("settings");
   });
 
   test("corrupted file returns defaults", async () => {
@@ -56,27 +56,27 @@ describe("state manager", () => {
     await Bun.write(`${cachedDir}/tui-state.json`, "this is not json");
 
     const state = await loadTuiState("/some/dir");
-    expect(state.lastRoute).toBe("home");
+    expect(state.lastRoute.page).toBe("home");
   });
 
   test("save merges existing entry instead of replacing", async () => {
     const dir = "/project";
-    await saveTuiState(dir, { lastRoute: "github" });
+    await saveTuiState(dir, { lastRoute: { page: "github", tab: "index" } });
     // Simulate a second write with only a partial update
-    await saveTuiState(dir, { lastRoute: "settings" });
+    await saveTuiState(dir, { lastRoute: { page: "settings", tab: "index" } });
 
     const loaded = await loadTuiState(dir);
-    expect(loaded.lastRoute).toBe("settings");
+    expect(loaded.lastRoute.page).toBe("settings");
   });
 
   test("clearCache removes cache directory", async () => {
-    await saveTuiState("/some/dir", { lastRoute: "settings" });
-    expect((await loadTuiState("/some/dir")).lastRoute).toBe("settings");
+    await saveTuiState("/some/dir", { lastRoute: { page: "settings", tab: "index" } });
+    expect((await loadTuiState("/some/dir")).lastRoute.page).toBe("settings");
 
     await clearCache();
 
     // After clearing, loading any dir should return defaults
     const state = await loadTuiState("/some/dir");
-    expect(state.lastRoute).toBe("home");
+    expect(state.lastRoute.page).toBe("home");
   });
 });
