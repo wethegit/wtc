@@ -80,16 +80,9 @@ Examples:
 - `getStatePath()` should not exist if it only appends `STATE_FILE` to `getCacheDir()` in one module.
 - `formatUserConfig()` is valid because Bun's YAML parser does not preserve comments, so config saves need explicit commented formatting.
 
-## Commands
+## Code Quality Rules
 
 ONLY run these commands and nothing else.
-
-```bash
-bun run check        # tsc --noEmit
-bun test             # Run all tests
-```
-
-## Code Quality Rules
 
 - [ ] `bun run check` passes (tsc)
 - [ ] `bun test` passes
