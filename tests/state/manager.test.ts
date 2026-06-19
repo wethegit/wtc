@@ -20,7 +20,7 @@ describe("state manager", () => {
     const state = await loadTuiState("/some/dir");
 
     expect(state.lastRoute.page).toBe("home");
-    expect(state.lastRoute.tab).toBe("project");
+    expect(state.lastRoute.tab).toBe("index");
     expect(state.lastUpdated).toBeTruthy();
   });
 
@@ -30,7 +30,7 @@ describe("state manager", () => {
 
     const loaded = await loadTuiState(dir);
     expect(loaded.lastRoute.page).toBe("settings");
-    expect(loaded.lastRoute.tab).toBe("project");
+    expect(loaded.lastRoute.tab).toBe("index");
     expect(loaded.lastUpdated).toBeTruthy();
   });
 
@@ -45,10 +45,10 @@ describe("state manager", () => {
 
   test("multiple directories produce independent entries", async () => {
     await saveTuiState("/project/a", { lastRoute: { page: "github", tab: "index" } });
-    await saveTuiState("/project/b", { lastRoute: { page: "settings", tab: "index" } });
+    await saveTuiState("/project/b", { lastRoute: { page: "teamwork", tab: "my-work" } });
 
     expect((await loadTuiState("/project/a")).lastRoute.page).toBe("github");
-    expect((await loadTuiState("/project/b")).lastRoute.page).toBe("settings");
+    expect((await loadTuiState("/project/b")).lastRoute.page).toBe("teamwork");
   });
 
   test("corrupted file returns defaults", async () => {
@@ -63,10 +63,10 @@ describe("state manager", () => {
     const dir = "/project";
     await saveTuiState(dir, { lastRoute: { page: "github", tab: "index" } });
     // Simulate a second write with only a partial update
-    await saveTuiState(dir, { lastRoute: { page: "settings", tab: "index" } });
+    await saveTuiState(dir, { lastUpdated: "lolz" });
 
     const loaded = await loadTuiState(dir);
-    expect(loaded.lastRoute.page).toBe("settings");
+    expect(loaded.lastRoute.page).toBe("github");
   });
 
   test("clearCache removes cache directory", async () => {
