@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.1
+
+### Patch Changes
+
+- [#30](https://github.com/wethegit/wtc/pull/30) [`5c9372a`](https://github.com/wethegit/wtc/commit/5c9372af2f3b2f59b4d90f536b0228d97b229443) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - adds teamwork basic setup
+
 ## 0.3.0
 
 ### Minor Changes
