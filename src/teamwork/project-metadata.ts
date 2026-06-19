@@ -47,7 +47,7 @@ export async function getTeamworkProjectMetadata(
 ): Promise<TeamworkProjectMetadataResult> {
   const key = projectId.toString();
   const now = Date.now();
-  let cache: TeamworkProjectCacheFile = { version: 1, projects: {} };
+  let cache: TeamworkProjectCacheFile;
 
   try {
     cache = TeamworkProjectCacheFileSchema.parse(
