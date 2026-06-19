@@ -5,7 +5,10 @@ mock.module("../../src/teamwork/auth.ts", () => ({
   createTeamworkAuthorizationHeader(token: string) {
     return `Basic ${btoa(`${token}:password`)}`;
   },
+  deleteTeamworkApiToken: async () => true,
   getTeamworkApiToken: async () => "token-123",
+  getTeamworkAuthStatus: async () => "configured",
+  setTeamworkApiToken: async () => {},
 }));
 
 const { createTeamworkAuthorizationHeader } = await import("../../src/teamwork/auth.ts");
