@@ -28,7 +28,6 @@ bun run prepare
 bun run dev          # Watch mode development
 bun run lint         # Run oxlint
 bun run fmt          # Format with oxfmt
-bun run fmt:check    # Check formatting
 bun run check        # Typecheck with tsc --noEmit
 bun test             # Run tests
 bun run build        # Build standalone binary
@@ -149,6 +148,10 @@ Maintainers create releases by merging the Changesets version PR. Tag creation, 
 - `import type` for type-only imports
 - Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - Tests mirror `src/` structure under `tests/`
+- Files: `kebab-case.ts`
+- Types: `PascalCase`
+- Functions: `camelCase`
+- Tests: `*.test.ts` in `tests/` mirroring `src/`
 
 ## Pull Requests
 
@@ -163,7 +166,9 @@ Maintainers create releases by merging the Changesets version PR. Tag creation, 
 
 Pre-commit hooks will automatically run linting and formatting on staged files.
 
-## Development Notes
+- always run `bun run build` and make sure it works
+
+## Notes
 
 ### Solid JSX at dev time
 

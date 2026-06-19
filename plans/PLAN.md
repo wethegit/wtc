@@ -101,7 +101,7 @@ See `CONFIG_SETUP.md` for the detailed implementation plan, config versioning mo
 - Start with one project-level field: `teamworkProjectId`
 - Treat config `version` as a file format version, not the WTC application version
 
-### Phase 3.5 — Persistent TUI State & Cache 🔨
+### Phase 4 — Persistent TUI State & Cache 🔨
 
 See `STATE_MANAGER.md` for the detailed implementation plan, schema, manager API, TUI integration, CLI command, and testing boundaries.
 
@@ -112,79 +112,9 @@ See `STATE_MANAGER.md` for the detailed implementation plan, schema, manager API
 - Solid `StateProvider` context for TUI components
 - Pure tests for schema and manager logic
 
-### Phase 4 — Teamwork Foundation
+### Phase 5 — Teamwork Foundation
 
 Phase 4 shifts focus from GitHub creation to Teamwork-centered project workflow. The goal is to make WTC useful inside an existing project by surfacing project context, Teamwork metadata, important links, and eventually task/timer workflows.
-
-#### Route Model
-
-- Replace flat string routes with nested route state that can represent route-specific tabs.
-- Add a Teamwork route with two initial tabs: `my-work` for global tasks assigned to the current user, and `project` for project-specific context driven by the nearest `.wtc.yaml`.
-- Persist nested route state so reopening WTC restores the active Teamwork tab for that directory.
-
-#### Config Shape
-
-- Keep editable settings centralized in the Settings page first.
-- Change project config from a root `teamworkProjectId` field to domain-specific sections:
-
-```yaml
-version: 1
-
-project:
-  links:
-    # - name: Figma
-    #   url: https://figma.com/...
-
-teamwork:
-  projectId:
-```
-
-- `project.links` is generic project metadata for useful URLs such as Figma, staging, docs, dashboards, or other project resources.
-- `teamwork.projectId` is Teamwork-specific and will drive project metadata/API calls.
-- Keep schema version at `1` while the app is unreleased and config shape is still settling.
-
-#### Settings UX
-
-- Start by making all config editable in the existing Settings page.
-- Add enough structure to keep Settings navigable as config grows.
-- Plan for a summary/details or accordion-style component for grouped settings: User settings, Project links, Teamwork settings, future GitHub settings, and future Amplify settings.
-- Display Teamwork auth under user-level settings because the token applies across all projects, even though the secret itself lives outside YAML.
-- Domain routes may later offer contextual edit actions, but Settings remains the source of truth for broad configuration.
-
-#### Teamwork Auth
-
-- Store the Teamwork API token with Bun's OS-backed secret store, not in YAML.
-- Use a company Teamwork site constant rather than config; the site does not vary per user/project.
-- Allow token setup from the TUI Settings page as the preferred UX: focus the Teamwork token field, enter/paste the token, save, and store it with `Bun.secrets`.
-- Never display the stored token value in the TUI; show only status such as `configured` or `missing`.
-- Add config auth CLI commands inspired by common CLIs:
-
-```bash
-wtc config auth set teamwork --token "TOKEN"
-wtc config auth status teamwork
-wtc config auth delete teamwork
-```
-
-- Prefer provider as a positional argument (`teamwork`) instead of `--provider=teamwork`.
-- MVP can accept `--token`, but TUI entry should be available early to avoid shell history leaks.
-- Later add `--stdin` or an interactive hidden CLI prompt for non-TUI setup.
-
-#### Teamwork API
-
-- Add a small Teamwork API client wrapper with Basic auth.
-- Build the Authorization header from the stored API token using Teamwork's `{API_KEY}:password` Basic-auth format.
-- Fetch project metadata by `teamwork.projectId`, including project title/name when available.
-- Do not add OAuth for MVP.
-
-#### Cache Strategy
-
-- Do not build a reusable generic cache system yet.
-- Add only a tiny purpose-built disk cache for Teamwork project metadata because project names rarely change and Teamwork rate limits are low.
-- Store Teamwork project metadata cache under the shared WTC cache directory so `wtc cache clean` removes it.
-- Task lists, timers, and mutations should start with direct fetch/refresh behavior until real usage proves a shared cache/query abstraction is needed.
-- Reconsider `@tanstack/solid-query` or a shared cache manager when dynamic Teamwork task/timer flows become complex enough to justify it.
-
-#### Initial Teamwork Project View
 
 - Show whether a project config was found.
 - Show Teamwork auth status without displaying the stored token.
@@ -193,32 +123,7 @@ wtc config auth delete teamwork
 - Display cached/fetched Teamwork project metadata.
 - Prepare the route for later task/timer actions: assigned project tasks, start/stop time tracking, branch creation, and PR workflows from tasks.
 
-### Phase 5 — GitHub Repo Creation
-
-#### Phase 5.1 - GitHub Repo Creation
-
-- Integration of the Github SDK/API
-- `wtc repo create` command + TUI form
-- Fetch org templates via GitHub API
-- Create repo from template (source files only; settings like branch protection are NOT copied)
-
-#### Phase 5.2 - Advanced Repo Setup
-
-- Set up branch protection via GitHub API after creation
-- Optionally clone locally
-- Link repo to Teamwork project (writes `.wtc.yaml`)
-
-### Phase 6 — AWS Amplify Hosting
-
-- `wtc amplify create` command + TUI form
-- Use @aws-sdk/client-amplify to create Amplify app
-- Configure custom domain, branch auto-connection/disconnection
-- Build settings from template repo's amplify.yml
-- "Help" link to internal Notion docs for AWS setup
-- Profile-based auth from ~/.aws/credentials
-- Full Terraform-backed config (details TBD)
-
-### Phase 7 — Teamwork Workflow Expansion
+### Phase 5.1 — Teamwork Workflow Expansion
 
 - Task ↔ PR linking by parsing branch names (`(feature|fix|chore)/TASK-XXXXX`)
 - `wtc teamwork timer start|stop|pause`
@@ -230,6 +135,31 @@ wtc config auth delete teamwork
 - Timer overview TUI page (active/paused timers)
 - Notification popup on timer events
 - Project↔Repo mapping in local config + per-repo `.wtc.yaml`
+
+### Phase 6 — GitHub Repo Creation
+
+#### Phase 6.1 - GitHub Repo Creation
+
+- Integration of the Github SDK/API
+- `wtc repo create` command + TUI form
+- Fetch org templates via GitHub API
+- Create repo from template (source files only; settings like branch protection are NOT copied)
+
+#### Phase 6.2 - Advanced Repo Setup
+
+- Set up branch protection via GitHub API after creation
+- Optionally clone locally
+- Link repo to Teamwork project (writes `.wtc.yaml`)
+
+### Phase 7 — AWS Amplify Hosting
+
+- `wtc amplify create` command + TUI form
+- Use @aws-sdk/client-amplify to create Amplify app
+- Configure custom domain, branch auto-connection/disconnection
+- Build settings from template repo's amplify.yml
+- "Help" link to internal Notion docs for AWS setup
+- Profile-based auth from ~/.aws/credentials
+- Full Terraform-backed config (details TBD)
 
 ### Phase 8 — TUI Dashboard & Settings
 

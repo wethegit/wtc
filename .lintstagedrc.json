@@ -1,3 +1,4 @@
 {
-  "*.ts": ["oxlint --fix", "oxfmt --check"]
+  "*.ts, *.tsx": ["oxfmt --fix", "oxlint --fix"],
+  "*.md, *.json, *.yaml, *.yml, *.toml": ["oxfmt --fix"]
 }
