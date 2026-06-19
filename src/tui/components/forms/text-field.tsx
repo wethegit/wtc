@@ -1,6 +1,7 @@
 import { createEffect } from "solid-js";
 import type { InputRenderable } from "@opentui/core";
 
+import { usePageScroll } from "../layout/scroll-context.tsx";
 import { tokens } from "../../tokens.ts";
 
 /** Props for the standard single-line TUI text field. */
@@ -34,6 +35,7 @@ export interface TextFieldProps {
  */
 export function TextField(props: TextFieldProps) {
   let input: InputRenderable | undefined;
+  const scroll = usePageScroll();
 
   createEffect(() => {
     if (!props.focused || !input || input.isDestroyed) return;
@@ -41,6 +43,7 @@ export function TextField(props: TextFieldProps) {
     setTimeout(() => {
       if (!input || input.isDestroyed) return;
       input.focus();
+      scroll?.scrollChildIntoView(props.name);
     }, 1);
   });
 

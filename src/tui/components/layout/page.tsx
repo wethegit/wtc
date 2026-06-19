@@ -1,8 +1,9 @@
 import type { JSX, ParentProps } from "solid-js";
 import { TextAttributes } from "@opentui/core";
-import type { RGBA } from "@opentui/core";
+import type { RGBA, ScrollBoxRenderable } from "@opentui/core";
 
 import { tokens } from "../../tokens.ts";
+import { ScrollProvider } from "./scroll-context.tsx";
 
 /** Props for the standard full-page TUI wrapper. */
 export interface PageProps extends ParentProps {
@@ -23,6 +24,8 @@ export interface PageProps extends ParentProps {
  * consistent across the TUI.
  */
 export function Page(props: PageProps) {
+  let scrollbox: ScrollBoxRenderable | undefined;
+
   return (
     <box flexDirection="column" flexGrow={1} paddingX={2} paddingY={1} gap={1}>
       <box flexDirection="row" justifyContent="space-between">
@@ -32,7 +35,14 @@ export function Page(props: PageProps) {
         {props.status}
       </box>
       {props.message}
-      <scrollbox flexGrow={1}>{props.children}</scrollbox>
+      <scrollbox
+        ref={(renderable) => {
+          scrollbox = renderable;
+        }}
+        flexGrow={1}
+      >
+        <ScrollProvider scrollbox={() => scrollbox}>{props.children}</ScrollProvider>
+      </scrollbox>
     </box>
   );
 }
