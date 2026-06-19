@@ -44,13 +44,13 @@ export function TeamworkPage(props: {
   useBindings(() => ({
     bindings: [
       {
-        key: "left",
+        key: "ctrl+left",
         desc: "Previous Teamwork tab",
         group: "Teamwork",
         cmd: () => props.onTabChange(getNextTeamworkTab(activeTab(), -1)),
       },
       {
-        key: "right",
+        key: "ctrl+right",
         desc: "Next Teamwork tab",
         group: "Teamwork",
         cmd: () => props.onTabChange(getNextTeamworkTab(activeTab(), 1)),
@@ -59,7 +59,7 @@ export function TeamworkPage(props: {
   }));
 
   onMount(() => {
-    setHints([{ key: "left/right", label: "tabs" }]);
+    setHints([{ key: "ctrl+left/right", label: "tabs" }]);
   });
 
   onCleanup(() => setHints([]));

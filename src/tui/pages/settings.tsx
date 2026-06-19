@@ -14,8 +14,8 @@ import { tokens } from "../tokens.ts";
 
 const SETTINGS_FOCUS_ORDER = [
   "workspaceName",
-  "teamworkProjectId",
   "teamworkApiToken",
+  "teamworkProjectId",
   "save",
   "reload",
 ] as const;
@@ -221,17 +221,44 @@ export function SettingsPage() {
       {resolved() && (
         <box flexDirection="column" gap={1}>
           <Section title="User config" description={resolved()?.paths.userConfigPath}>
-            <TextField
-              name="workspaceName"
-              label="workspaceName"
-              value={form().workspaceName}
-              placeholder="Workspace name"
-              description="User-level placeholder while broader settings are designed."
-              focused={focusedTarget() === "workspaceName"}
-              onInput={(value) => {
-                setForm((current) => ({ ...current, workspaceName: value }));
-              }}
-            />
+            <box flexDirection="column" gap={1}>
+              <TextField
+                name="workspaceName"
+                label="workspaceName"
+                value={form().workspaceName}
+                placeholder="Workspace name"
+                description="User-level placeholder while broader settings are designed."
+                focused={focusedTarget() === "workspaceName"}
+                onInput={(value) => {
+                  setForm((current) => ({ ...current, workspaceName: value }));
+                }}
+              />
+
+              <box
+                flexDirection="column"
+                gap={1}
+                paddingLeft={1}
+                border={["left"]}
+                borderColor={tokens.accentSoft}
+              >
+                <box flexDirection="column" gap={0}>
+                  <text fg={tokens.text}>Teamwork auth</text>
+                  <text fg={tokens.textDim}>Status: {teamworkAuthStatus()}</text>
+                </box>
+                <TextField
+                  name="teamworkApiToken"
+                  label="teamworkApiToken"
+                  value={form().teamworkApiToken}
+                  width={40}
+                  placeholder="Paste new token"
+                  description="User-level secret stored outside YAML; this field clears after save."
+                  focused={focusedTarget() === "teamworkApiToken"}
+                  onInput={(value) => {
+                    setForm((current) => ({ ...current, teamworkApiToken: value }));
+                  }}
+                />
+              </box>
+            </box>
           </Section>
 
           <Section
@@ -239,7 +266,6 @@ export function SettingsPage() {
             description={[
               resolved()?.paths.projectConfigPath ??
                 ".wtc.yaml will be created in this directory on save",
-              `Search start: ${resolved()?.paths.projectConfigSearchStart ?? ""}`,
             ]}
           >
             <TextField
@@ -253,21 +279,6 @@ export function SettingsPage() {
               focused={focusedTarget() === "teamworkProjectId"}
               onInput={(value) => {
                 setForm((current) => ({ ...current, teamworkProjectId: value }));
-              }}
-            />
-          </Section>
-
-          <Section title="Teamwork auth" description={`Status: ${teamworkAuthStatus()}`}>
-            <TextField
-              name="teamworkApiToken"
-              label="teamworkApiToken"
-              value={form().teamworkApiToken}
-              width={40}
-              placeholder="Paste new token"
-              description="Stored token is never displayed; this field clears after save."
-              focused={focusedTarget() === "teamworkApiToken"}
-              onInput={(value) => {
-                setForm((current) => ({ ...current, teamworkApiToken: value }));
               }}
             />
           </Section>

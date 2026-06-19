@@ -51,9 +51,9 @@ describe("settings page helpers", () => {
   });
 
   test("cycles settings control focus", () => {
-    expect(getNextSettingsFocus("workspaceName", 1)).toBe("teamworkProjectId");
-    expect(getNextSettingsFocus("teamworkProjectId", 1)).toBe("teamworkApiToken");
-    expect(getNextSettingsFocus("teamworkApiToken", 1)).toBe("save");
+    expect(getNextSettingsFocus("workspaceName", 1)).toBe("teamworkApiToken");
+    expect(getNextSettingsFocus("teamworkApiToken", 1)).toBe("teamworkProjectId");
+    expect(getNextSettingsFocus("teamworkProjectId", 1)).toBe("save");
     expect(getNextSettingsFocus("save", 1)).toBe("reload");
     expect(getNextSettingsFocus("reload", 1)).toBe("workspaceName");
     expect(getNextSettingsFocus("workspaceName", -1)).toBe("reload");

@@ -191,7 +191,7 @@ function App(props: { dir: string; initialState: TuiStateEntry }) {
       <DialogProvider>
         <StatusBarProvider
           globalHints={[
-            { key: "ctrl/cmd+p", label: "commands" },
+            { key: "ctrl+p", label: "commands" },
             { key: "ctrl+c", label: "quit" },
           ]}
         >
