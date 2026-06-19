@@ -9,6 +9,12 @@ import {
   configInit,
 } from "./commands/config.ts";
 import { settings } from "./commands/settings.ts";
+import {
+  teamworkTaskOpen,
+  teamworkTaskListPin,
+  teamworkTaskListPinned,
+  teamworkTaskListUnpin,
+} from "./commands/teamwork.ts";
 import { upgrade } from "./commands/upgrade.ts";
 import { APP_VERSION } from "../config/consts.ts";
 
@@ -101,6 +107,88 @@ export async function runCli(): Promise<void> {
             () => {},
           )
           .demandCommand(1, "Specify a config subcommand: init, auth"),
+      () => {},
+    )
+    .command(
+      "teamwork",
+      "Manage Teamwork workflows",
+      (yargs) =>
+        yargs
+          .command(
+            "task-list",
+            "Manage Teamwork task lists",
+            (yargs) =>
+              yargs
+                .command(
+                  "pinned",
+                  "List pinned Teamwork task lists and tasks",
+                  (yargs) =>
+                    yargs.option("json", {
+                      type: "boolean",
+                      describe: "Print JSON output",
+                      default: false,
+                    }),
+                  async (argv) => {
+                    await teamworkTaskListPinned({ json: argv.json ?? false });
+                  },
+                )
+                .command(
+                  "pin <taskListId>",
+                  "Pin a Teamwork task list in project config",
+                  (yargs) =>
+                    yargs
+                      .positional("taskListId", {
+                        type: "number",
+                        describe: "Teamwork task list ID",
+                      })
+                      .option("name", {
+                        type: "string",
+                        describe: "Display name for this task list",
+                        demandOption: true,
+                      }),
+                  async (argv) => {
+                    await teamworkTaskListPin({
+                      taskListId: argv.taskListId ?? 0,
+                      name: argv.name ?? "",
+                    });
+                  },
+                )
+                .command(
+                  "unpin <taskListId>",
+                  "Unpin a Teamwork task list from project config",
+                  (yargs) =>
+                    yargs.positional("taskListId", {
+                      type: "number",
+                      describe: "Teamwork task list ID",
+                    }),
+                  async (argv) => {
+                    await teamworkTaskListUnpin({ taskListId: argv.taskListId ?? 0 });
+                  },
+                )
+                .demandCommand(1, "Specify a task-list subcommand: pinned, pin, unpin"),
+            () => {},
+          )
+          .command(
+            "task",
+            "Manage Teamwork tasks",
+            (yargs) =>
+              yargs
+                .command(
+                  "open <task>",
+                  "Open a Teamwork task in the browser",
+                  (yargs) =>
+                    yargs.positional("task", {
+                      type: "string",
+                      describe: "Teamwork task ID or URL",
+                    }),
+                  async (argv) => {
+                    await teamworkTaskOpen({ task: argv.task ?? "" });
+                  },
+                )
+                .demandCommand(1, "Specify a task subcommand: open"),
+            () => {},
+          )
+          .demandCommand(1, "Specify a teamwork subcommand: task-list, task"),
       () => {},
     )
     .command(

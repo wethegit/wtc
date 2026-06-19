@@ -19,6 +19,18 @@ Teamwork work is split into focused subphase documents so `plans/PLAN.md` stays 
 5. Add timer read/actions and timer state indicators.
 6. Add branch and PR workflows from selected tasks.
 
+## Feature Workflow
+
+Build Teamwork features in the TUI first, then add CLI equivalents after the data shape and user interaction are clear. The TUI is the proving ground for browsing, selection, prompts, and configuration UX; the CLI should mirror workflows once they can be expressed cleanly with IDs, URLs, flags, or current project context.
+
+For each feature:
+
+1. Add or refine the domain API and config shape.
+2. Surface the workflow in the TUI.
+3. Add selection/actions or Settings editing when the feature needs user interaction.
+4. Add the CLI equivalent once the TUI workflow is understood.
+5. Keep CLI commands scriptable, with prompts only as an optional TTY enhancement.
+
 ## Shared Rules
 
 - Use `get*` for Teamwork read APIs even when data may come from cache.
@@ -29,7 +41,7 @@ Teamwork work is split into focused subphase documents so `plans/PLAN.md` stays 
 
 ## CLI Hierarchy
 
-Use CLI equivalents when a workflow can be expressed with an ID, URL, or current project context.
+Use CLI equivalents after the corresponding TUI workflow exists and the command can be expressed with an ID, URL, flags, or current project context.
 
 - `wtc teamwork project`: show current Teamwork project context.
 - `wtc teamwork task-list pinned`: list configured pinned task lists and their tasks.
