@@ -36,7 +36,7 @@ const tasks: TeamworkTask[] = [
     url: null,
     assignees: ["Marlon Bain"],
     dueDate: "2026-06-24",
-    boardColumn: "To Do",
+    boardColumn: { name: "To Do", color: null },
     priority: "high",
   },
   {

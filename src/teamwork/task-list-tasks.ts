@@ -88,8 +88,8 @@ export interface TeamworkTask {
   assignees: string[];
   /** Due date in a display-safe `YYYY-MM-DD` shape when available. */
   dueDate: string | null;
-  /** Teamwork board column, such as To Do, Blocked, or Completed. */
-  boardColumn: string | null;
+  /** Teamwork board column with name and optional color from the API. */
+  boardColumn: { name: string; color: string | null } | null;
   /** Teamwork task priority when available. */
   priority: string | null;
 }
@@ -160,11 +160,11 @@ export async function getTeamworkTaskListTasks(taskListId: number): Promise<Team
       ),
     ),
   ];
-  const stageNames = new Map<number, string>();
+  const stageEntries = new Map<number, { name: string; color: string | null }>();
   for (const workflowId of workflowIds) {
-    const names = await getWorkflowStageNames(Number(workflowId));
-    for (const [id, name] of names) {
-      stageNames.set(id, name);
+    const entries = await getWorkflowStageNames(Number(workflowId));
+    for (const [id, entry] of entries) {
+      stageEntries.set(id, entry);
     }
   }
 
@@ -196,7 +196,7 @@ export async function getTeamworkTaskListTasks(taskListId: number): Promise<Team
       assignees,
       dueDate: parseTeamworkDueDate(task.dueDate),
       boardColumn: task.workflowStages?.[0]?.stageId
-        ? (stageNames.get(task.workflowStages[0].stageId) ?? null)
+        ? (stageEntries.get(task.workflowStages[0].stageId) ?? null)
         : null,
       priority: getNamedValue(task.priority),
     });

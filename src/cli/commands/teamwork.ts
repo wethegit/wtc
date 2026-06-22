@@ -59,7 +59,7 @@ function formatTeamworkTaskMetadata(task: TeamworkTask): string[] {
   if (task.assignees.length === 1) metadata.push(`assignee: ${task.assignees[0]}`);
   if (task.assignees.length > 1) metadata.push(`assignees: ${task.assignees.join(", ")}`);
   if (task.dueDate) metadata.push(`due: ${task.dueDate}`);
-  if (task.boardColumn) metadata.push(`board: ${task.boardColumn}`);
+  if (task.boardColumn) metadata.push(`board: ${task.boardColumn.name}`);
   if (task.priority) metadata.push(`priority: ${task.priority}`);
 
   return metadata;

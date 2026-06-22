@@ -1,0 +1,380 @@
+{
+  "included": {
+    "ProjectPermissions": {
+      "additionalProp": {
+        "active": true,
+        "addExpenses": true,
+        "addFiles": true,
+        "addForms": true,
+        "addLinks": true,
+        "addMessages": true,
+        "addMilestones": true,
+        "addNotebooks": true,
+        "addProjectUpdate": true,
+        "addRisks": true,
+        "addTaskLists": true,
+        "addTasks": true,
+        "addTime": true,
+        "canAccess": true,
+        "canEditWorkflows": true,
+        "canManagePeople": true,
+        "canManageProjectBudget": true,
+        "canManageProjectMembership": true,
+        "canManageProjectTemplates": true,
+        "canManageRates": true,
+        "canManageSchedule": true,
+        "canViewForms": true,
+        "canViewProjectBudget": true,
+        "canViewProjectMembers": true,
+        "canViewProjectProfitability": true,
+        "canViewProjectTemplates": true,
+        "canViewRates": true,
+        "canViewSchedule": true,
+        "canViewWorkflows": true,
+        "editAllTasks": true,
+        "inOwnerCompany": true,
+        "isArchived": true,
+        "isObserving": true,
+        "manageCustomFields": true,
+        "projectAdministrator": true,
+        "receiveEmailNotifications": true,
+        "setPrivacy": true,
+        "viewAllTimeLogs": true,
+        "viewEstimatedTime": true,
+        "viewInvoices": true,
+        "viewLinks": true,
+        "viewMessagesAndFiles": true,
+        "viewNotebooks": true,
+        "viewProjectUpdate": true,
+        "viewRiskRegister": true,
+        "viewTasksAndMilestones": true,
+        "viewTime": true
+      }
+    },
+    "companies": {
+      "additionalProp": {
+        "accounts": 0,
+        "addressOne": "string",
+        "addressTwo": "string",
+        "budgetDistribution": [
+          {
+            "color": "string",
+            "companyId": 0,
+            "count": 0,
+            "from": 0,
+            "to": 0
+          }
+        ],
+        "canSeePrivate": true,
+        "cid": "string",
+        "city": "string",
+        "clientManagedBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "clients": 0,
+        "collaborators": 0,
+        "companyDomains": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "companyNameUrl": "string",
+        "companyUpdate": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "contacts": 0,
+        "countryCode": "string",
+        "createdAt": "string",
+        "currency": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "emailOne": "string",
+        "emailThree": "string",
+        "emailTwo": "string",
+        "fax": "string",
+        "financialBudgetSummary": {
+          "totalCapacity": 0,
+          "totalCapacityUsed": 0
+        },
+        "id": 0,
+        "industry": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "industryId": 0,
+        "isOwner": true,
+        "logoUrl": "string",
+        "name": "string",
+        "phone": "string",
+        "privateNotes": "string",
+        "privateNotesText": "string",
+        "profileText": "string",
+        "profitability": {
+          "billable": 0,
+          "billableTime": 0,
+          "companyCount": 0,
+          "cost": 0,
+          "expenses": 0,
+          "expensesBillableTotal": 0,
+          "loggedTime": 0,
+          "nonBillableTime": 0,
+          "ownerCount": 0,
+          "profit": 0,
+          "profitPercentage": 0,
+          "profitTargetPercentage": 0,
+          "targetCostsDollars": 0,
+          "targetProfitDollars": 0
+        },
+        "rates": [
+          {
+            "createdAt": "string",
+            "createdByUser": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            },
+            "rate": {
+              "amount": 0,
+              "currency": {
+                "id": 0,
+                "meta": {},
+                "type": "string"
+              }
+            },
+            "role": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            },
+            "updatedAt": "string",
+            "updatedByUser": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          }
+        ],
+        "state": "string",
+        "stats": {
+          "projectCount": 0,
+          "taskCompleteCount": 0,
+          "taskCount": 0,
+          "unreadEmailCount": 0
+        },
+        "status": "string",
+        "tags": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "timeBudgetSummary": {
+          "totalCapacity": 0,
+          "totalCapacityUsed": 0
+        },
+        "updatedAt": "string",
+        "website": "string",
+        "zip": "string"
+      }
+    },
+    "projectIntegrations": {
+      "additionalProp": {
+        "canAccessBox": true,
+        "canAccessDropbox": true,
+        "canAccessGoogleDocs": true,
+        "canAccessOneDrive": true,
+        "canAccessOneDriveBusiness": true,
+        "canAccessSharePoint": true,
+        "projectId": 0,
+        "userId": 0
+      }
+    },
+    "projects": {
+      "additionalProp": {}
+    },
+    "stages": {
+      "additionalProp": {
+        "color": "string",
+        "createdAt": "string",
+        "createdBy": 0,
+        "deletedAt": "string",
+        "deletedBy": 0,
+        "displayOrder": 0,
+        "id": 0,
+        "name": "string",
+        "showCompletedTasks": true,
+        "taskIds": [0],
+        "updatedAt": "string",
+        "updatedBy": 0,
+        "workflow": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        }
+      }
+    },
+    "teams": {
+      "additionalProp": {
+        "company": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "createdAt": "string",
+        "createdBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "handle": "string",
+        "id": 0,
+        "name": "string",
+        "teamLogo": "string",
+        "teamLogoColor": "string",
+        "teamLogoIcon": "string",
+        "updatedAt": "string",
+        "updatedBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        }
+      }
+    },
+    "users": {
+      "additionalProp": {
+        "avatarUrl": "string",
+        "canAccessPortfolio": true,
+        "canAddProjects": true,
+        "canManagePortfolio": true,
+        "company": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "companyId": 0,
+        "companyRoleId": 0,
+        "createdAt": "string",
+        "createdBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "deleted": true,
+        "email": "string",
+        "firstName": "string",
+        "id": 0,
+        "isAdmin": true,
+        "isClientUser": true,
+        "isPlaceholderResource": true,
+        "isServiceAccount": true,
+        "jobRoles": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "lastLogin": "string",
+        "lastName": "string",
+        "lengthOfDay": 0,
+        "meta": {},
+        "skills": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "teams": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "timezone": "string",
+        "title": "string",
+        "type": "string",
+        "updatedAt": "string",
+        "updatedBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "userCost": 0,
+        "userRate": 0,
+        "userRates": {
+          "additionalProp": {
+            "amount": 0,
+            "currency": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          }
+        },
+        "workingHour": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "workingHoursId": 0
+      }
+    }
+  },
+  "meta": {
+    "averageSpend": 0,
+    "data": {},
+    "limit": 0,
+    "nextCursor": "string",
+    "page": {
+      "count": 0,
+      "hasMore": true,
+      "pageOffset": 0,
+      "pageSize": 0
+    },
+    "prevCursor": "string",
+    "totalCapacity": 0
+  },
+  "workflow": {
+    "companies": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "createdAt": "string",
+    "createdBy": 0,
+    "defaultWorkflow": true,
+    "id": 0,
+    "lockdown": {
+      "id": 0,
+      "meta": {},
+      "type": "string"
+    },
+    "name": "string",
+    "projectIds": [0],
+    "projectSpecific": true,
+    "stages": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "status": "string",
+    "updatedAt": "string",
+    "updatedBy": 0
+  }
+}
