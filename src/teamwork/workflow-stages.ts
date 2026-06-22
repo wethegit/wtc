@@ -41,8 +41,9 @@ export async function getWorkflowStageNames(
   try {
     cache = JSON.parse(await Bun.file(`${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`).text());
   } catch {
-    cache = { version: 1, workflows: {} };
+    cache = { version: 2, workflows: {} };
   }
+  if (cache.version < 2) cache.version = 2;
 
   const cached = cache.workflows[key];
   if (cached && cache.version >= 2 && now - cached.cachedAt < WORKFLOW_STAGES_CACHE_TTL_MS) {
