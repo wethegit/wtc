@@ -84,7 +84,9 @@ describe("teamwork workflow stages", () => {
 
     const stages = await getWorkflowStageNames(9);
 
-    expect(Array.from(stages.entries())).toEqual([[6, { name: "Updated Stage", color: "#ffffff" }]]);
+    expect(Array.from(stages.entries())).toEqual([
+      [6, { name: "Updated Stage", color: "#ffffff" }],
+    ]);
     expect(fetchCount).toBe(1);
   });
 });
