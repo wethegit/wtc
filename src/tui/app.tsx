@@ -1,5 +1,6 @@
 import { createSignal, ErrorBoundary, Match, onMount, Switch } from "solid-js";
 import { render, useKeyboard, useRenderer } from "@opentui/solid";
+import { registerModBindings } from "@opentui/keymap/addons";
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings, useKeymap } from "@opentui/keymap/solid";
 
@@ -202,6 +203,7 @@ function Home() {
 function App(props: { dir: string; initialState: TuiStateEntry }) {
   const renderer = useRenderer();
   const keymap = createDefaultOpenTuiKeymap(renderer);
+  registerModBindings(keymap);
 
   return (
     // Provider order matters: the keymap needs the OpenTUI renderer, and dialogs
