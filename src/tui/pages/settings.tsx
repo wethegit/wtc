@@ -390,6 +390,7 @@ export function SettingsPage() {
   );
 }
 
+/** Parses a user-provided teamwork project ID string, returning null when invalid. */
 export function parseTeamworkProjectId(value: string): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -399,6 +400,7 @@ export function parseTeamworkProjectId(value: string): number | null {
   return parsed;
 }
 
+/** Parses a user-provided pinned task list ID string, returning null when invalid. */
 export function parsePinnedTaskListId(value: string): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -414,6 +416,7 @@ export function parseTeamworkApiTokenInput(value: string): string | null {
   return trimmed || null;
 }
 
+/** Builds initial Settings form state from a resolved config. */
 export function buildSettingsFormState(config: ResolvedConfig): SettingsFormState {
   return {
     user: {
@@ -433,6 +436,7 @@ export function buildSettingsFormState(config: ResolvedConfig): SettingsFormStat
   };
 }
 
+/** Compares two focus targets by value (serializes to JSON). */
 export function isSettingsFocusTarget(
   current: SettingsFocusTarget,
   expected: SettingsFocusTarget,
@@ -440,6 +444,7 @@ export function isSettingsFocusTarget(
   return JSON.stringify(current) === JSON.stringify(expected);
 }
 
+/** Builds the ordered list of focusable controls based on which accordion sections are expanded. */
 export function getSettingsFocusOrder(
   state: SettingsFormState,
   expanded: SettingsExpandedSections = DEFAULT_EXPANDED_SECTIONS,
@@ -477,6 +482,7 @@ export function getSettingsFocusOrder(
   return order;
 }
 
+/** Cycles to the next or previous Settings control in focus order, wrapping around. */
 export function getNextSettingsFocus(
   current: SettingsFocusTarget,
   state: SettingsFormState,
@@ -492,10 +498,12 @@ export function getNextSettingsFocus(
   return order[nextIndex] ?? FIRST_FOCUS;
 }
 
+/** Returns the first validation error message, or null when the form is valid. */
 export function getSettingsFormError(state: SettingsFormState): string | null {
   return Object.values(validateSettingsForm(state))[0] ?? null;
 }
 
+/** Validates all Settings form fields and returns error messages keyed by field path. */
 export function validateSettingsForm(state: SettingsFormState): SettingsFormErrors {
   const errors: SettingsFormErrors = {};
 
@@ -536,6 +544,7 @@ export function validateSettingsForm(state: SettingsFormState): SettingsFormErro
   return errors;
 }
 
+/** Converts validated Settings form state into UserConfig and ProjectConfig objects, dropping blank dynamic rows. */
 export function applySettingsFormState(state: SettingsFormState): {
   user: UserConfig;
   project: ProjectConfig;

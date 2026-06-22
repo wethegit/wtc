@@ -8,6 +8,7 @@ import type {
   SettingsFormState,
 } from "./types.ts";
 
+/** Settings section for editable project links (add/remove rows). */
 export function ProjectLinksSection(props: {
   form: SettingsFormState;
   expanded: boolean;

@@ -2,6 +2,7 @@ import { createContext, createSignal, useContext, type ParentProps } from "solid
 
 import { tokens } from "../tokens.ts";
 
+/** A keybinding hint shown in the TUI status bar (e.g. `"ctrl+q" + "Quit"`). */
 export interface StatusBarHint {
   key: string;
   label: string;
@@ -13,6 +14,7 @@ interface StatusBarContextValue {
 
 const StatusBarContext = createContext<StatusBarContextValue>();
 
+/** Provides status bar hints to the component tree, merging global and contextual hints. */
 export function StatusBarProvider(props: { globalHints: StatusBarHint[] } & ParentProps) {
   const [contextualHints, setContextualHints] = createSignal<StatusBarHint[]>([]);
 
@@ -49,6 +51,7 @@ function StatusBar(props: InternalBarProps) {
   );
 }
 
+/** Returns the status bar context, used by pages to register contextual hints. */
 export function useStatusBar(): StatusBarContextValue {
   const value = useContext(StatusBarContext);
   if (!value) {

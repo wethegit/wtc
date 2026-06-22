@@ -29,8 +29,26 @@ const resolvedConfig: ResolvedConfig = {
 };
 
 const tasks: TeamworkTask[] = [
-  { id: 1, name: "Dev | Code Review", status: "active", url: null },
-  { id: 2, name: "General | Meeting", status: null, url: null },
+  {
+    id: 1,
+    name: "Dev | Code Review",
+    status: "active",
+    url: null,
+    assignees: ["Marlon Bain"],
+    dueDate: "2026-06-24",
+    boardColumn: "To Do",
+    priority: "high",
+  },
+  {
+    id: 2,
+    name: "General | Meeting",
+    status: null,
+    url: null,
+    assignees: [],
+    dueDate: null,
+    boardColumn: null,
+    priority: null,
+  },
 ];
 
 const originalLog = console.log;
@@ -61,6 +79,7 @@ describe("teamwork command", () => {
 Pinned task lists:
 General Tasks (1597639)
   - Dev | Code Review [active]
+    assignee: Marlon Bain | due: 2026-06-24 | board: To Do | priority: high
   - General | Meeting`);
   });
 

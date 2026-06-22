@@ -8,6 +8,7 @@ import {
 
 /** Shared with yargs so accepted CLI providers and handler validation stay in sync. */
 export const CONFIG_AUTH_PROVIDERS = ["teamwork"] as const;
+/** Supported auth provider names for `wtc config auth`. */
 export type ConfigAuthProvider = (typeof CONFIG_AUTH_PROVIDERS)[number];
 
 /** Auth dependency boundary so command tests do not touch the OS secret store. */
@@ -34,6 +35,7 @@ export async function configInit(startDir = process.cwd()): Promise<void> {
   console.log(`Created project config: ${path}`);
 }
 
+/** Stores an auth token for a provider in OS secrets. */
 export async function configAuthSet(
   args: { provider: string; token: string | undefined },
   actions = teamworkAuthActions,
@@ -45,6 +47,7 @@ export async function configAuthSet(
   console.log(`Configured ${provider} auth.`);
 }
 
+/** Prints whether auth is configured for a provider (without exposing the token). */
 export async function configAuthStatus(
   args: { provider: string },
   actions = teamworkAuthActions,
@@ -53,6 +56,7 @@ export async function configAuthStatus(
   console.log(`${provider}: ${await actions.getTeamworkAuthStatus()}`);
 }
 
+/** Deletes stored auth for a provider. */
 export async function configAuthDelete(
   args: { provider: string },
   actions = teamworkAuthActions,

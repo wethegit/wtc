@@ -1,8 +1,10 @@
+/** Unsaved form state for a project link row. */
 export interface ProjectLinkFormState {
   name: string;
   url: string;
 }
 
+/** Unsaved form state for a pinned task list row. */
 export interface PinnedTaskListFormState {
   name: string;
   id: string;
@@ -23,8 +25,10 @@ export interface SettingsFormState {
   };
 }
 
+/** Settings validation errors keyed by field path (e.g. `"projectLinks.0.name"`). */
 export type SettingsFormErrors = Record<string, string>;
 
+/** A focusable control on the Settings page. */
 export type SettingsFocusTarget =
   | { type: "field"; name: "workspaceName" | "teamworkApiToken" | "teamworkProjectId" }
   | { type: "projectLink"; index: number; field: "name" | "url" }
@@ -37,6 +41,7 @@ export type SettingsFocusTarget =
     }
   | { type: "action"; name: "save" | "reload" };
 
+/** Which accordion sections are expanded on the Settings page. */
 export interface SettingsExpandedSections {
   user: boolean;
   project: boolean;

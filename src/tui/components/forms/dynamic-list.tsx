@@ -3,6 +3,7 @@ import { For, Show, type JSX } from "solid-js";
 import { ActionButton } from "./action-button.tsx";
 import { tokens } from "../../tokens.ts";
 
+/** Props for an editable dynamic list (add/remove rows) used in Settings forms. */
 export interface DynamicListProps<T> {
   /** Current rows in the editable list. */
   items: readonly T[];
@@ -24,6 +25,7 @@ export interface DynamicListProps<T> {
   renderItem: (item: T, index: number) => JSX.Element;
 }
 
+/** An editable list with add and per-row remove actions, used for project links and pinned task lists. */
 export function DynamicList<T>(props: DynamicListProps<T>) {
   return (
     <box flexDirection="column" gap={1}>

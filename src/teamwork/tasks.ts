@@ -1,5 +1,6 @@
 import { TEAMWORK_BASE_URL } from "./consts.ts";
 
+/** A Teamwork task parsed from a user-provided ID or URL. */
 export interface TeamworkTaskReference {
   /** Numeric Teamwork task ID. */
   id: number;
@@ -7,6 +8,7 @@ export interface TeamworkTaskReference {
   url: string;
 }
 
+/** Parses a user-provided task ID (e.g. "12345") or Teamwork URL into a task reference. */
 export function getTeamworkTaskReference(value: string): TeamworkTaskReference {
   const trimmed = value.trim();
   if (!trimmed) throw new Error("Teamwork task ID or URL is required.");
