@@ -1,5 +1,6 @@
 import { createSignal, For, onMount } from "solid-js";
 import { TextAttributes } from "@opentui/core";
+import { useBindings } from "@opentui/keymap/solid";
 
 import { loadResolvedConfig } from "../../../config/manager.ts";
 import type { ResolvedConfig } from "../../../config/schema.ts";
@@ -9,6 +10,8 @@ import {
   type TeamworkProjectMetadataResult,
 } from "../../../teamwork/project-metadata.ts";
 import { getTeamworkTaskListTasks, type TeamworkTask } from "../../../teamwork/task-list-tasks.ts";
+import { getTeamworkTaskReference } from "../../../teamwork/tasks.ts";
+import { openUrlInBrowser } from "../../../utils/browser.ts";
 import { TaskList } from "../../components/teamwork/task-list.tsx";
 import { Section } from "../../components/layout/section.tsx";
 import { tokens } from "../../tokens.ts";
@@ -20,6 +23,11 @@ interface PinnedTaskListState {
   message: string | null;
 }
 
+export interface PinnedTaskSelection {
+  taskListId: number;
+  taskId: number;
+}
+
 export function ProjectTab() {
   const [resolved, setResolved] = createSignal<ResolvedConfig | null>(null);
   const [teamworkAuthStatus, setTeamworkAuthStatus] = createSignal<TeamworkAuthStatus>("missing");
@@ -27,12 +35,25 @@ export function ProjectTab() {
     null,
   );
   const [pinnedTaskLists, setPinnedTaskLists] = createSignal<PinnedTaskListState[]>([]);
+  const [selectedTask, setSelectedTask] = createSignal<PinnedTaskSelection | null>(null);
   const [projectMessage, setProjectMessage] = createSignal("Loading project context...");
+
+  const selectedTeamworkTask = () => {
+    const selected = selectedTask();
+    if (!selected) return null;
+
+    return (
+      pinnedTaskLists()
+        .find((taskList) => taskList.id === selected.taskListId)
+        ?.tasks.find((task) => task.id === selected.taskId) ?? null
+    );
+  };
 
   const loadProjectContext = async () => {
     setProjectMessage("Loading project context...");
     setProjectMetadata(null);
     setPinnedTaskLists([]);
+    setSelectedTask(null);
 
     try {
       const config = await loadResolvedConfig(process.cwd());
@@ -75,6 +96,7 @@ export function ProjectTab() {
       }
 
       setPinnedTaskLists(nextPinnedTaskLists);
+      setSelectedTask(getNextPinnedTaskSelection(nextPinnedTaskLists, selectedTask(), 1));
       setProjectMessage(
         metadata.source === "cache"
           ? "Using cached Teamwork project metadata."
@@ -84,6 +106,56 @@ export function ProjectTab() {
       setProjectMessage(error instanceof Error ? error.message : "Failed to load project context.");
     }
   };
+
+  const openSelectedTask = async () => {
+    const task = selectedTeamworkTask();
+    if (!task) {
+      setProjectMessage("No pinned task selected.");
+      return;
+    }
+
+    const url = task.url ?? getTeamworkTaskReference(task.id.toString()).url;
+
+    try {
+      await openUrlInBrowser(url);
+      setProjectMessage(`Opened Teamwork task: ${task.name}`);
+    } catch (error) {
+      setProjectMessage(error instanceof Error ? error.message : "Failed to open Teamwork task.");
+    }
+  };
+
+  useBindings(() => ({
+    bindings: [
+      {
+        key: "down",
+        desc: "Next pinned Teamwork task",
+        group: "Teamwork",
+        cmd: () => {
+          setSelectedTask((current) => getNextPinnedTaskSelection(pinnedTaskLists(), current, 1));
+        },
+      },
+      {
+        key: "up",
+        desc: "Previous pinned Teamwork task",
+        group: "Teamwork",
+        cmd: () => {
+          setSelectedTask((current) => getNextPinnedTaskSelection(pinnedTaskLists(), current, -1));
+        },
+      },
+      {
+        key: "return",
+        desc: "Open pinned Teamwork task",
+        group: "Teamwork",
+        cmd: openSelectedTask,
+      },
+      {
+        key: "ctrl+o",
+        desc: "Open pinned Teamwork task",
+        group: "Teamwork",
+        cmd: openSelectedTask,
+      },
+    ],
+  }));
 
   onMount(() => {
     void loadProjectContext();
@@ -145,7 +217,13 @@ export function ProjectTab() {
                   {taskList.message ? (
                     <text fg={tokens.textDim}>{taskList.message}</text>
                   ) : (
-                    <TaskList tasks={taskList.tasks} emptyMessage="No tasks found." />
+                    <TaskList
+                      tasks={taskList.tasks}
+                      emptyMessage="No tasks found."
+                      selectedTaskId={
+                        selectedTask()?.taskListId === taskList.id ? selectedTask()?.taskId : null
+                      }
+                    />
                   )}
                 </box>
               )}
@@ -157,4 +235,38 @@ export function ProjectTab() {
       </box>
     </Section>
   );
+}
+
+interface PinnedTaskSelectionSource {
+  id: number;
+  tasks: readonly { id: number }[];
+}
+
+export function getPinnedTaskSelectionOrder(
+  taskLists: readonly PinnedTaskSelectionSource[],
+): PinnedTaskSelection[] {
+  return taskLists.flatMap((taskList) =>
+    taskList.tasks.map((task) => ({ taskListId: taskList.id, taskId: task.id })),
+  );
+}
+
+export function getNextPinnedTaskSelection(
+  taskLists: readonly PinnedTaskSelectionSource[],
+  current: PinnedTaskSelection | null,
+  direction: 1 | -1,
+): PinnedTaskSelection | null {
+  const order = getPinnedTaskSelectionOrder(taskLists);
+  if (!order.length) return null;
+
+  const currentIndex = current
+    ? order.findIndex(
+        (selection) =>
+          selection.taskListId === current.taskListId && selection.taskId === current.taskId,
+      )
+    : -1;
+  const fallbackIndex = direction === 1 ? 0 : order.length - 1;
+  const nextIndex =
+    currentIndex === -1 ? fallbackIndex : (currentIndex + direction + order.length) % order.length;
+
+  return order[nextIndex] ?? null;
 }

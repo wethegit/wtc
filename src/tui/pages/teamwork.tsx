@@ -1,4 +1,4 @@
-import { For, Match, onCleanup, onMount, Switch } from "solid-js";
+import { createEffect, For, Match, onCleanup, Switch } from "solid-js";
 import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 
@@ -60,8 +60,16 @@ export function TeamworkPage(props: {
     ],
   }));
 
-  onMount(() => {
-    setHints([{ key: "ctrl+←/→", label: "tabs" }]);
+  createEffect(() => {
+    setHints(
+      activeTab() === "project"
+        ? [
+            { key: "ctrl+←/→", label: "tabs" },
+            { key: "↑/↓", label: "tasks" },
+            { key: "enter/ctrl+o", label: "open" },
+          ]
+        : [{ key: "ctrl+←/→", label: "tabs" }],
+    );
   });
 
   onCleanup(() => setHints([]));
