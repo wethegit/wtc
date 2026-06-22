@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.2
+
+### Patch Changes
+
+- [#32](https://github.com/wethegit/wtc/pull/32) [`a154cef`](https://github.com/wethegit/wtc/commit/a154cef3dedf65e4f0325e44f1cfde4dc6dfa748) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - feature: adds pinned tasks
+
 ## 0.3.1
 
 ### Patch Changes
