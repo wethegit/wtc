@@ -29,6 +29,7 @@ export function PinnedTaskListsSection(props: {
         items={props.form.project.pinnedTaskLists}
         emptyMessage="No pinned task lists configured."
         addLabel="add task list"
+        namePrefix="pinned-task-lists"
         addFocused={props.isFocused({ type: "listAction", list: "pinnedTaskLists", action: "add" })}
         onAdd={props.onAdd}
         removeFocused={(index) =>
