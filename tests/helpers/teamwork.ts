@@ -40,7 +40,11 @@ export function useTempCacheDir() {
   });
 
   afterEach(() => {
-    process.env.WTC_CACHE_DIR = originalCacheDir;
+    if (originalCacheDir === undefined) {
+      delete process.env.WTC_CACHE_DIR;
+    } else {
+      process.env.WTC_CACHE_DIR = originalCacheDir;
+    }
     rmSync(tempCacheDir, { recursive: true, force: true });
   });
 }
