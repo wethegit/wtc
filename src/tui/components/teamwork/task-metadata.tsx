@@ -34,7 +34,9 @@ export function TaskMetadata(props: { task: TeamworkTask }) {
           <text fg={tokens.textDim}>{t`${bold("due:")} ${task().dueDate ?? ""}`}</text>
         </Show>
         <Show when={task().boardColumn}>
-          <text fg={tokens.textDim}>{t`${bold("board:")} ${task().boardColumn ?? ""}`}</text>
+          <text
+            fg={tokens.textDim}
+          >{t`${bold("board:")} ${fg(task().boardColumn?.color ?? tokens.textDim)(task().boardColumn?.name ?? "")}`}</text>
         </Show>
         <Show when={task().priority}>
           <text

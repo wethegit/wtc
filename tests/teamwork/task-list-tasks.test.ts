@@ -30,8 +30,8 @@ describe("teamwork task list tasks", () => {
           JSON.stringify({
             included: {
               stages: {
-                "5": { id: 5, name: "Blocked" },
-                "6": { id: 6, name: "To Do" },
+                "5": { id: 5, name: "Blocked", color: "#e40526" },
+                "6": { id: 6, name: "To Do", color: "#8599f8" },
               },
             },
           }),
@@ -100,7 +100,7 @@ describe("teamwork task list tasks", () => {
         url: null,
         assignees: ["Marlon Bain"],
         dueDate: "2026-06-24",
-        boardColumn: "To Do",
+        boardColumn: { name: "To Do", color: "#8599f8" },
         priority: "high",
       },
       {
@@ -110,7 +110,7 @@ describe("teamwork task list tasks", () => {
         url: null,
         assignees: ["Alex Lee", "Sam Jones"],
         dueDate: "2026-06-25",
-        boardColumn: "Blocked",
+        boardColumn: { name: "Blocked", color: "#e40526" },
         priority: "medium",
       },
       {

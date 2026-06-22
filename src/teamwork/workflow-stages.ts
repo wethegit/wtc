@@ -9,6 +9,7 @@ const WORKFLOW_STAGES_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const StageSchema = z.object({
   id: z.union([z.number(), z.string().regex(/^\d+$/).transform(Number)]),
   name: z.string().optional(),
+  color: z.string().optional(),
 });
 
 const WorkflowResponseSchema = z.object({
@@ -20,17 +21,19 @@ const WorkflowResponseSchema = z.object({
 });
 
 interface WorkflowStagesCacheEntry {
-  stages: Record<string, string>;
+  stages: Record<string, { name: string; color: string | null }>;
   cachedAt: number;
 }
 
 interface WorkflowStagesCacheFile {
-  version: 1;
+  version: number;
   workflows: Record<string, WorkflowStagesCacheEntry>;
 }
 
-/** Fetches workflow stage names from Teamwork, cached on disk for 7 days. */
-export async function getWorkflowStageNames(workflowId: number): Promise<Map<number, string>> {
+/** Fetches workflow stage names and colors from Teamwork, cached on disk for 7 days. */
+export async function getWorkflowStageNames(
+  workflowId: number,
+): Promise<Map<number, { name: string; color: string | null }>> {
   const key = workflowId.toString();
   const now = Date.now();
   let cache: WorkflowStagesCacheFile;
@@ -42,25 +45,26 @@ export async function getWorkflowStageNames(workflowId: number): Promise<Map<num
   }
 
   const cached = cache.workflows[key];
-  if (cached && now - cached.cachedAt < WORKFLOW_STAGES_CACHE_TTL_MS) {
-    return new Map(Object.entries(cached.stages).map(([id, name]) => [Number(id), name]));
+  if (cached && cache.version >= 2 && now - cached.cachedAt < WORKFLOW_STAGES_CACHE_TTL_MS) {
+    return new Map(Object.entries(cached.stages).map(([id, entry]) => [Number(id), entry]));
   }
 
   const parsed = WorkflowResponseSchema.parse(
     await fetchTeamworkApiJson(`/workflows/${workflowId}.json?include=stages`),
   );
 
-  const stageNames: Record<string, string> = {};
-  const stages = new Map<number, string>();
+  const stageData: Record<string, { name: string; color: string | null }> = {};
+  const stages = new Map<number, { name: string; color: string | null }>();
   for (const stage of Object.values(parsed.included?.stages ?? {})) {
     const name = stage.name?.trim();
     if (name) {
-      stageNames[stage.id.toString()] = name;
-      stages.set(stage.id, name);
+      const entry = { name, color: stage.color?.trim() || null };
+      stageData[stage.id.toString()] = entry;
+      stages.set(stage.id, entry);
     }
   }
 
-  cache.workflows[key] = { stages: stageNames, cachedAt: now };
+  cache.workflows[key] = { stages: stageData, cachedAt: now };
   await Bun.write(
     `${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`,
     `${JSON.stringify(cache, null, 2)}\n`,

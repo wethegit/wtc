@@ -1,4 +1,4 @@
-import { createSignal, For, onMount } from "solid-js";
+import { createEffect, createSignal, For, onMount } from "solid-js";
 import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 
@@ -14,6 +14,7 @@ import { getTeamworkTaskReference } from "../../../teamwork/tasks.ts";
 import { openUrlInBrowser } from "../../../utils/browser.ts";
 import { TaskList } from "../../components/teamwork/task-list.tsx";
 import { Section } from "../../components/layout/section.tsx";
+import { usePageScroll } from "../../components/layout/scroll-context.tsx";
 import { tokens } from "../../tokens.ts";
 
 interface PinnedTaskListState {
@@ -39,6 +40,14 @@ export function ProjectTab() {
   const [pinnedTaskLists, setPinnedTaskLists] = createSignal<PinnedTaskListState[]>([]);
   const [selectedTask, setSelectedTask] = createSignal<PinnedTaskSelection | null>(null);
   const [projectMessage, setProjectMessage] = createSignal("Loading project context...");
+  const scroll = usePageScroll();
+
+  createEffect(() => {
+    const sel = selectedTask();
+    if (sel && scroll) {
+      scroll.scrollChildIntoView(`task-${sel.taskListId}-${sel.taskId}`);
+    }
+  });
 
   const selectedTeamworkTask = () => {
     const selected = selectedTask();
@@ -227,6 +236,7 @@ export function ProjectTab() {
                     <text fg={tokens.textDim}>{taskList.message}</text>
                   ) : (
                     <TaskList
+                      taskListId={taskList.id}
                       tasks={taskList.tasks}
                       emptyMessage="No tasks found."
                       selectedTaskId={

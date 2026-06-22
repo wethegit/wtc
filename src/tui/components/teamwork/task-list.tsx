@@ -7,6 +7,7 @@ import { TaskMetadata } from "./task-metadata.tsx";
 
 /** Renders a list of tasks with name, status, and styled metadata row. Supports keyboard selection highlight. */
 export function TaskList(props: {
+  taskListId: number;
   tasks: readonly TeamworkTask[];
   emptyMessage: string;
   selectedTaskId?: number | null;
@@ -14,7 +15,7 @@ export function TaskList(props: {
   return props.tasks.length ? (
     <For each={props.tasks}>
       {(task) => (
-        <box flexDirection="column" gap={0}>
+        <box flexDirection="column" gap={0} id={`task-${props.taskListId}-${task.id}`}>
           <text
             attributes={props.selectedTaskId === task.id ? TextAttributes.BOLD : undefined}
             fg={props.selectedTaskId === task.id ? tokens.accent : tokens.textDim}

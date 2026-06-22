@@ -49,6 +49,12 @@ interface TaskListTasksEndpointReport {
   included: IncludedSummary;
 }
 
+interface WorkflowEndpointReport {
+  endpoint: string;
+  workflow: JsonObject | null;
+  includedStages: JsonObject[];
+}
+
 function isObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -75,6 +81,19 @@ function summarizeIncludedCollection(value: JsonObject | null): JsonObject[] {
       lastName: item.lastName,
       title: item.title,
       type: item.type,
+    }));
+}
+
+function summarizeStages(value: JsonObject | null): JsonObject[] {
+  if (!value) return [];
+
+  return Object.values(value)
+    .filter(isObject)
+    .map((item) => ({
+      id: item.id,
+      name: item.name,
+      color: item.color,
+      displayOrder: item.displayOrder,
     }));
 }
 
@@ -160,6 +179,26 @@ async function inspectTaskListTasks(
   };
 }
 
+async function inspectWorkflow(
+  workflowId: number,
+  include = false,
+): Promise<WorkflowEndpointReport> {
+  const endpoint = `/workflows/${workflowId}.json${include ? `?include=stages` : ""}`;
+  const root = await fetchTeamworkApiJson(endpoint);
+  if (!isObject(root)) throw new Error(`Unexpected Teamwork response for ${endpoint}.`);
+
+  const workflow = getObject(root, "workflow");
+  const included = getObject(root, "included");
+
+  return {
+    endpoint,
+    workflow,
+    includedStages: summarizeStages(included ? getObject(included, "stages") : null),
+  };
+}
+
+const DEFAULT_WORKFLOW_IDS = [9] as const;
+
 function parseIds(value: string | undefined, defaults: readonly number[]): number[] {
   if (!value?.trim()) return [...defaults];
 
@@ -172,6 +211,7 @@ function parseIds(value: string | undefined, defaults: readonly number[]): numbe
 
 const taskIds = parseIds(Bun.env.WTC_TEAMWORK_INSPECT_TASK_IDS, DEFAULT_TASK_IDS);
 const taskListIds = parseIds(Bun.env.WTC_TEAMWORK_INSPECT_TASK_LIST_IDS, DEFAULT_TASK_LIST_IDS);
+const workflowIds = parseIds(Bun.env.WTC_TEAMWORK_INSPECT_WORKFLOW_IDS, DEFAULT_WORKFLOW_IDS);
 
 async function inspectSafely<T>(
   label: string,
@@ -187,6 +227,11 @@ async function inspectSafely<T>(
 }
 
 const report = {
+  workflows: await Promise.all(
+    workflowIds.map((workflowId) =>
+      inspectSafely(`workflow ${workflowId}`, () => inspectWorkflow(workflowId, true)),
+    ),
+  ),
   tasks: await Promise.all(
     taskIds.map((taskId) => inspectSafely(`task ${taskId}`, () => inspectTask(taskId))),
   ),
