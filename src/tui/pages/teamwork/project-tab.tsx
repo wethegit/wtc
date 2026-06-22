@@ -23,11 +23,13 @@ interface PinnedTaskListState {
   message: string | null;
 }
 
+/** Selection state tracking which pinned task list and task is currently selected. */
 export interface PinnedTaskSelection {
   taskListId: number;
   taskId: number;
 }
 
+/** Teamwork project tab showing project metadata, links, and pinned task lists with keyboard navigation. */
 export function ProjectTab() {
   const [resolved, setResolved] = createSignal<ResolvedConfig | null>(null);
   const [teamworkAuthStatus, setTeamworkAuthStatus] = createSignal<TeamworkAuthStatus>("missing");
@@ -70,6 +72,13 @@ export function ProjectTab() {
 
       if (!projectId) {
         setProjectMessage("Set teamwork.projectId in Settings to load Teamwork metadata.");
+        return;
+      }
+
+      if (authStatus === "missing") {
+        setProjectMessage(
+          "Teamwork auth not configured. Use Settings or `wtc config auth set` to add your API token.",
+        );
         return;
       }
 
@@ -242,6 +251,7 @@ interface PinnedTaskSelectionSource {
   tasks: readonly { id: number }[];
 }
 
+/** Flattens all tasks across pinned task lists into a flat ordered selection array for keyboard navigation. */
 export function getPinnedTaskSelectionOrder(
   taskLists: readonly PinnedTaskSelectionSource[],
 ): PinnedTaskSelection[] {
@@ -250,6 +260,7 @@ export function getPinnedTaskSelectionOrder(
   );
 }
 
+/** Cycles to the next or previous pinned task across all task lists, wrapping around. */
 export function getNextPinnedTaskSelection(
   taskLists: readonly PinnedTaskSelectionSource[],
   current: PinnedTaskSelection | null,

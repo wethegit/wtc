@@ -3,6 +3,7 @@ import { TextAttributes } from "@opentui/core";
 
 import { tokens } from "../../tokens.ts";
 
+/** Props for a collapsible accordion section used in Settings and other multi-section pages. */
 export interface AccordionSectionProps extends ParentProps {
   /** Section title shown in the collapsible header. */
   title: string;
@@ -21,6 +22,7 @@ function descriptions(value: AccordionSectionProps["description"]): readonly str
   return typeof value === "string" ? [value] : value;
 }
 
+/** A collapsible section with title, description, status, and expandable body content. */
 export function AccordionSection(props: AccordionSectionProps) {
   return (
     <box

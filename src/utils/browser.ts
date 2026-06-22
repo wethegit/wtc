@@ -1,3 +1,4 @@
+/** Opens a URL in the default system browser (macOS `open`, Linux `xdg-open`, Windows `start`). */
 export async function openUrlInBrowser(url: string): Promise<void> {
   const command =
     process.platform === "darwin"

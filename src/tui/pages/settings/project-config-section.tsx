@@ -2,6 +2,7 @@ import { TextField } from "../../components/forms/text-field.tsx";
 import { AccordionSection } from "../../components/layout/accordion-section.tsx";
 import type { SettingsFocusTarget, SettingsFormErrors, SettingsFormState } from "./types.ts";
 
+/** Settings section for project-level config (teamwork project ID). */
 export function ProjectConfigSection(props: {
   form: SettingsFormState;
   projectConfigPath: string | null | undefined;

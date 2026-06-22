@@ -2,6 +2,17 @@ import type { ProjectConfig, UserConfig } from "./schema.ts";
 
 // Bun's YAML parser does not preserve comments, so config writes use explicit
 // formatters to keep known setting comments in generated files.
+
+/**
+ * Formats user config as YAML with self-documenting comments.
+ *
+ * Example output:
+ * ```yaml
+ * # WTC user-level configuration.
+ * version: 1
+ * workspaceName: "WTC"
+ * ```
+ */
 export function formatUserConfig(config: UserConfig): string {
   return `# WTC user-level configuration.
 
@@ -13,6 +24,23 @@ workspaceName: ${JSON.stringify(config.workspaceName)}
 `;
 }
 
+/**
+ * Formats project config as YAML with self-documenting comments.
+ *
+ * Example output:
+ * ```yaml
+ * version: 1
+ * project:
+ *   links:
+ *     - name: Figma
+ *       url: https://figma.com/...
+ * teamwork:
+ *   projectId: "362632"
+ *   pinnedTaskLists:
+ *     - name: General Tasks
+ *       id: 1597639
+ * ```
+ */
 export function formatProjectConfig(config: ProjectConfig): string {
   const links = config.project.links.length
     ? `  links:\n${config.project.links

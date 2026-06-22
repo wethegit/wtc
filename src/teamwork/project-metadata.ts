@@ -30,6 +30,7 @@ const TeamworkProjectCacheFileSchema = z.object({
 
 type TeamworkProjectCacheFile = z.infer<typeof TeamworkProjectCacheFileSchema>;
 
+/** A Teamwork project resolved from the API. */
 export interface TeamworkProjectMetadata {
   /** Teamwork project ID configured in `.wtc.yaml`. */
   id: number;
@@ -37,11 +38,13 @@ export interface TeamworkProjectMetadata {
   name: string;
 }
 
+/** Result of a project metadata lookup, indicating whether the value was cached or freshly fetched. */
 export interface TeamworkProjectMetadataResult {
   project: TeamworkProjectMetadata;
   source: "cache" | "network";
 }
 
+/** Fetches Teamwork project metadata by project ID, cached for 24 hours. Falls back to stale cache on network error. */
 export async function getTeamworkProjectMetadata(
   projectId: number,
 ): Promise<TeamworkProjectMetadataResult> {

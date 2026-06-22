@@ -48,6 +48,35 @@ const teamworkTaskOpenActions: TeamworkTaskOpenActions = {
   openUrlInBrowser,
 };
 
+/**
+ * Formats a task's metadata fields into human-readable text lines for CLI output.
+ *
+ * Example output: `["assignee: Marlon Bain", "due: 2026-06-24", "board: To Do", "priority: high"]`
+ */
+function formatTeamworkTaskMetadata(task: TeamworkTask): string[] {
+  const metadata: string[] = [];
+
+  if (task.assignees.length === 1) metadata.push(`assignee: ${task.assignees[0]}`);
+  if (task.assignees.length > 1) metadata.push(`assignees: ${task.assignees.join(", ")}`);
+  if (task.dueDate) metadata.push(`due: ${task.dueDate}`);
+  if (task.boardColumn) metadata.push(`board: ${task.boardColumn}`);
+  if (task.priority) metadata.push(`priority: ${task.priority}`);
+
+  return metadata;
+}
+
+/**
+ * Formats pinned task list output for CLI display.
+ *
+ * Example output:
+ * ```
+ * Project config: /repo/.wtc.yaml
+ * Pinned task lists:
+ * General Tasks (1597639)
+ *   - Dev | Code Review [active]
+ *     assignee: Marlon Bain | due: 2026-06-24 | board: To Do | priority: high
+ * ```
+ */
 export function formatTeamworkTaskListPinnedOutput(
   result: PinnedTaskListsResult,
   options: { json: boolean },
@@ -77,12 +106,15 @@ export function formatTeamworkTaskListPinnedOutput(
 
     for (const task of taskList.tasks) {
       lines.push(`  - ${task.name}${task.status ? ` [${task.status}]` : ""}`);
+      const metadata = formatTeamworkTaskMetadata(task);
+      if (metadata.length) lines.push(`    ${metadata.join(" | ")}`);
     }
   }
 
   return lines.join("\n");
 }
 
+/** Prints pinned task lists and their tasks for the current project. */
 export async function teamworkTaskListPinned(
   args: { json: boolean; startDir?: string },
   actions = teamworkTaskListPinnedActions,
@@ -115,6 +147,7 @@ export async function teamworkTaskListPinned(
   console.log(formatTeamworkTaskListPinnedOutput(result, { json: args.json }));
 }
 
+/** Pins a task list by ID in the nearest project config, or updates the display name if already pinned. */
 export async function teamworkTaskListPin(
   args: { taskListId: number; name: string; startDir?: string },
   actions = teamworkTaskListConfigActions,
@@ -147,6 +180,7 @@ export async function teamworkTaskListPin(
   console.log(`Pinned Teamwork task list: ${name} (${args.taskListId}) in ${path}`);
 }
 
+/** Removes a pinned task list from the nearest project config by ID. */
 export async function teamworkTaskListUnpin(
   args: { taskListId: number; startDir?: string },
   actions = teamworkTaskListConfigActions,
@@ -172,6 +206,7 @@ export async function teamworkTaskListUnpin(
   console.log(`Unpinned Teamwork task list: ${existing.name} (${existing.id}) from ${path}`);
 }
 
+/** Opens a Teamwork task in the default browser from a task ID or URL. */
 export async function teamworkTaskOpen(
   args: { task: string },
   actions = teamworkTaskOpenActions,

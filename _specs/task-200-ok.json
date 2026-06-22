@@ -1,0 +1,1708 @@
+{
+  "affected": {
+    "linkedCardId": 0,
+    "linkedColumnId": 0,
+    "linkedColumnName": "string",
+    "taskIds": [0]
+  },
+  "included": {
+    "comments": {
+      "additionalProp": {
+        "id": 0,
+        "object": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "objectId": 0,
+        "objectType": "string",
+        "postedAt": "string",
+        "postedBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "project": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "title": "string"
+      }
+    },
+    "companies": {
+      "additionalProp": {
+        "accounts": 0,
+        "addressOne": "string",
+        "addressTwo": "string",
+        "budgetDistribution": [
+          {
+            "color": "string",
+            "companyId": 0,
+            "count": 0,
+            "from": 0,
+            "to": 0
+          }
+        ],
+        "canSeePrivate": true,
+        "cid": "string",
+        "city": "string",
+        "clientManagedBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "clients": 0,
+        "collaborators": 0,
+        "companyDomains": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "companyNameUrl": "string",
+        "companyUpdate": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "contacts": 0,
+        "countryCode": "string",
+        "createdAt": "string",
+        "currency": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "emailOne": "string",
+        "emailThree": "string",
+        "emailTwo": "string",
+        "fax": "string",
+        "financialBudgetSummary": {
+          "totalCapacity": 0,
+          "totalCapacityUsed": 0
+        },
+        "id": 0,
+        "industry": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "industryId": 0,
+        "isOwner": true,
+        "logoUrl": "string",
+        "name": "string",
+        "phone": "string",
+        "privateNotes": "string",
+        "privateNotesText": "string",
+        "profileText": "string",
+        "profitability": {
+          "billable": 0,
+          "billableTime": 0,
+          "companyCount": 0,
+          "cost": 0,
+          "expenses": 0,
+          "expensesBillableTotal": 0,
+          "loggedTime": 0,
+          "nonBillableTime": 0,
+          "ownerCount": 0,
+          "profit": 0,
+          "profitPercentage": 0,
+          "profitTargetPercentage": 0,
+          "targetCostsDollars": 0,
+          "targetProfitDollars": 0
+        },
+        "rates": [
+          {
+            "createdAt": "string",
+            "createdByUser": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            },
+            "rate": {
+              "amount": 0,
+              "currency": {
+                "id": 0,
+                "meta": {},
+                "type": "string"
+              }
+            },
+            "role": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            },
+            "updatedAt": "string",
+            "updatedByUser": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          }
+        ],
+        "state": "string",
+        "stats": {
+          "projectCount": 0,
+          "taskCompleteCount": 0,
+          "taskCount": 0,
+          "unreadEmailCount": 0
+        },
+        "status": "string",
+        "tags": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "timeBudgetSummary": {
+          "totalCapacity": 0,
+          "totalCapacityUsed": 0
+        },
+        "updatedAt": "string",
+        "website": "string",
+        "zip": "string"
+      }
+    },
+    "customfieldTasks": {
+      "additionalProp": {
+        "countryCode": "string",
+        "createdAt": "string",
+        "createdBy": 0,
+        "currencySymbol": "string",
+        "customfield": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "customfieldId": 0,
+        "id": 0,
+        "task": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "taskId": 0,
+        "urlTextToDisplay": "string",
+        "value": "Unknown Type: any"
+      }
+    },
+    "customfields": {
+      "additionalProp": {
+        "createdAt": "string",
+        "createdBy": 0,
+        "createdByUserId": 0,
+        "currencyCode": "string",
+        "deleted": true,
+        "deletedAt": "string",
+        "deletedBy": 0,
+        "deletedByUserId": 0,
+        "description": "string",
+        "entity": "string",
+        "formula": "string",
+        "groupId": 0,
+        "id": 0,
+        "isPrivate": true,
+        "name": "string",
+        "options": "Unknown Type: any",
+        "project": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "projectId": 0,
+        "required": true,
+        "type": "string",
+        "unitId": 0,
+        "updatedAt": "string",
+        "updatedBy": 0,
+        "updatedByUserId": 0,
+        "visibilities": ["string"]
+      }
+    },
+    "files": {
+      "additionalProp": {
+        "category": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "categoryId": 0,
+        "changeFollowers": {
+          "companies": [
+            {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          ],
+          "companyIds": [0],
+          "teamIds": [0],
+          "teams": [
+            {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          ],
+          "userIds": [0],
+          "users": [
+            {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          ]
+        },
+        "commentFollowers": {
+          "companies": [
+            {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          ],
+          "companyIds": [0],
+          "teamIds": [0],
+          "teams": [
+            {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          ],
+          "userIds": [0],
+          "users": [
+            {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          ]
+        },
+        "commentsCount": 0,
+        "commentsCountRead": 0,
+        "deletedAt": "string",
+        "deletedBy": 0,
+        "description": "string",
+        "displayName": "string",
+        "downloadURL": "string",
+        "extraData": "string",
+        "fileSource": "string",
+        "filenameOnDisk": "string",
+        "id": 0,
+        "isLocked": true,
+        "isPrivate": "0",
+        "latestFileVersionNo": 0,
+        "lockdown": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "lockdownId": 0,
+        "lockedAt": "string",
+        "lockedBy": 0,
+        "lockedByUserId": 0,
+        "lockedDate": "string",
+        "meta": {},
+        "numLikes": 0,
+        "originalName": "string",
+        "previewURL": "string",
+        "project": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "projectId": 0,
+        "reactions": {
+          "counts": {
+            "dislike": 0,
+            "frown": 0,
+            "heart": 0,
+            "joy": 0,
+            "like": 0
+          },
+          "extendedReactions": [
+            {
+              "count": 0,
+              "emoji": "string",
+              "mine": true
+            }
+          ],
+          "mine": ["string"]
+        },
+        "relatedItems": {
+          "comments": [0],
+          "messages": [0],
+          "tasks": [0]
+        },
+        "shareable": true,
+        "size": 0,
+        "status": "string",
+        "tagIds": [0],
+        "tags": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "thumbURL": "string",
+        "updatedAt": "string",
+        "uploadedAt": "string",
+        "uploadedBy": 0,
+        "uploadedByUserID": 0,
+        "uploadedDate": "string",
+        "version": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "versionId": 0,
+        "versions": [
+          {
+            "commentsCount": 0,
+            "commentsCountRead": 0,
+            "description": "string",
+            "displayName": "string",
+            "file": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            },
+            "fileId": 0,
+            "fileVersionId": 0,
+            "name": "string",
+            "originalName": "string",
+            "project": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            },
+            "projectId": 0,
+            "reactions": {
+              "counts": {
+                "dislike": 0,
+                "frown": 0,
+                "heart": 0,
+                "joy": 0,
+                "like": 0
+              },
+              "extendedReactions": [
+                {
+                  "count": 0,
+                  "emoji": "string",
+                  "mine": true
+                }
+              ],
+              "mine": ["string"]
+            },
+            "size": 0,
+            "status": "string",
+            "uploadedAt": "string",
+            "uploadedBy": 0,
+            "versionNo": 0
+          }
+        ]
+      }
+    },
+    "jobRoles": {
+      "additionalProp": {
+        "billableRatesByCurrencyId": {
+          "additionalProp": {
+            "createdAt": "string",
+            "createdByUserId": 0,
+            "rate": {
+              "amount": 0,
+              "currency": {
+                "id": 0,
+                "meta": {},
+                "type": "string"
+              }
+            },
+            "updatedAt": "string",
+            "updatedByUserId": 0,
+            "validFrom": "string"
+          }
+        },
+        "costRatesByCurrencyId": {
+          "additionalProp": {
+            "createdAt": "string",
+            "createdByUserId": 0,
+            "rate": {
+              "amount": 0,
+              "currency": {
+                "id": 0,
+                "meta": {},
+                "type": "string"
+              }
+            },
+            "updatedAt": "string",
+            "updatedByUserId": 0
+          }
+        },
+        "createdAt": "string",
+        "createdByUser": 0,
+        "deletedAt": "string",
+        "deletedByUser": 0,
+        "id": 0,
+        "isActive": true,
+        "name": "string",
+        "placeholderCount": 0,
+        "primaryUsers": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "updatedAt": "string",
+        "updatedByUser": 0,
+        "users": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "lockdowns": {
+      "additionalProp": {
+        "grantAccessTo": {
+          "companies": [
+            {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          ],
+          "companyIds": [0],
+          "teamIds": [0],
+          "teams": [
+            {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          ],
+          "userIds": [0],
+          "users": [
+            {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          ]
+        },
+        "id": 0,
+        "items": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "updatedAt": "string",
+        "user": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "userID": 0
+      }
+    },
+    "milestones": {
+      "additionalProp": {
+        "canComplete": true,
+        "canEdit": true,
+        "changeFollowerIds": [0],
+        "changeFollowers": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "commentFollowerIds": [0],
+        "commentFollowers": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "commentsCount": 0,
+        "completed": true,
+        "completedBy": 0,
+        "completedOn": "string",
+        "completerId": 0,
+        "createdBy": 0,
+        "createdOn": "string",
+        "creatorUserId": 0,
+        "deadline": "string",
+        "deletedOn": "string",
+        "description": "string",
+        "descriptionHTML": "string",
+        "id": 0,
+        "isDeleted": true,
+        "lastChangedOn": "string",
+        "latestUpdates": [
+          {
+            "after": "Unknown Type: any",
+            "before": "Unknown Type: any",
+            "field": "string"
+          }
+        ],
+        "lockdown": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "lockdownId": 0,
+        "name": "string",
+        "numCommentsRead": 0,
+        "originalDueDate": "string",
+        "percentageComplete": 0,
+        "percentageTasksCompleted": 0,
+        "private": true,
+        "project": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "projectId": 0,
+        "reminder": true,
+        "responsibleParties": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "responsiblePartyIds": [0],
+        "status": "string",
+        "tagIds": [0],
+        "tags": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "tasklistIds": [0],
+        "tasklists": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "updatedBy": 0,
+        "userFollowingChanges": true,
+        "userFollowingComments": true,
+        "userFollowingComplete": true
+      }
+    },
+    "projectCategories": {
+      "additionalProp": {
+        "color": "string",
+        "count": 0,
+        "id": 0,
+        "name": "string",
+        "parent": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "parentId": 0
+      }
+    },
+    "projectIntegrations": {
+      "additionalProp": {
+        "canAccessBox": true,
+        "canAccessDropbox": true,
+        "canAccessGoogleDocs": true,
+        "canAccessOneDrive": true,
+        "canAccessOneDriveBusiness": true,
+        "canAccessSharePoint": true,
+        "projectId": 0,
+        "userId": 0
+      }
+    },
+    "projectPermissions": {
+      "additionalProp": {
+        "active": true,
+        "addExpenses": true,
+        "addFiles": true,
+        "addForms": true,
+        "addLinks": true,
+        "addMessages": true,
+        "addMilestones": true,
+        "addNotebooks": true,
+        "addProjectUpdate": true,
+        "addRisks": true,
+        "addTaskLists": true,
+        "addTasks": true,
+        "addTime": true,
+        "canAccess": true,
+        "canEditWorkflows": true,
+        "canManagePeople": true,
+        "canManageProjectBudget": true,
+        "canManageProjectMembership": true,
+        "canManageProjectTemplates": true,
+        "canManageRates": true,
+        "canManageSchedule": true,
+        "canViewForms": true,
+        "canViewProjectBudget": true,
+        "canViewProjectMembers": true,
+        "canViewProjectProfitability": true,
+        "canViewProjectTemplates": true,
+        "canViewRates": true,
+        "canViewSchedule": true,
+        "canViewWorkflows": true,
+        "editAllTasks": true,
+        "inOwnerCompany": true,
+        "isArchived": true,
+        "isObserving": true,
+        "manageCustomFields": true,
+        "projectAdministrator": true,
+        "receiveEmailNotifications": true,
+        "setPrivacy": true,
+        "viewAllTimeLogs": true,
+        "viewEstimatedTime": true,
+        "viewInvoices": true,
+        "viewLinks": true,
+        "viewMessagesAndFiles": true,
+        "viewNotebooks": true,
+        "viewProjectUpdate": true,
+        "viewRiskRegister": true,
+        "viewTasksAndMilestones": true,
+        "viewTime": true
+      }
+    },
+    "projects": {
+      "additionalProp": {
+        "activePages": {
+          "billing": true,
+          "board": true,
+          "comments": true,
+          "files": true,
+          "finance": true,
+          "forms": true,
+          "gantt": true,
+          "links": true,
+          "list": true,
+          "messages": true,
+          "milestones": true,
+          "notebooks": true,
+          "proofs": true,
+          "riskRegister": true,
+          "schedule": true,
+          "table": true,
+          "tasks": true,
+          "tickets": true,
+          "time": true,
+          "timeline": true
+        },
+        "allowNotifyAnyone": true,
+        "announcement": "string",
+        "archivedAt": "string",
+        "archivedBy": 0,
+        "category": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "categoryId": 0,
+        "company": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "companyId": 0,
+        "completedAt": "string",
+        "completedBy": 0,
+        "createdAt": "string",
+        "createdBy": 0,
+        "customFieldValueIds": [0],
+        "customfieldValues": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "defaultPrivacy": "string",
+        "deletedAt": "string",
+        "deletedBy": 0,
+        "description": "string",
+        "directFileUploadsEnabled": true,
+        "endAt": "string",
+        "endDate": "string",
+        "financialBudget": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "financialBudgetId": 0,
+        "harvestTimersEnabled": true,
+        "id": 0,
+        "integrations": {
+          "googleDrive": {
+            "access": "string",
+            "enabled": true,
+            "folder": "string",
+            "folderName": "string"
+          },
+          "oneDriveBusiness": {
+            "account": "string",
+            "enabled": true,
+            "folder": "string",
+            "folderName": "string"
+          },
+          "sharepoint": {
+            "account": "string",
+            "enabled": true,
+            "folder": "string",
+            "folderName": "string"
+          },
+          "xero": {
+            "baseCurrency": "string",
+            "connected": true,
+            "countryCode": "string",
+            "enabled": true,
+            "organisation": "string"
+          }
+        },
+        "isBillable": true,
+        "isOnBoardingProject": true,
+        "isProjectAdmin": true,
+        "isSampleProject": true,
+        "isStarred": true,
+        "lastWorkedOn": "string",
+        "latestActivity": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "logo": "string",
+        "logoColor": "string",
+        "logoIcon": "string",
+        "minMaxAvailableDates": {
+          "deadlinesFound": true,
+          "maxEndDate": "string",
+          "minStartDate": "string",
+          "suggestedEndDate": "string",
+          "suggestedStartDate": "string"
+        },
+        "name": "string",
+        "notifyCommentIncludeCreator": true,
+        "notifyEveryone": true,
+        "notifyTaskAssignee": true,
+        "overviewStartPage": "string",
+        "ownedBy": 0,
+        "ownerId": 0,
+        "portfolioCards": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "privacyEnabled": true,
+        "projectOwner": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "projectOwnerId": 0,
+        "replyByEmailEnabled": true,
+        "showAnnouncement": true,
+        "skipWeekends": true,
+        "startAt": "string",
+        "startDate": "string",
+        "startPage": "string",
+        "status": "active",
+        "subStatus": "current",
+        "tagIds": [0],
+        "tags": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "tasksStartPage": "string",
+        "timeBudget": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "timeBudgetId": 0,
+        "timelogRequiresTask": true,
+        "type": "normal",
+        "update": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "updateId": 0,
+        "updatedAt": "string",
+        "updatedBy": 0,
+        "users": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "workflowIds": [0],
+        "workflows": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "proofs": {
+      "additionalProp": {
+        "assignees": [
+          {
+            "decision": "string",
+            "id": 0,
+            "isExternal": true,
+            "role": "string",
+            "user": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          }
+        ],
+        "company": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "createdAt": "string",
+        "createdBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "deletedAt": "string",
+        "deletedBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "description": "string",
+        "due": "2026-06-22",
+        "entity": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "errorObjectIdxs": [0],
+        "feedbackCount": 0,
+        "id": 0,
+        "installationId": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "objects": [
+          {
+            "URL": "string",
+            "approvalStatus": "string",
+            "createdAt": "string",
+            "createdBy": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            },
+            "deletedAt": "string",
+            "deletedBy": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            },
+            "description": "string",
+            "due": "string",
+            "format": "string",
+            "id": 0,
+            "installationId": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            },
+            "size": 0,
+            "sourceFormat": "string",
+            "state": "string",
+            "stateMessage": "string",
+            "thumbnail": "string",
+            "title": "string",
+            "totalChunks": 0,
+            "type": "string",
+            "updatedAt": "string",
+            "updatedBy": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            },
+            "version": 0
+          }
+        ],
+        "parent": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "product": "string",
+        "state": "string",
+        "status": "string",
+        "title": "string",
+        "updatedAt": "string",
+        "updatedBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        }
+      }
+    },
+    "stages": {
+      "additionalProp": {
+        "color": "string",
+        "createdAt": "string",
+        "createdBy": 0,
+        "deletedAt": "string",
+        "deletedBy": 0,
+        "displayOrder": 0,
+        "id": 0,
+        "name": "string",
+        "showCompletedTasks": true,
+        "taskIds": [0],
+        "updatedAt": "string",
+        "updatedBy": 0,
+        "workflow": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        }
+      }
+    },
+    "subtaskStats": {
+      "additionalProp": {
+        "active": 0,
+        "complete": 0,
+        "id": 0,
+        "late": 0
+      }
+    },
+    "tags": {
+      "additionalProp": {
+        "color": "string",
+        "count": 0,
+        "id": 0,
+        "name": "string",
+        "project": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "projectId": 0
+      }
+    },
+    "taskSequences": {
+      "additionalProp": {
+        "dates": ["2026-06-22"],
+        "duration": 0,
+        "endDate": "string",
+        "frequency": "string",
+        "id": 0,
+        "installationId": 0,
+        "monthlyRepeatType": "string",
+        "rrule": "string",
+        "selectedWeekDays": ["string"],
+        "tasks": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "taskgroups": {
+      "additionalProp": {
+        "createdAt": "string",
+        "createdBy": 0,
+        "description": "string",
+        "displayOrder": 0,
+        "id": 0,
+        "name": "string",
+        "status": "string",
+        "taskIds": [0],
+        "updatedAt": "string",
+        "updatedBy": 0
+      }
+    },
+    "tasklists": {
+      "additionalProp": {
+        "calculatedDueDate": "string",
+        "calculatedStartDate": "string",
+        "createdAt": "string",
+        "defaultTask": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "defaultTaskId": 0,
+        "description": "string",
+        "displayOrder": 0,
+        "icon": "string",
+        "id": 0,
+        "isBillable": true,
+        "isPinned": true,
+        "isPrivate": true,
+        "lockdownId": 0,
+        "milestone": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "milestoneId": 0,
+        "name": "string",
+        "project": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "projectId": 0,
+        "status": "string",
+        "tasklistBudget": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "updatedAt": "string"
+      }
+    },
+    "tasks": {
+      "additionalProp": {
+        "accumulatedEstimatedMinutes": 0,
+        "assigneeCompanies": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "assigneeCompanyIds": [0],
+        "assigneeJobRoleIds": [0],
+        "assigneeJobRoles": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "assigneeTeamIds": [0],
+        "assigneeTeams": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "assigneeUserIds": [0],
+        "assigneeUsers": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "assignees": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "attachments": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "capacities": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "changeFollowers": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "column": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "commentFollowers": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "completeFollowers": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "completedAt": "string",
+        "completedBy": 0,
+        "completedOn": "string",
+        "createdAt": "string",
+        "createdBy": 0,
+        "createdByUserId": 0,
+        "crmDealIds": [0],
+        "dateUpdated": "string",
+        "decimalDisplayOrder": 0,
+        "deletedAt": "string",
+        "deletedBy": 0,
+        "dependencyIds": [0],
+        "description": "string",
+        "descriptionContentType": "string",
+        "displayOrder": 0,
+        "dueDate": {},
+        "dueDateBase": {},
+        "dueDateFromMilestone": true,
+        "dueDateOffset": 0,
+        "estimateMinutes": 0,
+        "hasDeskTickets": true,
+        "hasReminders": true,
+        "hasTimeblocks": true,
+        "id": 0,
+        "isArchived": true,
+        "isBlocked": true,
+        "isPrivate": 0,
+        "latestUpdates": [
+          {
+            "after": "Unknown Type: any",
+            "before": "Unknown Type: any",
+            "field": "string"
+          }
+        ],
+        "lockdown": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "meta": {},
+        "name": "string",
+        "notify": true,
+        "originalDueDate": "2026-06-22",
+        "outOfSequence": true,
+        "parentTask": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "parentTaskId": 0,
+        "predecessorIds": [0],
+        "predecessors": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "priority": "string",
+        "progress": 0,
+        "proofs": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "sequence": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "sequenceDueDate": "2026-06-22",
+        "sequenceId": 0,
+        "sequenceRootTask": true,
+        "sequenceStartDate": "2026-06-22",
+        "startDate": {},
+        "startDateOffset": 0,
+        "status": "string",
+        "subTaskIds": [0],
+        "tagIds": [0],
+        "tags": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "tasklist": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "tasklistId": 0,
+        "templateRoleName": "string",
+        "timer": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "updatedAt": "string",
+        "updatedBy": 0,
+        "userPermissions": {
+          "canAddSubtasks": true,
+          "canComplete": true,
+          "canEdit": true,
+          "canLogTime": true,
+          "canViewEstTime": true
+        },
+        "workflowStages": [
+          {
+            "stageId": 0,
+            "stageTaskDisplayOrder": 0,
+            "workflowId": 0
+          }
+        ]
+      }
+    },
+    "teams": {
+      "additionalProp": {
+        "company": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "createdAt": "string",
+        "createdBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "handle": "string",
+        "id": 0,
+        "name": "string",
+        "teamLogo": "string",
+        "teamLogoColor": "string",
+        "teamLogoIcon": "string",
+        "updatedAt": "string",
+        "updatedBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        }
+      }
+    },
+    "timeTotals": {
+      "additionalProp": {
+        "accumulatedBillableLoggedMinutes": 0,
+        "accumulatedBilledloggedMinutes": 0,
+        "accumulatedLoggedMinutes": 0,
+        "billableLoggedMinutes": 0,
+        "billedloggedMinutes": 0,
+        "loggedMinutes": 0
+      }
+    },
+    "timers": {
+      "additionalProp": {
+        "billable": true,
+        "createdAt": "string",
+        "deleted": true,
+        "deletedAt": "string",
+        "description": "string",
+        "duration": 0,
+        "id": 0,
+        "intervals": [
+          {
+            "duration": 0,
+            "from": "string",
+            "id": 0,
+            "to": "string"
+          }
+        ],
+        "lastStartedAt": "string",
+        "project": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "projectId": 0,
+        "running": true,
+        "serverTime": "string",
+        "task": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "taskId": 0,
+        "timeLogId": 0,
+        "timelog": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "timerLastIntervalEnd": "string",
+        "updatedAt": "string",
+        "user": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "userId": 0
+      }
+    },
+    "users": {
+      "additionalProp": {
+        "avatarUrl": "string",
+        "canAccessPortfolio": true,
+        "canAddProjects": true,
+        "canManagePortfolio": true,
+        "company": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "companyId": 0,
+        "companyRoleId": 0,
+        "createdAt": "string",
+        "createdBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "deleted": true,
+        "email": "string",
+        "firstName": "string",
+        "id": 0,
+        "isAdmin": true,
+        "isClientUser": true,
+        "isPlaceholderResource": true,
+        "isServiceAccount": true,
+        "jobRoles": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "lastLogin": "string",
+        "lastName": "string",
+        "lengthOfDay": 0,
+        "meta": {},
+        "skills": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "teams": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "timezone": "string",
+        "title": "string",
+        "type": "string",
+        "updatedAt": "string",
+        "updatedBy": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "userCost": 0,
+        "userRate": 0,
+        "userRates": {
+          "additionalProp": {
+            "amount": 0,
+            "currency": {
+              "id": 0,
+              "meta": {},
+              "type": "string"
+            }
+          }
+        },
+        "workingHour": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "workingHoursId": 0
+      }
+    },
+    "workflows": {
+      "additionalProp": {
+        "companies": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "createdAt": "string",
+        "createdBy": 0,
+        "defaultWorkflow": true,
+        "id": 0,
+        "lockdown": {
+          "id": 0,
+          "meta": {},
+          "type": "string"
+        },
+        "name": "string",
+        "projectIds": [0],
+        "projectSpecific": true,
+        "stages": [
+          {
+            "id": 0,
+            "meta": {},
+            "type": "string"
+          }
+        ],
+        "status": "string",
+        "updatedAt": "string",
+        "updatedBy": 0
+      }
+    }
+  },
+  "meta": {
+    "averageSpend": 0,
+    "data": {},
+    "limit": 0,
+    "nextCursor": "string",
+    "page": {
+      "count": 0,
+      "hasMore": true,
+      "pageOffset": 0,
+      "pageSize": 0
+    },
+    "prevCursor": "string",
+    "totalCapacity": 0
+  },
+  "task": {
+    "accumulatedEstimatedMinutes": 0,
+    "assigneeCompanies": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "assigneeCompanyIds": [0],
+    "assigneeJobRoleIds": [0],
+    "assigneeJobRoles": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "assigneeTeamIds": [0],
+    "assigneeTeams": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "assigneeUserIds": [0],
+    "assigneeUsers": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "assignees": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "attachments": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "capacities": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "changeFollowers": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "column": {
+      "id": 0,
+      "meta": {},
+      "type": "string"
+    },
+    "commentFollowers": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "completeFollowers": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "completedAt": "string",
+    "completedBy": 0,
+    "completedOn": "string",
+    "createdAt": "string",
+    "createdBy": 0,
+    "createdByUserId": 0,
+    "crmDealIds": [0],
+    "dateUpdated": "string",
+    "decimalDisplayOrder": 0,
+    "deletedAt": "string",
+    "deletedBy": 0,
+    "dependencyIds": [0],
+    "description": "string",
+    "descriptionContentType": "string",
+    "displayOrder": 0,
+    "dueDate": {},
+    "dueDateBase": {},
+    "dueDateFromMilestone": true,
+    "dueDateOffset": 0,
+    "estimateMinutes": 0,
+    "hasDeskTickets": true,
+    "hasReminders": true,
+    "hasTimeblocks": true,
+    "id": 0,
+    "isArchived": true,
+    "isBlocked": true,
+    "isPrivate": 0,
+    "latestUpdates": [
+      {
+        "after": "Unknown Type: any",
+        "before": "Unknown Type: any",
+        "field": "string"
+      }
+    ],
+    "lockdown": {
+      "id": 0,
+      "meta": {},
+      "type": "string"
+    },
+    "meta": {},
+    "name": "string",
+    "notify": true,
+    "originalDueDate": "2026-06-22",
+    "outOfSequence": true,
+    "parentTask": {
+      "id": 0,
+      "meta": {},
+      "type": "string"
+    },
+    "parentTaskId": 0,
+    "predecessorIds": [0],
+    "predecessors": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "priority": "string",
+    "progress": 0,
+    "proofs": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "sequence": {
+      "id": 0,
+      "meta": {},
+      "type": "string"
+    },
+    "sequenceDueDate": "2026-06-22",
+    "sequenceId": 0,
+    "sequenceRootTask": true,
+    "sequenceStartDate": "2026-06-22",
+    "startDate": {},
+    "startDateOffset": 0,
+    "status": "string",
+    "subTaskIds": [0],
+    "tagIds": [0],
+    "tags": [
+      {
+        "id": 0,
+        "meta": {},
+        "type": "string"
+      }
+    ],
+    "tasklist": {
+      "id": 0,
+      "meta": {},
+      "type": "string"
+    },
+    "tasklistId": 0,
+    "templateRoleName": "string",
+    "timer": {
+      "id": 0,
+      "meta": {},
+      "type": "string"
+    },
+    "updatedAt": "string",
+    "updatedBy": 0,
+    "userPermissions": {
+      "canAddSubtasks": true,
+      "canComplete": true,
+      "canEdit": true,
+      "canLogTime": true,
+      "canViewEstTime": true
+    },
+    "workflowStages": [
+      {
+        "stageId": 0,
+        "stageTaskDisplayOrder": 0,
+        "workflowId": 0
+      }
+    ]
+  }
+}

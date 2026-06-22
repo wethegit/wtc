@@ -6,6 +6,7 @@ const TEAMWORK_TOKEN_SECRET_NAME = "teamwork-api-token";
 /** Safe-to-display auth state. The token value itself must never be surfaced. */
 export type TeamworkAuthStatus = "configured" | "missing";
 
+/** Returns the stored Teamwork API token, or null when not configured. */
 export async function getTeamworkApiToken(): Promise<string | null> {
   return Bun.secrets.get({
     service: TEAMWORK_SECRET_SERVICE,
@@ -13,6 +14,7 @@ export async function getTeamworkApiToken(): Promise<string | null> {
   });
 }
 
+/** Stores a Teamwork API token in OS secrets. */
 export async function setTeamworkApiToken(token: string): Promise<void> {
   const value = token.trim();
   if (!value) throw new Error("Teamwork API token cannot be empty.");
@@ -24,6 +26,7 @@ export async function setTeamworkApiToken(token: string): Promise<void> {
   });
 }
 
+/** Deletes the stored Teamwork API token. Returns false when no token existed. */
 export async function deleteTeamworkApiToken(): Promise<boolean> {
   return Bun.secrets.delete({
     service: TEAMWORK_SECRET_SERVICE,
@@ -31,6 +34,7 @@ export async function deleteTeamworkApiToken(): Promise<boolean> {
   });
 }
 
+/** Returns whether a Teamwork API token is configured, without exposing the value. */
 export async function getTeamworkAuthStatus(): Promise<TeamworkAuthStatus> {
   return (await getTeamworkApiToken()) ? "configured" : "missing";
 }

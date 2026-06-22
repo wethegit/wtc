@@ -1,53 +1,35 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { rm } from "node:fs/promises";
+import { describe, expect, mock, test, afterEach } from "bun:test";
 
-mock.module("../../src/teamwork/auth.ts", () => ({
-  createTeamworkAuthorizationHeader(token: string) {
-    return `Basic ${btoa(`${token}:password`)}`;
-  },
-  deleteTeamworkApiToken: async () => true,
-  getTeamworkApiToken: async () => "token-123",
-  getTeamworkAuthStatus: async () => "configured",
-  setTeamworkApiToken: async () => {},
-}));
+import { createMockFetch, mockTeamworkAuthModule, useTempCacheDir } from "../helpers/teamwork.ts";
+import { TEAMWORK_API_BASE_URL } from "../../src/teamwork/consts.ts";
+
+mock.module("../../src/teamwork/auth.ts", mockTeamworkAuthModule);
 
 const { createTeamworkAuthorizationHeader } = await import("../../src/teamwork/auth.ts");
 const { getTeamworkProjectMetadata } = await import("../../src/teamwork/project-metadata.ts");
-import { TEAMWORK_API_BASE_URL } from "../../src/teamwork/consts.ts";
 
-const TEST_CACHE = `/tmp/wtc-teamwork-project-tests-${process.pid}`;
 const originalFetch = globalThis.fetch;
 
 describe("teamwork project metadata", () => {
-  beforeEach(() => {
-    process.env.WTC_CACHE_DIR = TEST_CACHE;
-  });
+  useTempCacheDir();
 
-  afterEach(async () => {
+  afterEach(() => {
     globalThis.fetch = originalFetch;
-    delete process.env.WTC_CACHE_DIR;
-    await rm(TEST_CACHE, { recursive: true, force: true });
   });
 
   test("gets project metadata with Teamwork auth", async () => {
     let requestedUrl = "";
     let authorization = "";
 
-    globalThis.fetch = Object.assign(
-      async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
-        requestedUrl = input instanceof Request ? input.url : String(input);
-        authorization = new Headers(init?.headers).get("Authorization") ?? "";
+    globalThis.fetch = createMockFetch((url, init) => {
+      requestedUrl = url;
+      authorization = new Headers(init?.headers).get("Authorization") ?? "";
 
-        return new Response(
-          JSON.stringify({ project: { id: "12345", name: "Website Redesign" } }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
-      },
-      { preconnect: originalFetch.preconnect },
-    );
+      return new Response(JSON.stringify({ project: { id: "12345", name: "Website Redesign" } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
     const result = await getTeamworkProjectMetadata(12345);
 
     expect(result).toEqual({
@@ -61,17 +43,14 @@ describe("teamwork project metadata", () => {
   test("returns fresh cached project metadata without fetching", async () => {
     let fetchCount = 0;
 
-    globalThis.fetch = Object.assign(
-      async () => {
-        fetchCount += 1;
+    globalThis.fetch = createMockFetch(() => {
+      fetchCount += 1;
 
-        return new Response(JSON.stringify({ project: { id: 12345, name: "Website Redesign" } }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      },
-      { preconnect: originalFetch.preconnect },
-    );
+      return new Response(JSON.stringify({ project: { id: 12345, name: "Website Redesign" } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
     const first = await getTeamworkProjectMetadata(12345);
     const second = await getTeamworkProjectMetadata(12345);
 

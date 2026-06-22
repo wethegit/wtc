@@ -11,6 +11,7 @@ import { ProjectTab } from "./teamwork/project-tab.tsx";
 
 const TEAMWORK_TABS = ["my-work", "project"] as const;
 
+/** Valid Teamwork page tab identifiers. */
 export type TeamworkTab = (typeof TEAMWORK_TABS)[number];
 
 const TABS = [
@@ -18,6 +19,7 @@ const TABS = [
   { id: "project", label: "Project" },
 ] as const;
 
+/** Cycles to the next or previous Teamwork tab, wrapping around. */
 export function getNextTeamworkTab(current: TeamworkTab, direction: 1 | -1): TeamworkTab {
   const currentIndex = TABS.findIndex((tab) => tab.id === current);
   const nextIndex = (currentIndex + direction + TABS.length) % TABS.length;
@@ -29,6 +31,7 @@ function isValidTab(tab: string): tab is TeamworkTab {
   return TEAMWORK_TABS.includes(tab as TeamworkTab);
 }
 
+/** Teamwork route page with My Work and Project tabs, restoring the last active tab from state. */
 export function TeamworkPage(props: {
   activeTab: string;
   onTabChange: (tab: TeamworkTab) => void;

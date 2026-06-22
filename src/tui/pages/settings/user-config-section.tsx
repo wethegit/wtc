@@ -4,6 +4,7 @@ import { AccordionSection } from "../../components/layout/accordion-section.tsx"
 import { tokens } from "../../tokens.ts";
 import type { SettingsFocusTarget, SettingsFormState } from "./types.ts";
 
+/** Settings section for user-level config (workspace name, Teamwork auth). */
 export function UserConfigSection(props: {
   form: SettingsFormState;
   userConfigPath: string | undefined;

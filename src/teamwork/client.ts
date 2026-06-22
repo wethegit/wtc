@@ -1,6 +1,7 @@
 import { createTeamworkAuthorizationHeader, getTeamworkApiToken } from "./auth.ts";
 import { TEAMWORK_API_BASE_URL } from "./consts.ts";
 
+/** Fetches a Teamwork v3 API endpoint using stored auth and returns the parsed JSON body. */
 export async function fetchTeamworkApiJson(path: string, init: RequestInit = {}): Promise<unknown> {
   const token = await getTeamworkApiToken();
   if (!token) throw new Error("Teamwork API token is missing.");

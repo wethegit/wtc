@@ -3,6 +3,7 @@ import { createContext, createSignal, useContext, type ParentProps } from "solid
 import { saveTuiState } from "../../state/manager.ts";
 import type { TuiStateEntry } from "../../state/schema.ts";
 
+/** TUI state context: provides current state snapshot and a persist-to-disk updater. */
 export interface StateContextValue {
   /** Current state snapshot for the active directory. */
   state: TuiStateEntry;
@@ -12,6 +13,7 @@ export interface StateContextValue {
 
 const StateContext = createContext<StateContextValue>();
 
+/** Provides the per-directory TUI state to the component tree. */
 export function StateProvider(props: { dir: string; initialState: TuiStateEntry } & ParentProps) {
   const [state, setState] = createSignal<TuiStateEntry>(props.initialState);
 
@@ -29,6 +31,7 @@ export function StateProvider(props: { dir: string; initialState: TuiStateEntry 
   return <StateContext.Provider value={value}>{props.children}</StateContext.Provider>;
 }
 
+/** Returns the current TUI state context. */
 export function useTuiState(): StateContextValue {
   const value = useContext(StateContext);
   if (!value) {

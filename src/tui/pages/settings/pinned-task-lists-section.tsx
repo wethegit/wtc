@@ -8,6 +8,7 @@ import type {
   SettingsFormState,
 } from "./types.ts";
 
+/** Settings section for editable pinned task lists (add/remove rows). */
 export function PinnedTaskListsSection(props: {
   form: SettingsFormState;
   expanded: boolean;
