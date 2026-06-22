@@ -132,7 +132,7 @@ function getReferencedName(
   );
 }
 
-/** Extracts a Teamwork v3 due date from its union shape and normalizes common API formats to `YYYY-MM-DD`. */
+/** Extracts a Teamwork v3 due date and normalizes `YYYYMMDD` and ISO timestamp strings to `YYYY-MM-DD`. */
 function parseTeamworkDueDate(dueDate: TeamworkDateValue | null | undefined): string | null {
   const raw = dueDate ?? undefined;
   const extracted = !raw ? null : typeof raw === "string" ? raw : (raw.date ?? raw.value ?? null);

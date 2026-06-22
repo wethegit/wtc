@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 
 import { createMockFetch, mockTeamworkAuthModule, useTempCacheDir } from "../helpers/teamwork.ts";
+import { getCacheDir } from "../../src/state/consts.ts";
 
 mock.module("../../src/teamwork/auth.ts", mockTeamworkAuthModule);
 
@@ -46,7 +47,7 @@ describe("teamwork workflow stages", () => {
 
   test("refetches workflow stages when cache is stale", async () => {
     await Bun.write(
-      `${process.env.WTC_CACHE_DIR}/teamwork-workflow-stages.json`,
+      `${getCacheDir()}/teamwork-workflow-stages.json`,
       `${JSON.stringify(
         {
           version: 2,

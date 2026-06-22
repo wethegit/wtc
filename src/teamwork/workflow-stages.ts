@@ -37,16 +37,26 @@ export async function getWorkflowStageNames(
   const key = workflowId.toString();
   const now = Date.now();
   let cache: WorkflowStagesCacheFile;
+  let cacheWasUpgraded = false;
 
   try {
     cache = JSON.parse(await Bun.file(`${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`).text());
   } catch {
     cache = { version: 2, workflows: {} };
   }
-  if (cache.version < 2) cache.version = 2;
+  if (cache.version < 2) {
+    cache.version = 2;
+    cacheWasUpgraded = true;
+  }
 
   const cached = cache.workflows[key];
   if (cached && cache.version >= 2 && now - cached.cachedAt < WORKFLOW_STAGES_CACHE_TTL_MS) {
+    if (cacheWasUpgraded) {
+      await Bun.write(
+        `${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`,
+        `${JSON.stringify(cache, null, 2)}\n`,
+      );
+    }
     return new Map(Object.entries(cached.stages).map(([id, entry]) => [Number(id), entry]));
   }
 
