@@ -10,6 +10,8 @@ export interface DynamicListProps<T> {
   emptyMessage: string;
   /** Label for the add-row action. */
   addLabel: string;
+  /** Stable prefix used for action renderable ids. */
+  namePrefix: string;
   /** Whether the add-row action is focused. */
   addFocused?: boolean;
   /** Adds a new unsaved row to the form state. */
@@ -26,7 +28,7 @@ export function DynamicList<T>(props: DynamicListProps<T>) {
   return (
     <box flexDirection="column" gap={1}>
       <ActionButton
-        name="add-list-item"
+        name={`${props.namePrefix}-add`}
         label={props.addLabel}
         focused={props.addFocused}
         onPress={props.onAdd}
@@ -47,7 +49,7 @@ export function DynamicList<T>(props: DynamicListProps<T>) {
             >
               {props.renderItem(item, index())}
               <ActionButton
-                name={`remove-list-item-${index()}`}
+                name={`${props.namePrefix}-remove-${index()}`}
                 label="remove"
                 focused={props.removeFocused(index())}
                 onPress={() => props.onRemove(index())}

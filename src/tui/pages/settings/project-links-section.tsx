@@ -29,6 +29,7 @@ export function ProjectLinksSection(props: {
         items={props.form.project.links}
         emptyMessage="No project links configured."
         addLabel="add link"
+        namePrefix="project-links"
         addFocused={props.isFocused({ type: "listAction", list: "projectLinks", action: "add" })}
         onAdd={props.onAdd}
         removeFocused={(index) =>
