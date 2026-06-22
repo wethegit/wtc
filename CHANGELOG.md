@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.3
+
+### Patch Changes
+
+- [#34](https://github.com/wethegit/wtc/pull/34) [`fc29f8f`](https://github.com/wethegit/wtc/commit/fc29f8f6798d63a2708bc400f526cc8927e64b12) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - feature: adds task selection
+
 ## 0.3.2
 
 ### Patch Changes
