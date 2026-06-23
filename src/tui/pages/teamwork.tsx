@@ -8,8 +8,9 @@ import { tokens } from "../tokens.ts";
 
 import { MyWorkTab } from "./teamwork/my-work-tab.tsx";
 import { ProjectTab } from "./teamwork/project-tab.tsx";
+import { TimersTab } from "./teamwork/timers-tab.tsx";
 
-const TEAMWORK_TABS = ["my-work", "project"] as const;
+const TEAMWORK_TABS = ["my-work", "project", "timers"] as const;
 
 /** Valid Teamwork page tab identifiers. */
 export type TeamworkTab = (typeof TEAMWORK_TABS)[number];
@@ -17,6 +18,7 @@ export type TeamworkTab = (typeof TEAMWORK_TABS)[number];
 const TABS = [
   { id: "my-work", label: "My Work" },
   { id: "project", label: "Project" },
+  { id: "timers", label: "Timers" },
 ] as const;
 
 /** Cycles to the next or previous Teamwork tab, wrapping around. */
@@ -70,6 +72,7 @@ export function TeamworkPage(props: {
             { key: "ctrl+←/→", label: "tabs" },
             { key: "↑/↓", label: "tasks" },
             { key: "enter/ctrl+o", label: "open" },
+            { key: "ctrl+t", label: "timer" },
           ]
         : [{ key: "ctrl+←/→", label: "tabs" }],
     );
@@ -78,20 +81,24 @@ export function TeamworkPage(props: {
   onCleanup(() => setHints([]));
 
   return (
-    <Page
-      title="Teamwork"
-      status={<text fg={tokens.textDim}>{activeTab() === "project" ? "project" : "my work"}</text>}
-    >
-      <box flexDirection="column" gap={1}>
+    <Page title="Teamwork" status={<text fg={tokens.textDim}>{activeTab()}</text>}>
+      <box flexDirection="column">
         <box flexDirection="row" gap={2}>
           <For each={TABS}>
             {(tab) => (
-              <text
-                attributes={activeTab() === tab.id ? TextAttributes.BOLD : undefined}
-                fg={activeTab() === tab.id ? tokens.accent : tokens.textDim}
+              <box
+                border={["top", "right", "left"]}
+                borderStyle="rounded"
+                paddingX={1}
+                borderColor={activeTab() === tab.id ? tokens.borderFocus : tokens.border}
               >
-                {activeTab() === tab.id ? `[${tab.label}]` : tab.label}
-              </text>
+                <text
+                  attributes={activeTab() === tab.id ? TextAttributes.BOLD : undefined}
+                  fg={activeTab() === tab.id ? tokens.accent : tokens.textDim}
+                >
+                  {tab.label}
+                </text>
+              </box>
             )}
           </For>
         </box>
@@ -99,6 +106,9 @@ export function TeamworkPage(props: {
         <Switch fallback={<MyWorkTab />}>
           <Match when={activeTab() === "project"}>
             <ProjectTab />
+          </Match>
+          <Match when={activeTab() === "timers"}>
+            <TimersTab />
           </Match>
         </Switch>
       </box>

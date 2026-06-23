@@ -10,7 +10,9 @@ import {
 describe("teamwork page helpers", () => {
   test("cycles Teamwork tabs", () => {
     expect(getNextTeamworkTab("my-work", 1)).toBe("project");
-    expect(getNextTeamworkTab("project", 1)).toBe("my-work");
+    expect(getNextTeamworkTab("project", 1)).toBe("timers");
+    expect(getNextTeamworkTab("timers", 1)).toBe("my-work");
+    expect(getNextTeamworkTab("timers", -1)).toBe("project");
     expect(getNextTeamworkTab("project", -1)).toBe("my-work");
   });
 
