@@ -19,8 +19,13 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
   const dialog = useDialog();
 
   const confirm = async () => {
-    await props.onConfirm();
-    dialog.clear();
+    try {
+      await props.onConfirm();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      dialog.clear();
+    }
   };
 
   useBindings(() => ({
