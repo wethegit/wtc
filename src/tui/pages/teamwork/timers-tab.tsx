@@ -9,6 +9,8 @@ import {
   stopLocalTimer,
   type LocalTimerEntry,
 } from "../../../teamwork/timers/local.ts";
+import { TEAMWORK_TIMESHEET_URL } from "../../../teamwork/consts.ts";
+import { openUrlInBrowser } from "../../../utils/browser.ts";
 import { ConfirmDialog } from "../../components/confirm-dialog.tsx";
 import { TimerIndicator } from "../../components/teamwork/timer-indicator.tsx";
 import { useDialog } from "../../components/dialog.tsx";
@@ -96,6 +98,15 @@ export function TimersTab() {
     ));
   };
 
+  const openTimesheet = async () => {
+    try {
+      await openUrlInBrowser(TEAMWORK_TIMESHEET_URL);
+      setMessage(`Opened Teamwork timesheet: ${TEAMWORK_TIMESHEET_URL}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Failed to open Teamwork timesheet.");
+    }
+  };
+
   useBindings(() => ({
     bindings: [
       {
@@ -127,6 +138,14 @@ export function TimersTab() {
         desc: "Discard selected local timer",
         group: "Teamwork Timers",
         cmd: discardSelectedTimer,
+      },
+      {
+        key: "ctrl+o",
+        desc: "Open Teamwork timesheet",
+        group: "Teamwork Timers",
+        cmd: () => {
+          void openTimesheet();
+        },
       },
     ],
   }));
