@@ -95,15 +95,28 @@ export async function getTimers(): Promise<TeamworkTimer[]> {
     throw new Error("Teamwork timers response did not include a timers array.");
   }
 
-  return timers.map((timer: Record<string, unknown>) => ({
-    id: typeof timer.id === "number" ? timer.id : 0,
-    running: !!timer.running,
-    description: typeof timer.description === "string" ? timer.description : "",
-    taskId: typeof timer.taskId === "number" ? timer.taskId : null,
-    projectId: typeof timer.projectId === "number" ? timer.projectId : null,
-    duration: typeof timer.duration === "number" ? timer.duration : 0,
-    lastStartedAt: typeof timer.lastStartedAt === "string" ? timer.lastStartedAt : null,
-  }));
+  return timers.flatMap((value) => {
+    try {
+      const timer = value as Record<string, unknown>;
+      if (typeof timer.id !== "number" || !Number.isFinite(timer.id)) {
+        throw new Error("Teamwork timer is missing a valid id.");
+      }
+
+      return [
+        {
+          id: timer.id,
+          running: !!timer.running,
+          description: typeof timer.description === "string" ? timer.description : "",
+          taskId: typeof timer.taskId === "number" ? timer.taskId : null,
+          projectId: typeof timer.projectId === "number" ? timer.projectId : null,
+          duration: typeof timer.duration === "number" ? timer.duration : 0,
+          lastStartedAt: typeof timer.lastStartedAt === "string" ? timer.lastStartedAt : null,
+        },
+      ];
+    } catch {
+      return [];
+    }
+  });
 }
 
 /** Creates a submitted Teamwork time entry for a task. */

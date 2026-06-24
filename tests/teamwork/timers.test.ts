@@ -226,6 +226,40 @@ describe("getTimers", () => {
       );
     }
   });
+
+  test("skips timers that do not include a valid id", async () => {
+    globalThis.fetch = createMockFetch(
+      () =>
+        new Response(
+          JSON.stringify({
+            timers: [
+              {
+                id: 42,
+                running: true,
+                description: "Valid timer",
+                taskId: 12345,
+                projectId: 67890,
+                duration: 0,
+                lastStartedAt: "2026-06-23T00:48:01Z",
+              },
+              {
+                running: true,
+                description: "Invalid timer",
+              },
+            ],
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+    );
+
+    const timers = await getTimers();
+
+    expect(timers).toHaveLength(1);
+    expect(timers[0]?.id).toBe(42);
+  });
 });
 
 describe("createTaskTimeEntry", () => {

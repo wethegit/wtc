@@ -269,7 +269,7 @@ export function ProjectTab() {
         )}
       </box>
 
-      {resolved()?.project?.project.links.length > 0 && (
+      {(resolved()?.project?.project.links.length ?? 0) > 0 && (
         <box>
           <text attributes={TextAttributes.BOLD} fg={tokens.text}>
             Project links
@@ -284,7 +284,7 @@ export function ProjectTab() {
         </box>
       )}
 
-      {resolved()?.project?.teamwork.pinnedTaskLists.length > 0 && (
+      {(resolved()?.project?.teamwork.pinnedTaskLists.length ?? 0) > 0 && (
         <box
           border={["top", "left"]}
           borderColor={tokens.border}
