@@ -66,15 +66,23 @@ export function TeamworkPage(props: {
   }));
 
   createEffect(() => {
+    const tab = activeTab();
     setHints(
-      activeTab() === "project"
+      tab === "project"
         ? [
             { key: "ctrl+←/→", label: "tabs" },
             { key: "↑/↓", label: "tasks" },
             { key: "enter/ctrl+o", label: "open" },
             { key: "ctrl+t", label: "timer" },
           ]
-        : [{ key: "ctrl+←/→", label: "tabs" }],
+        : tab === "timers"
+          ? [
+              { key: "ctrl+←/→", label: "tabs" },
+              { key: "↑/↓", label: "timers" },
+              { key: "ctrl+t", label: "stop" },
+              { key: "ctrl+d", label: "discard" },
+            ]
+          : [{ key: "ctrl+←/→", label: "tabs" }],
     );
   });
 

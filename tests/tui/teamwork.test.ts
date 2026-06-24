@@ -1,11 +1,13 @@
 import { describe, expect, test } from "bun:test";
 
+import type { LocalTimerEntry } from "../../src/teamwork/timers/local.ts";
 import { getNextTeamworkTab } from "../../src/tui/pages/teamwork.tsx";
 import {
   getNextPinnedTaskSelection,
   getPinnedTaskSelectionOrder,
   type PinnedTaskSelection,
 } from "../../src/tui/pages/teamwork/project-tab.tsx";
+import { getNextLocalTimerSelection } from "../../src/tui/pages/teamwork/timers-tab.tsx";
 
 describe("teamwork page helpers", () => {
   test("cycles Teamwork tabs", () => {
@@ -51,5 +53,33 @@ describe("teamwork page helpers", () => {
       taskId: 1,
     });
     expect(getNextPinnedTaskSelection([], current, 1)).toBeNull();
+  });
+
+  test("cycles local timer selection", () => {
+    const timers: LocalTimerEntry[] = [
+      {
+        id: "timer-1",
+        taskId: 1,
+        taskName: "First",
+        startTime: "2026-01-01T00:00:00Z",
+        endTime: null,
+        status: "running",
+      },
+      {
+        id: "timer-2",
+        taskId: 2,
+        taskName: "Second",
+        startTime: "2026-01-01T00:01:00Z",
+        endTime: "2026-01-01T00:02:00Z",
+        status: "stopped",
+      },
+    ];
+
+    expect(getNextLocalTimerSelection(timers, null, 1)).toBe("timer-1");
+    expect(getNextLocalTimerSelection(timers, null, -1)).toBe("timer-2");
+    expect(getNextLocalTimerSelection(timers, "timer-1", 1)).toBe("timer-2");
+    expect(getNextLocalTimerSelection(timers, "timer-1", -1)).toBe("timer-2");
+    expect(getNextLocalTimerSelection(timers, "missing", 1)).toBe("timer-1");
+    expect(getNextLocalTimerSelection([], "timer-1", 1)).toBeNull();
   });
 });

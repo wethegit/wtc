@@ -49,6 +49,30 @@ export function getRunningTimer(timers: LocalTimerEntry[]): LocalTimerEntry | nu
   return timers.find((timer) => timer.status === "running") ?? null;
 }
 
+/** Returns elapsed milliseconds for a local timer, using `now` for running timers. */
+export function getLocalTimerElapsedMs(timer: LocalTimerEntry, now: Date): number {
+  const start = new Date(timer.startTime).getTime();
+  const end = timer.endTime ? new Date(timer.endTime).getTime() : now.getTime();
+
+  return Math.max(0, end - start);
+}
+
+/** Formats a timer duration as compact text for the TUI. */
+export function formatTimerDuration(durationMs: number): string {
+  const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes.toString().padStart(2, "0")}m ${seconds
+      .toString()
+      .padStart(2, "0")}s`;
+  }
+
+  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
+}
+
 /** Starts a local timer for the given task. If another timer is running, it is stopped first. Returns the new timer entry. */
 export async function startLocalTimer(
   taskId: number,

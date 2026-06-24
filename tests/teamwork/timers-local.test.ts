@@ -4,8 +4,15 @@ import { useTempCacheDir } from "../helpers/teamwork.ts";
 
 useTempCacheDir();
 
-const { loadLocalTimers, startLocalTimer, stopLocalTimer, getRunningTimer, removeLocalTimer } =
-  await import("../../src/teamwork/timers/local.ts");
+const {
+  loadLocalTimers,
+  startLocalTimer,
+  stopLocalTimer,
+  getRunningTimer,
+  removeLocalTimer,
+  getLocalTimerElapsedMs,
+  formatTimerDuration,
+} = await import("../../src/teamwork/timers/local.ts");
 
 describe("getRunningTimer", () => {
   test("returns null when no timers are running", () => {
@@ -39,6 +46,67 @@ describe("getRunningTimer", () => {
 
     expect(timer).toBeDefined();
     expect(timer?.id).toBe("1");
+  });
+});
+
+describe("getLocalTimerElapsedMs", () => {
+  test("uses current time for running timers", () => {
+    expect(
+      getLocalTimerElapsedMs(
+        {
+          id: "1",
+          taskId: 1,
+          taskName: "Test",
+          startTime: "2026-01-01T00:00:00Z",
+          endTime: null,
+          status: "running",
+        },
+        new Date("2026-01-01T00:01:30Z"),
+      ),
+    ).toBe(90_000);
+  });
+
+  test("uses end time for stopped timers", () => {
+    expect(
+      getLocalTimerElapsedMs(
+        {
+          id: "1",
+          taskId: 1,
+          taskName: "Test",
+          startTime: "2026-01-01T00:00:00Z",
+          endTime: "2026-01-01T00:02:05Z",
+          status: "stopped",
+        },
+        new Date("2026-01-01T00:10:00Z"),
+      ),
+    ).toBe(125_000);
+  });
+
+  test("never returns negative durations", () => {
+    expect(
+      getLocalTimerElapsedMs(
+        {
+          id: "1",
+          taskId: 1,
+          taskName: "Test",
+          startTime: "2026-01-01T00:01:00Z",
+          endTime: "2026-01-01T00:00:00Z",
+          status: "stopped",
+        },
+        new Date("2026-01-01T00:10:00Z"),
+      ),
+    ).toBe(0);
+  });
+});
+
+describe("formatTimerDuration", () => {
+  test("formats sub-hour durations", () => {
+    expect(formatTimerDuration(0)).toBe("0m 00s");
+    expect(formatTimerDuration(65_000)).toBe("1m 05s");
+  });
+
+  test("formats hour durations", () => {
+    expect(formatTimerDuration(3_723_000)).toBe("1h 02m 03s");
   });
 });
 
