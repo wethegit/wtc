@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.4
+
+### Patch Changes
+
+- [#36](https://github.com/wethegit/wtc/pull/36) [`67d4c52`](https://github.com/wethegit/wtc/commit/67d4c5258f93e5312d5ef01e397c7d715c27a95d) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - feature: adds timers
+
 ## 0.3.3
 
 ### Patch Changes
