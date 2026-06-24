@@ -231,7 +231,7 @@ export function ProjectTab() {
       },
       {
         key: "ctrl+t",
-        desc: "Start/pause Teamwork timer",
+        desc: "Start/pause local timer",
         group: "Teamwork",
         cmd: toggleTimer,
       },
