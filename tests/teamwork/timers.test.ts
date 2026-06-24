@@ -6,7 +6,8 @@ import { TEAMWORK_API_BASE_URL } from "../../src/teamwork/consts.ts";
 mock.module("../../src/teamwork/auth.ts", mockTeamworkAuthModule);
 
 const { createTeamworkAuthorizationHeader } = await import("../../src/teamwork/auth.ts");
-const { getTimers, pauseTimer, startTimer } = await import("../../src/teamwork/timers.ts");
+const { createTaskTimeEntry, getTimers, pauseTimer, startTimer } =
+  await import("../../src/teamwork/timers.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -223,6 +224,97 @@ describe("getTimers", () => {
       expect((error as Error).message).toBe(
         "Teamwork timers response did not include a timers array.",
       );
+    }
+  });
+});
+
+describe("createTaskTimeEntry", () => {
+  test("creates a submitted time entry for a task", async () => {
+    let requestUrl = "";
+    let requestMethod = "";
+    let requestBody = "";
+
+    globalThis.fetch = createMockFetch((url, init) => {
+      requestUrl = url;
+      requestMethod = init?.method ?? "GET";
+      requestBody = typeof init?.body === "string" ? init.body : "";
+
+      return new Response(JSON.stringify({ timelog: { id: 99 } }), {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+
+    const id = await createTaskTimeEntry({
+      taskId: 12345,
+      date: "2026-06-24",
+      hours: 1,
+      minutes: 15,
+      description: "Code review",
+    });
+
+    expect(id).toBe(99);
+    expect(requestUrl).toBe(`${TEAMWORK_API_BASE_URL}/tasks/12345/time.json`);
+    expect(requestMethod).toBe("POST");
+    expect(JSON.parse(requestBody)).toEqual({
+      timelog: {
+        taskId: 12345,
+        isUtc: true,
+        date: "2026-06-24",
+        hours: 1,
+        minutes: 15,
+        description: "Code review",
+      },
+      timelogOptions: {},
+      tags: [],
+    });
+  });
+
+  test("throws if response has no timelog id", async () => {
+    globalThis.fetch = createMockFetch(
+      () =>
+        new Response(JSON.stringify({}), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        }),
+    );
+
+    try {
+      await createTaskTimeEntry({
+        taskId: 12345,
+        date: "2026-06-24",
+        hours: 0,
+        minutes: 30,
+        description: "",
+      });
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+    }
+  });
+
+  test("validates input before calling Teamwork", async () => {
+    let called = false;
+    globalThis.fetch = createMockFetch(() => {
+      called = true;
+      return new Response(JSON.stringify({ timelog: { id: 99 } }), {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+
+    try {
+      await createTaskTimeEntry({
+        taskId: 12345,
+        date: "2026/06/24",
+        hours: 0,
+        minutes: 30,
+        description: "Invalid date",
+      });
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      expect(called).toBe(false);
     }
   });
 });

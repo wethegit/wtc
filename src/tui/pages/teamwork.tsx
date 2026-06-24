@@ -80,6 +80,7 @@ export function TeamworkPage(props: {
               { key: "ctrl+←/→", label: "tabs" },
               { key: "↑/↓", label: "timers" },
               { key: "ctrl+t", label: "stop" },
+              { key: "ctrl+s", label: "submit" },
               { key: "ctrl+d", label: "discard" },
               { key: "ctrl+o", label: "timesheet" },
             ]

@@ -9,6 +9,7 @@ import {
   stopLocalTimer,
   type LocalTimerEntry,
 } from "../../../teamwork/timers/local.ts";
+import { createTaskTimeEntry } from "../../../teamwork/timers.ts";
 import { TEAMWORK_TIMESHEET_URL } from "../../../teamwork/consts.ts";
 import { openUrlInBrowser } from "../../../utils/browser.ts";
 import { ConfirmDialog } from "../../components/confirm-dialog.tsx";
@@ -98,6 +99,52 @@ export function TimersTab() {
     ));
   };
 
+  const submitSelectedTimer = () => {
+    const timer = selectedTimer();
+    if (!timer) {
+      setMessage("No local timer selected.");
+      return;
+    }
+
+    const totalMinutes = Math.max(1, Math.ceil(getLocalTimerElapsedMs(timer, now()) / 60_000));
+    const duration = formatTimerDuration(totalMinutes * 60_000);
+    const action = timer.status === "running" ? "Stop and submit" : "Submit";
+
+    dialog.replace(() => (
+      <ConfirmDialog
+        title={timer.status === "running" ? "Stop and submit timer?" : "Submit timer?"}
+        message={`${action} ${duration} to Teamwork for: ${timer.taskName}`}
+        confirmLabel="submit"
+        onConfirm={async () => {
+          try {
+            const timerToSubmit = timer.status === "running" ? await stopLocalTimer() : timer;
+            if (!timerToSubmit) {
+              setMessage("No running timer found to submit.");
+              return;
+            }
+
+            const finalMinutes = Math.max(
+              1,
+              Math.ceil(getLocalTimerElapsedMs(timerToSubmit, new Date()) / 60_000),
+            );
+            await createTaskTimeEntry({
+              taskId: timerToSubmit.taskId,
+              date: timerToSubmit.startTime.slice(0, 10),
+              hours: Math.floor(finalMinutes / 60),
+              minutes: finalMinutes % 60,
+              description: timerToSubmit.taskName,
+            });
+            await removeLocalTimer(timerToSubmit.id);
+            await refreshTimers();
+            setMessage(`Timer submitted: ${timerToSubmit.taskName}`);
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Failed to submit timer.");
+          }
+        }}
+      />
+    ));
+  };
+
   const openTimesheet = async () => {
     try {
       await openUrlInBrowser(TEAMWORK_TIMESHEET_URL);
@@ -138,6 +185,12 @@ export function TimersTab() {
         desc: "Discard selected local timer",
         group: "Teamwork Timers",
         cmd: discardSelectedTimer,
+      },
+      {
+        key: "ctrl+s",
+        desc: "Submit selected local timer",
+        group: "Teamwork Timers",
+        cmd: submitSelectedTimer,
       },
       {
         key: "ctrl+o",
