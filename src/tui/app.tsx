@@ -73,7 +73,7 @@ function Home() {
         name: "github.open",
         title: "Open GitHub",
         desc: "Repository workflows",
-        category: "Navigation",
+        category: "GitHub",
         run: () => {
           navigate({ page: "github" });
           dialog.clear();
@@ -83,7 +83,7 @@ function Home() {
         name: "teamwork.open",
         title: "Open Teamwork",
         desc: "My assigned work",
-        category: "Navigation",
+        category: "Teamwork",
         run: () => {
           navigate({
             page: "teamwork",
@@ -96,7 +96,7 @@ function Home() {
         name: "teamwork.project.open",
         title: "Open Teamwork Project",
         desc: "Project-specific Teamwork context",
-        category: "Navigation",
+        category: "Teamwork",
         run: () => {
           navigate({ page: "teamwork", tab: "project" });
           dialog.clear();
@@ -106,7 +106,7 @@ function Home() {
         name: "teamwork.timers.open",
         title: "Open Teamwork Timers",
         desc: "Local timer tracking",
-        category: "Navigation",
+        category: "Teamwork",
         run: () => {
           navigate({ page: "teamwork", tab: "timers" });
           dialog.clear();
@@ -116,7 +116,7 @@ function Home() {
         name: "teamwork.timesheet.open",
         title: "Open Teamwork Timesheet",
         desc: "Open Teamwork time tracking in browser",
-        category: "Navigation",
+        category: "Teamwork",
         run: () => {
           dialog.clear();
           void openUrlInBrowser(TEAMWORK_TIMESHEET_URL);
@@ -126,7 +126,7 @@ function Home() {
         name: "settings.open",
         title: "Open Settings",
         desc: "Configuration and setup",
-        category: "Navigation",
+        category: "Settings",
         run: () => {
           navigate({ page: "settings" });
           dialog.clear();

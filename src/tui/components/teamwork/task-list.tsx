@@ -1,46 +1,52 @@
-import { For, Show } from "solid-js";
+import { For } from "solid-js";
 
 import type { TeamworkTask } from "../../../teamwork/task-list-tasks.ts";
+import { type LocalTimerEntry, getLocalTimerElapsedMs } from "../../../teamwork/timers/local.ts";
 
 import { tokens } from "../../tokens.ts";
 
 import { buildTaskMetadata } from "./task-metadata.tsx";
-import { TimerIndicator } from "./timer-indicator.tsx";
-import { Section } from "../layout/section.tsx";
+import { TimerBadge, type TimerBadgeProps } from "./timer-indicator.tsx";
+import { ListItem } from "../layout/list-item.tsx";
 
-/** Renders a list of tasks with name, status, and styled metadata row. Supports keyboard selection highlight. */
+/** Renders a list of tasks with compact list items, selection, and inline timer badges. */
 export function TaskList(props: {
   taskListId: number;
   tasks: readonly TeamworkTask[];
   emptyMessage: string;
   selectedTaskId?: number | null;
-  timerTaskIds?: readonly number[];
-  runningTaskId?: number | null;
+  localTimers?: readonly LocalTimerEntry[];
+  now?: Date;
   flashOn?: boolean;
 }) {
+  const timerBadge = (taskId: number): TimerBadgeProps | null => {
+    const timers = props.localTimers;
+    if (!timers) return null;
+
+    const timer = timers.find((t) => t.taskId === taskId);
+    if (!timer) return null;
+
+    return {
+      elapsedMs: getLocalTimerElapsedMs(timer, props.now ?? new Date()),
+      running: timer.status === "running",
+      flashOn: props.flashOn,
+    };
+  };
+
   return props.tasks.length ? (
-    <box gap={1}>
+    <box gap={0}>
       <For each={props.tasks}>
         {(task) => {
-          const timerStatus = () =>
-            props.timerTaskIds?.includes(task.id)
-              ? props.runningTaskId === task.id
-                ? "running"
-                : "stopped"
-              : null;
+          const badge = timerBadge(task.id);
 
           return (
-            <box id={`task-${props.taskListId}-${task.id}`}>
-              <Section
-                active={props.selectedTaskId === task.id}
-                title={task.name}
-                description={buildTaskMetadata(task)}
-              >
-                <Show when={timerStatus()}>
-                  <TimerIndicator status={timerStatus() ?? "stopped"} flashOn={props.flashOn} />
-                </Show>
-              </Section>
-            </box>
+            <ListItem
+              id={`task-${props.taskListId}-${task.id}`}
+              title={task.name}
+              metadata={buildTaskMetadata(task)}
+              selected={props.selectedTaskId === task.id}
+              badge={badge ? <TimerBadge {...badge} /> : undefined}
+            />
           );
         }}
       </For>

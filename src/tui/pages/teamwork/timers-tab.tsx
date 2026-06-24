@@ -2,7 +2,6 @@ import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
 import {
-  formatTimerDuration,
   getLocalTimerElapsedMs,
   loadLocalTimers,
   removeLocalTimer,
@@ -12,10 +11,11 @@ import {
 import { createTaskTimeEntry } from "../../../teamwork/timers.ts";
 import { TEAMWORK_TIMESHEET_URL } from "../../../teamwork/consts.ts";
 import { openUrlInBrowser } from "../../../utils/browser.ts";
+import { Card } from "../../components/layout/card.tsx";
+import { ListItem } from "../../components/layout/list-item.tsx";
 import { ConfirmDialog } from "../../components/confirm-dialog.tsx";
-import { TimerIndicator } from "../../components/teamwork/timer-indicator.tsx";
+import { TimerBadge } from "../../components/teamwork/timer-indicator.tsx";
 import { useDialog } from "../../components/dialog.tsx";
-import { Section } from "../../components/layout/section.tsx";
 import { tokens } from "../../tokens.ts";
 
 /** Cycles through local timer IDs in display order, wrapping around. */
@@ -106,14 +106,15 @@ export function TimersTab() {
       return;
     }
 
-    const totalMinutes = Math.max(1, Math.ceil(getLocalTimerElapsedMs(timer, now()) / 60_000));
-    const duration = formatTimerDuration(totalMinutes * 60_000);
+    const elapsedMs = getLocalTimerElapsedMs(timer, now());
+    const totalMinutes = Math.max(1, Math.ceil(elapsedMs / 60_000));
+    const durationMinutes = `${totalMinutes}m`;
     const action = timer.status === "running" ? "Stop and submit" : "Submit";
 
     dialog.replace(() => (
       <ConfirmDialog
         title={timer.status === "running" ? "Stop and submit timer?" : "Submit timer?"}
-        message={`${action} ${duration} to Teamwork for: ${timer.taskName}`}
+        message={`${action} ${durationMinutes} to Teamwork for: ${timer.taskName}`}
         confirmLabel="submit"
         onConfirm={async () => {
           try {
@@ -229,35 +230,48 @@ export function TimersTab() {
     });
   });
 
-  return (
-    <box
-      border
-      borderStyle="rounded"
-      borderColor={tokens.borderFocus}
-      paddingY={1}
-      paddingX={2}
-      gap={1}
-    >
-      <text fg={tokens.text}>{localTimers().length > 0 ? "Local Timers" : "No timers"}</text>
-      <text fg={tokens.textDim}>{message()}</text>
+  const timerMetadata = (timer: LocalTimerEntry): string[] => {
+    const parts: string[] = [];
+    const elapsedMs = getLocalTimerElapsedMs(timer, now());
+    parts.push(formatInlineDuration(elapsedMs));
+    return parts;
+  };
 
-      <For each={sortedTimers()}>
-        {(timer) => (
-          <Section
-            active={selectedTimerId() === timer.id}
-            title={timer.taskName}
-            description={[
-              `Task ID: ${timer.taskId}`,
-              `Started: ${new Date(timer.startTime).toLocaleString()}`,
-              timer.endTime ? `Ended: ${new Date(timer.endTime).toLocaleString()}` : "",
-              `Duration: ${formatTimerDuration(getLocalTimerElapsedMs(timer, now()))}`,
-              `Status: ${timer.status}`,
-            ]}
-          >
-            <TimerIndicator status={timer.status} flashOn={flashOn()} />
-          </Section>
-        )}
-      </For>
+  return (
+    <box flexDirection="column" gap={1}>
+      <Card title={localTimers().length > 0 ? "Local Timers" : "No timers"}>
+        <text fg={tokens.textDim}>{message()}</text>
+
+        <For each={sortedTimers()}>
+          {(timer) => (
+            <ListItem
+              title={timer.taskName}
+              metadata={timerMetadata(timer)}
+              selected={selectedTimerId() === timer.id}
+              badge={
+                <TimerBadge
+                  elapsedMs={getLocalTimerElapsedMs(timer, now())}
+                  running={timer.status === "running"}
+                  flashOn={flashOn()}
+                />
+              }
+            />
+          )}
+        </For>
+      </Card>
     </box>
   );
+}
+
+function formatInlineDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes.toString().padStart(2, "0")}m ${seconds.toString().padStart(2, "0")}s`;
+  }
+
+  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
 }

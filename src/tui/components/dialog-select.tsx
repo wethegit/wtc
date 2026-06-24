@@ -1,4 +1,4 @@
-import { createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import { InputRenderable, TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 import { tokens } from "../tokens.ts";
@@ -17,12 +17,18 @@ export interface DialogSelectOption<T> {
   value: T;
   /** Optional secondary text shown beside the title. */
   description?: string;
-  /** Optional grouping metadata, currently used by filtering. */
+  /** Optional grouping metadata rendered as a section heading. */
   category?: string;
   /** Reserved for future contextual footer text. */
   footer?: string;
   /** Action to run when the option is selected by keyboard or mouse. */
   onSelect?: () => void;
+}
+
+interface DialogOptionSection<T> {
+  category: string;
+  options: DialogSelectOption<T>[];
+  startIndex: number;
 }
 
 /**
@@ -58,6 +64,28 @@ export function DialogSelect<T>(props: { title: string; options: DialogSelectOpt
   const [query, setQuery] = createSignal("");
   const [selectedIndex, setSelectedIndex] = createSignal(0);
   const filtered = createMemo(() => filterDialogSelectOptions(props.options, query()));
+
+  const sections = createMemo(() => {
+    const items = filtered();
+    const groups = new Map<string, DialogSelectOption<T>[]>();
+    for (const item of items) {
+      const cat = item.category ?? "Other";
+      const group = groups.get(cat);
+      if (group) {
+        group.push(item);
+      } else {
+        groups.set(cat, [item]);
+      }
+    }
+    let startIndex = 0;
+    const result: DialogOptionSection<T>[] = [];
+    for (const [category, groupOptions] of groups) {
+      result.push({ category, options: groupOptions, startIndex });
+      startIndex += groupOptions.length;
+    }
+    return result;
+  });
+
   let input: InputRenderable | undefined;
 
   const move = (direction: 1 | -1) => {
@@ -108,7 +136,7 @@ export function DialogSelect<T>(props: { title: string; options: DialogSelectOpt
   }));
 
   return (
-    <box paddingLeft={2} paddingRight={2} gap={1} flexDirection="column">
+    <box paddingLeft={2} paddingRight={2} paddingTop={1} gap={1} flexDirection="column">
       <box flexDirection="row" justifyContent="space-between">
         <text attributes={TextAttributes.BOLD} fg={tokens.text}>
           {props.title}
@@ -134,18 +162,41 @@ export function DialogSelect<T>(props: { title: string; options: DialogSelectOpt
           }, 1);
         }}
       />
-      <box flexDirection="column" height={10} gap={0}>
-        {filtered().map((option, index) => (
-          <box
-            backgroundColor={index === selectedIndex() ? tokens.selectionBg : undefined}
-            onMouseUp={() => option.onSelect?.()}
-          >
-            <text fg={index === selectedIndex() ? tokens.selectionText : tokens.text}>
-              {option.title}
-            </text>
-            {option.description && <text fg={tokens.textDim}> — {option.description}</text>}
-          </box>
-        ))}
+      <box flexDirection="column" flexGrow={1} gap={0}>
+        <For each={sections()}>
+          {(section, sectionIndex) => (
+            <box flexDirection="column" gap={0}>
+              <Show when={sectionIndex() > 0}>
+                <text> </text>
+              </Show>
+              <text paddingLeft={1} fg={tokens.accent}>
+                {section.category}
+              </text>
+              <For each={section.options}>
+                {(option, localIndex) => {
+                  const globalIndex = section.startIndex + localIndex();
+                  return (
+                    <box
+                      backgroundColor={
+                        globalIndex === selectedIndex() ? tokens.selectionBg : undefined
+                      }
+                      onMouseUp={() => option.onSelect?.()}
+                    >
+                      <text
+                        fg={globalIndex === selectedIndex() ? tokens.selectionText : tokens.text}
+                      >
+                        {option.title}
+                      </text>
+                      {option.description && (
+                        <text fg={tokens.textDim}> — {option.description}</text>
+                      )}
+                    </box>
+                  );
+                }}
+              </For>
+            </box>
+          )}
+        </For>
         {filtered().length === 0 && <text fg={tokens.textDim}>No matching commands</text>}
       </box>
       <text fg={tokens.textDim}>↑↓ navigate · enter select · esc close</text>
