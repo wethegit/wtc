@@ -284,7 +284,7 @@ export function ProjectTab() {
         </box>
       )}
 
-      {resolved()?.project?.teamwork.pinnedTaskLists.length && (
+      {resolved()?.project?.teamwork.pinnedTaskLists.length > 0 && (
         <box
           border={["top", "left"]}
           borderColor={tokens.border}
