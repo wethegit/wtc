@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, onMount } from "solid-js";
+import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 
@@ -10,10 +10,17 @@ import {
   type TeamworkProjectMetadataResult,
 } from "../../../teamwork/project-metadata.ts";
 import { getTeamworkTaskListTasks, type TeamworkTask } from "../../../teamwork/task-list-tasks.ts";
+import {
+  loadLocalTimers,
+  startLocalTimer,
+  stopLocalTimer,
+  type LocalTimerEntry,
+} from "../../../teamwork/timers/local.ts";
 import { getTeamworkTaskReference } from "../../../teamwork/tasks.ts";
 import { openUrlInBrowser } from "../../../utils/browser.ts";
+import { ConfirmDialog } from "../../components/confirm-dialog.tsx";
 import { TaskList } from "../../components/teamwork/task-list.tsx";
-import { Section } from "../../components/layout/section.tsx";
+import { useDialog } from "../../components/dialog.tsx";
 import { usePageScroll } from "../../components/layout/scroll-context.tsx";
 import { tokens } from "../../tokens.ts";
 
@@ -33,13 +40,16 @@ export interface PinnedTaskSelection {
 /** Teamwork project tab showing project metadata, links, and pinned task lists with keyboard navigation. */
 export function ProjectTab() {
   const [resolved, setResolved] = createSignal<ResolvedConfig | null>(null);
-  const [teamworkAuthStatus, setTeamworkAuthStatus] = createSignal<TeamworkAuthStatus>("missing");
+  const [_teamworkAuthStatus, setTeamworkAuthStatus] = createSignal<TeamworkAuthStatus>("missing");
   const [projectMetadata, setProjectMetadata] = createSignal<TeamworkProjectMetadataResult | null>(
     null,
   );
   const [pinnedTaskLists, setPinnedTaskLists] = createSignal<PinnedTaskListState[]>([]);
   const [selectedTask, setSelectedTask] = createSignal<PinnedTaskSelection | null>(null);
+  const [localTimers, setLocalTimers] = createSignal<LocalTimerEntry[]>([]);
+  const [flashOn, setFlashOn] = createSignal(true);
   const [projectMessage, setProjectMessage] = createSignal("Loading project context...");
+  const dialog = useDialog();
   const scroll = usePageScroll();
 
   createEffect(() => {
@@ -142,6 +152,53 @@ export function ProjectTab() {
     }
   };
 
+  const refreshLocalTimers = async () => {
+    setLocalTimers(await loadLocalTimers());
+  };
+
+  const toggleTimer = async () => {
+    const task = selectedTeamworkTask();
+    if (!task) {
+      setProjectMessage("No pinned task selected.");
+      return;
+    }
+
+    try {
+      const timers = localTimers();
+      const runningTimer = timers.find((t) => t.status === "running");
+
+      if (runningTimer?.taskId === task.id) {
+        const stopped = await stopLocalTimer();
+        if (stopped) {
+          setProjectMessage(`Timer stopped for task: ${task.name}`);
+          await refreshLocalTimers();
+        }
+      } else {
+        if (runningTimer) {
+          dialog.replace(() => (
+            <ConfirmDialog
+              title="Switch timer?"
+              message={`Timer is already running for: ${runningTimer.taskName}`}
+              confirmLabel="switch"
+              onConfirm={async () => {
+                await startLocalTimer(task.id, task.name);
+                await refreshLocalTimers();
+                setProjectMessage(`Timer started for task: ${task.name} (previous paused)`);
+              }}
+            />
+          ));
+          return;
+        }
+
+        await startLocalTimer(task.id, task.name);
+        await refreshLocalTimers();
+        setProjectMessage(`Timer started for task: ${task.name}`);
+      }
+    } catch (error) {
+      setProjectMessage(error instanceof Error ? error.message : "Failed to toggle timer.");
+    }
+  };
+
   useBindings(() => ({
     bindings: [
       {
@@ -172,87 +229,102 @@ export function ProjectTab() {
         group: "Teamwork",
         cmd: openSelectedTask,
       },
+      {
+        key: "ctrl+t",
+        desc: "Start/pause local timer",
+        group: "Teamwork",
+        cmd: toggleTimer,
+      },
     ],
   }));
 
   onMount(() => {
     void loadProjectContext();
+    void refreshLocalTimers();
+
+    const flashInterval = setInterval(() => {
+      setFlashOn((prev) => !prev);
+    }, 800);
+
+    onCleanup(() => clearInterval(flashInterval));
   });
 
   return (
-    <Section
-      title="Project Teamwork"
-      description="Project-specific Teamwork context from the nearest .wtc.yaml."
+    <box
+      border
+      borderStyle="rounded"
+      borderColor={tokens.borderFocus}
+      paddingY={1}
+      paddingX={2}
+      gap={1}
     >
-      <box flexDirection="column" gap={1}>
-        <box flexDirection="column" gap={0}>
-          <text fg={tokens.textDim}>
-            Project config: {resolved()?.paths.projectConfigPath ?? "not found"}
-          </text>
-          <text fg={tokens.textDim}>
-            Teamwork project ID: {resolved()?.project?.teamwork.projectId ?? "not configured"}
-          </text>
-          <text fg={tokens.textDim}>Teamwork auth: {teamworkAuthStatus()}</text>
-        </box>
-
+      <box>
         {projectMetadata() ? (
-          <box flexDirection="column" gap={0}>
-            <text fg={tokens.text}>Teamwork project: {projectMetadata()?.project.name}</text>
+          <box flexDirection="row" justifyContent="space-between" gap={0}>
+            <text fg={tokens.text}>{projectMetadata()?.project.name}</text>
             <text fg={tokens.textDim}>{projectMessage()}</text>
           </box>
         ) : (
           <text fg={tokens.textDim}>{projectMessage()}</text>
         )}
+      </box>
 
-        <box flexDirection="column" gap={0}>
+      {(resolved()?.project?.project.links.length ?? 0) > 0 && (
+        <box>
           <text attributes={TextAttributes.BOLD} fg={tokens.text}>
             Project links
           </text>
-          {resolved()?.project?.project.links.length ? (
-            <For each={resolved()?.project?.project.links ?? []}>
-              {(link) => (
-                <text fg={tokens.textDim}>
-                  {link.name}: {link.url}
-                </text>
-              )}
-            </For>
-          ) : (
-            <text fg={tokens.textDim}>No project links configured.</text>
-          )}
+          <For each={resolved()?.project?.project.links ?? []}>
+            {(link) => (
+              <text fg={tokens.textDim}>
+                {link.name}: {link.url}
+              </text>
+            )}
+          </For>
         </box>
+      )}
 
-        <box flexDirection="column" gap={1}>
-          <text attributes={TextAttributes.BOLD} fg={tokens.text}>
-            Pinned task lists
-          </text>
-          {resolved()?.project?.teamwork.pinnedTaskLists.length ? (
-            <For each={pinnedTaskLists()}>
-              {(taskList) => (
-                <box flexDirection="column" gap={0}>
-                  <text fg={tokens.text}>
-                    {taskList.name} ({taskList.id})
-                  </text>
-                  {taskList.message ? (
-                    <text fg={tokens.textDim}>{taskList.message}</text>
-                  ) : (
-                    <TaskList
-                      taskListId={taskList.id}
-                      tasks={taskList.tasks}
-                      emptyMessage="No tasks found."
-                      selectedTaskId={
-                        selectedTask()?.taskListId === taskList.id ? selectedTask()?.taskId : null
-                      }
-                    />
-                  )}
-                </box>
-              )}
-            </For>
-          ) : (
-            <text fg={tokens.textDim}>No pinned task lists configured.</text>
-          )}
+      {(resolved()?.project?.teamwork.pinnedTaskLists.length ?? 0) > 0 && (
+        <box
+          border={["top", "left"]}
+          borderColor={tokens.border}
+          title="Pinned task lists"
+          titleColor={tokens.text}
+          paddingY={1}
+          gap={1}
+        >
+          <For each={pinnedTaskLists()}>
+            {(taskList) => (
+              <box
+                border={["top", "left"]}
+                borderColor={tokens.border}
+                title={taskList.name}
+                titleColor={tokens.text}
+                paddingY={1}
+              >
+                {taskList.message ? (
+                  <text fg={tokens.textDim}>{taskList.message}</text>
+                ) : (
+                  <TaskList
+                    taskListId={taskList.id}
+                    tasks={taskList.tasks}
+                    emptyMessage="No tasks found."
+                    selectedTaskId={
+                      selectedTask()?.taskListId === taskList.id ? selectedTask()?.taskId : null
+                    }
+                    timerTaskIds={localTimers().map((t) => t.taskId)}
+                    runningTaskId={
+                      localTimers().find((t) => t.status === "running")?.taskId ?? null
+                    }
+                    flashOn={flashOn()}
+                  />
+                )}
+              </box>
+            )}
+          </For>
         </box>
-      </box>
-    </Section>
+      )}
+    </box>
   );
 }
 

@@ -49,6 +49,23 @@ interface TaskListTasksEndpointReport {
   included: IncludedSummary;
 }
 
+interface TimerSummary {
+  id: unknown;
+  running: unknown;
+  description: unknown;
+  taskId: unknown;
+  projectId: unknown;
+  duration: unknown;
+  lastStartedAt: unknown;
+  timeLogId: unknown;
+}
+
+interface TimersEndpointReport {
+  endpoint: string;
+  timerCount: number;
+  timers: TimerSummary[];
+}
+
 interface WorkflowEndpointReport {
   endpoint: string;
   workflow: JsonObject | null;
@@ -106,6 +123,19 @@ function summarizeIncluded(root: JsonObject): IncludedSummary {
     workflowStages: summarizeIncludedCollection(
       included ? getObject(included, "workflowStages") : null,
     ),
+  };
+}
+
+function summarizeTimer(timer: JsonObject): TimerSummary {
+  return {
+    id: timer.id,
+    running: timer.running,
+    description: timer.description,
+    taskId: timer.taskId,
+    projectId: timer.projectId,
+    duration: timer.duration,
+    lastStartedAt: timer.lastStartedAt,
+    timeLogId: timer.timeLogId,
   };
 }
 
@@ -179,6 +209,20 @@ async function inspectTaskListTasks(
   };
 }
 
+async function inspectTimers(): Promise<TimersEndpointReport> {
+  const endpoint = `/me/timers.json`;
+  const root = await fetchTeamworkApiJson(endpoint);
+  if (!isObject(root)) throw new Error(`Unexpected Teamwork response for ${endpoint}.`);
+
+  const timers = getArray(root, "timers").filter(isObject);
+
+  return {
+    endpoint,
+    timerCount: timers.length,
+    timers: timers.map(summarizeTimer),
+  };
+}
+
 async function inspectWorkflow(
   workflowId: number,
   include = false,
@@ -227,6 +271,7 @@ async function inspectSafely<T>(
 }
 
 const report = {
+  timers: await inspectSafely("timers", () => inspectTimers()),
   workflows: await Promise.all(
     workflowIds.map((workflowId) =>
       inspectSafely(`workflow ${workflowId}`, () => inspectWorkflow(workflowId, true)),

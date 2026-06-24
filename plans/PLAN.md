@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** Phase 5 Teamwork Foundation in progress
+- **Status:** Phase 5 Teamwork Foundation (5.1-5.2 complete, 5.4 in progress)
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js
@@ -120,7 +120,7 @@ Teamwork work is split into detailed subphase plans under [`plans/teamwork/`](te
 
 Auth, project config, Teamwork route, project metadata, project links, and shared Teamwork HTTP client.
 
-#### Phase 5.2 — [Pinned Project Task Lists](teamwork/5.2-pinned-project-task-lists.md) 🔨
+#### Phase 5.2 — [Pinned Project Task Lists](teamwork/5.2-pinned-project-task-lists.md) ✅
 
 Project-configured Teamwork task lists for recurring project tasks such as code review, meetings, miscellaneous work, project management, and documentation.
 

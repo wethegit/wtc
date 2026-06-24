@@ -1,4 +1,4 @@
-import type { ParentProps } from "solid-js";
+import { children, type ParentProps, Show } from "solid-js";
 import { TextAttributes } from "@opentui/core";
 
 import { tokens } from "../../tokens.ts";
@@ -9,11 +9,12 @@ export interface SectionProps extends ParentProps {
   title: string;
   /** Optional secondary lines shown beneath the title. */
   description?: string | readonly string[];
+  active?: boolean;
 }
 
 function descriptions(value: SectionProps["description"]): readonly string[] {
   if (!value) return [];
-  return typeof value === "string" ? [value] : value;
+  return typeof value === "string" ? [value] : value.filter(Boolean);
 }
 
 /**
@@ -23,26 +24,30 @@ function descriptions(value: SectionProps["description"]): readonly string[] {
  * so headings and detail text remain consistent across pages.
  */
 export function Section(props: SectionProps) {
+  const resolved = children(() => props.children);
+
   return (
     <box
       flexDirection="row"
       gap={1}
       backgroundColor={tokens.surfaceOverlay}
       border={["left"]}
-      borderColor={tokens.accentSoft}
+      borderColor={props.active ? tokens.accent : tokens.accentSoft}
     >
       <box flexDirection="column" gap={1} padding={1}>
         <box flexDirection="column" gap={0}>
-          <text attributes={TextAttributes.BOLD} fg={tokens.text}>
+          <text attributes={TextAttributes.BOLD} fg={props.active ? tokens.accent : tokens.text}>
             {props.title}
           </text>
           {descriptions(props.description).map((description) => (
             <text fg={tokens.textDim}>{description}</text>
           ))}
         </box>
-        <box flexDirection="column" paddingLeft={1}>
-          {props.children}
-        </box>
+        <Show when={resolved()}>
+          <box flexDirection="column" paddingLeft={1}>
+            {resolved()}
+          </box>
+        </Show>
       </box>
     </box>
   );

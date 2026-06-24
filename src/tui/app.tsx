@@ -7,6 +7,8 @@ import { KeymapProvider, useBindings, useKeymap } from "@opentui/keymap/solid";
 import { checkForUpdate } from "../utils/update-check.ts";
 import { loadTuiState } from "../state/manager.ts";
 import type { Route, TuiStateEntry } from "../state/schema.ts";
+import { TEAMWORK_TIMESHEET_URL } from "../teamwork/consts.ts";
+import { openUrlInBrowser } from "../utils/browser.ts";
 
 import { DialogProvider, useDialog } from "./components/dialog.tsx";
 import { UpdateDialog } from "./components/update-dialog.tsx";
@@ -98,6 +100,26 @@ function Home() {
         run: () => {
           navigate({ page: "teamwork", tab: "project" });
           dialog.clear();
+        },
+      },
+      {
+        name: "teamwork.timers.open",
+        title: "Open Teamwork Timers",
+        desc: "Local timer tracking",
+        category: "Navigation",
+        run: () => {
+          navigate({ page: "teamwork", tab: "timers" });
+          dialog.clear();
+        },
+      },
+      {
+        name: "teamwork.timesheet.open",
+        title: "Open Teamwork Timesheet",
+        desc: "Open Teamwork time tracking in browser",
+        category: "Navigation",
+        run: () => {
+          dialog.clear();
+          void openUrlInBrowser(TEAMWORK_TIMESHEET_URL);
         },
       },
       {
