@@ -101,6 +101,16 @@ function Home() {
         },
       },
       {
+        name: "teamwork.timers.open",
+        title: "Open Teamwork Timers",
+        desc: "Local timer tracking",
+        category: "Navigation",
+        run: () => {
+          navigate({ page: "teamwork", tab: "timers" });
+          dialog.clear();
+        },
+      },
+      {
         name: "settings.open",
         title: "Open Settings",
         desc: "Configuration and setup",

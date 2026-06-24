@@ -5,6 +5,7 @@ import type { TeamworkTask } from "../../../teamwork/task-list-tasks.ts";
 import { tokens } from "../../tokens.ts";
 
 import { buildTaskMetadata } from "./task-metadata.tsx";
+import { TimerIndicator } from "./timer-indicator.tsx";
 import { Section } from "../layout/section.tsx";
 
 /** Renders a list of tasks with name, status, and styled metadata row. Supports keyboard selection highlight. */
@@ -21,11 +22,12 @@ export function TaskList(props: {
     <box gap={1}>
       <For each={props.tasks}>
         {(task) => {
-          const timerStatus = props.timerTaskIds?.includes(task.id)
-            ? props.runningTaskId === task.id
-              ? "running"
-              : "stopped"
-            : null;
+          const timerStatus = () =>
+            props.timerTaskIds?.includes(task.id)
+              ? props.runningTaskId === task.id
+                ? "running"
+                : "stopped"
+              : null;
 
           return (
             <box id={`task-${props.taskListId}-${task.id}`}>
@@ -34,18 +36,8 @@ export function TaskList(props: {
                 title={task.name}
                 description={buildTaskMetadata(task)}
               >
-                <Show when={timerStatus}>
-                  <text
-                    fg={
-                      timerStatus === "running"
-                        ? props.flashOn
-                          ? tokens.text
-                          : tokens.textDim
-                        : tokens.textDim
-                    }
-                  >
-                    ⏱ {timerStatus === "running" ? "Running" : "Stopped"}
-                  </text>
+                <Show when={timerStatus()}>
+                  <TimerIndicator status={timerStatus() ?? "stopped"} flashOn={props.flashOn} />
                 </Show>
               </Section>
             </box>

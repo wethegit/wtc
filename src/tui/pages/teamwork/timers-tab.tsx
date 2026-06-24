@@ -1,8 +1,9 @@
 import { createSignal, For, onCleanup, onMount } from "solid-js";
 
 import { loadLocalTimers, type LocalTimerEntry } from "../../../teamwork/timers/local.ts";
+import { TimerIndicator } from "../../components/teamwork/timer-indicator.tsx";
 import { Section } from "../../components/layout/section.tsx";
-import { tokens, palette } from "../../tokens.ts";
+import { tokens } from "../../tokens.ts";
 
 /** Teamwork timers tab showing local timers (running first, then stopped/pending). */
 export function TimersTab() {
@@ -55,17 +56,7 @@ export function TimersTab() {
               `Status: ${timer.status}`,
             ]}
           >
-            <text
-              fg={
-                timer.status === "running"
-                  ? flashOn()
-                    ? palette.green75
-                    : tokens.text
-                  : tokens.textDim
-              }
-            >
-              {timer.status === "running" ? "⏱ Running" : "⏹ Stopped"}
-            </text>
+            <TimerIndicator status={timer.status} flashOn={flashOn()} />
           </Section>
         )}
       </For>

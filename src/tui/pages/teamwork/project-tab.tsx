@@ -18,7 +18,9 @@ import {
 } from "../../../teamwork/timers/local.ts";
 import { getTeamworkTaskReference } from "../../../teamwork/tasks.ts";
 import { openUrlInBrowser } from "../../../utils/browser.ts";
+import { ConfirmDialog } from "../../components/confirm-dialog.tsx";
 import { TaskList } from "../../components/teamwork/task-list.tsx";
+import { useDialog } from "../../components/dialog.tsx";
 import { usePageScroll } from "../../components/layout/scroll-context.tsx";
 import { tokens } from "../../tokens.ts";
 
@@ -47,6 +49,7 @@ export function ProjectTab() {
   const [localTimers, setLocalTimers] = createSignal<LocalTimerEntry[]>([]);
   const [flashOn, setFlashOn] = createSignal(true);
   const [projectMessage, setProjectMessage] = createSignal("Loading project context...");
+  const dialog = useDialog();
   const scroll = usePageScroll();
 
   createEffect(() => {
@@ -171,13 +174,25 @@ export function ProjectTab() {
           await refreshLocalTimers();
         }
       } else {
-        const { stoppedPrevious } = await startLocalTimer(task.id, task.name);
+        if (runningTimer) {
+          dialog.replace(() => (
+            <ConfirmDialog
+              title="Switch timer?"
+              message={`Timer is already running for: ${runningTimer.taskName}`}
+              confirmLabel="switch"
+              onConfirm={async () => {
+                await startLocalTimer(task.id, task.name);
+                await refreshLocalTimers();
+                setProjectMessage(`Timer started for task: ${task.name} (previous paused)`);
+              }}
+            />
+          ));
+          return;
+        }
+
+        await startLocalTimer(task.id, task.name);
         await refreshLocalTimers();
-        setProjectMessage(
-          stoppedPrevious
-            ? `Timer started for task: ${task.name} (previous paused)`
-            : `Timer started for task: ${task.name}`,
-        );
+        setProjectMessage(`Timer started for task: ${task.name}`);
       }
     } catch (error) {
       setProjectMessage(error instanceof Error ? error.message : "Failed to toggle timer.");
