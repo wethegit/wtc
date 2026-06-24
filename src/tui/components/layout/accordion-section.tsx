@@ -26,12 +26,12 @@ function descriptions(value: AccordionSectionProps["description"]): readonly str
 export function AccordionSection(props: AccordionSectionProps) {
   return (
     <box
+      border
+      borderStyle="rounded"
+      borderColor={tokens.border}
+      padding={1}
       flexDirection="column"
       gap={1}
-      backgroundColor={tokens.surfaceOverlay}
-      border={["left"]}
-      borderColor={tokens.accentSoft}
-      padding={1}
     >
       <box flexDirection="column" gap={0} onMouseUp={props.onToggle}>
         <box flexDirection="row" gap={1}>

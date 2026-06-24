@@ -1,5 +1,4 @@
 import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
-import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 
 import { loadResolvedConfig } from "../../../config/manager.ts";
@@ -18,6 +17,7 @@ import {
 } from "../../../teamwork/timers/local.ts";
 import { getTeamworkTaskReference } from "../../../teamwork/tasks.ts";
 import { openUrlInBrowser } from "../../../utils/browser.ts";
+import { Card } from "../../components/layout/card.tsx";
 import { ConfirmDialog } from "../../components/confirm-dialog.tsx";
 import { TaskList } from "../../components/teamwork/task-list.tsx";
 import { useDialog } from "../../components/dialog.tsx";
@@ -250,58 +250,33 @@ export function ProjectTab() {
   });
 
   return (
-    <box
-      border
-      borderStyle="rounded"
-      borderColor={tokens.borderFocus}
-      paddingY={1}
-      paddingX={2}
-      gap={1}
-    >
-      <box>
+    <box flexDirection="column" gap={1}>
+      <Card title={projectMetadata()?.project.name}>
         {projectMetadata() ? (
-          <box flexDirection="row" justifyContent="space-between" gap={0}>
-            <text fg={tokens.text}>{projectMetadata()?.project.name}</text>
-            <text fg={tokens.textDim}>{projectMessage()}</text>
-          </box>
+          <text fg={tokens.textDim}>{projectMessage()}</text>
         ) : (
           <text fg={tokens.textDim}>{projectMessage()}</text>
         )}
-      </box>
 
-      {(resolved()?.project?.project.links.length ?? 0) > 0 && (
-        <box>
-          <text attributes={TextAttributes.BOLD} fg={tokens.text}>
-            Project links
-          </text>
-          <For each={resolved()?.project?.project.links ?? []}>
-            {(link) => (
-              <text fg={tokens.textDim}>
-                {link.name}: {link.url}
-              </text>
-            )}
-          </For>
-        </box>
-      )}
+        {(resolved()?.project?.project.links.length ?? 0) > 0 && (
+          <box flexDirection="column" gap={0}>
+            <text fg={tokens.text}>Project links</text>
+            <For each={resolved()?.project?.project.links ?? []}>
+              {(link) => (
+                <text fg={tokens.textDim}>
+                  {link.name}: {link.url}
+                </text>
+              )}
+            </For>
+          </box>
+        )}
+      </Card>
 
       {(resolved()?.project?.teamwork.pinnedTaskLists.length ?? 0) > 0 && (
-        <box
-          border={["top", "left"]}
-          borderColor={tokens.border}
-          title="Pinned task lists"
-          titleColor={tokens.text}
-          paddingY={1}
-          gap={1}
-        >
+        <Card title="Pinned task lists">
           <For each={pinnedTaskLists()}>
             {(taskList) => (
-              <box
-                border={["top", "left"]}
-                borderColor={tokens.border}
-                title={taskList.name}
-                titleColor={tokens.text}
-                paddingY={1}
-              >
+              <Card title={taskList.name}>
                 {taskList.message ? (
                   <text fg={tokens.textDim}>{taskList.message}</text>
                 ) : (
@@ -312,17 +287,15 @@ export function ProjectTab() {
                     selectedTaskId={
                       selectedTask()?.taskListId === taskList.id ? selectedTask()?.taskId : null
                     }
-                    timerTaskIds={localTimers().map((t) => t.taskId)}
-                    runningTaskId={
-                      localTimers().find((t) => t.status === "running")?.taskId ?? null
-                    }
+                    localTimers={localTimers()}
+                    now={new Date()}
                     flashOn={flashOn()}
                   />
                 )}
-              </box>
+              </Card>
             )}
           </For>
-        </box>
+        </Card>
       )}
     </box>
   );
