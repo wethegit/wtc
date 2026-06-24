@@ -269,7 +269,7 @@ export function ProjectTab() {
         )}
       </box>
 
-      {resolved()?.project?.project.links.length && (
+      {resolved()?.project?.project.links.length > 0 && (
         <box>
           <text attributes={TextAttributes.BOLD} fg={tokens.text}>
             Project links
