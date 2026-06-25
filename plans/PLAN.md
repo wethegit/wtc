@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** Phase 5 Teamwork (5.1 ✅, 5.2 ✅, 5.4 ✅; 5.3 pending)
+- **Status:** Phase 5 Teamwork (5.1 ✅, 5.2 ✅, 5.3 ✅, 5.4 ✅)
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js

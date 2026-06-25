@@ -14,6 +14,8 @@ import type {
 } from "../../api/teamwork/task-list-tasks.ts";
 import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
+import { getTeamworkCurrentUserId } from "../../api/teamwork/user.ts";
+import { getTeamworkMyTasksGrouped, type MyWorkTask } from "../../api/teamwork/my-tasks.ts";
 
 interface PinnedTaskListsResult {
   projectConfigPath: string | null;
@@ -198,4 +200,80 @@ export async function teamworkTaskOpen(
   const task = getTeamworkTaskReference(args.task);
   await actions.openUrlInBrowser(task.url);
   console.log(`Opened Teamwork task: ${task.url}`);
+}
+
+interface TeamworkTaskMineActions {
+  getTeamworkCurrentUserId: () => Promise<number>;
+  getTeamworkMyTasksGrouped: (
+    userId: number,
+  ) => Promise<{ projectId: number; projectName: string; tasks: MyWorkTask[] }[]>;
+}
+
+const teamworkTaskMineActions: TeamworkTaskMineActions = {
+  getTeamworkCurrentUserId,
+  getTeamworkMyTasksGrouped,
+};
+
+/**
+ * Formats a MyWorkTask's metadata fields into human-readable text lines for CLI output.
+ *
+ * Example output: `["assignee: Marlon Marcello", "due: 2026-06-24", "priority: high"]`
+ */
+function formatMyWorkTaskMetadata(task: MyWorkTask): string[] {
+  const metadata: string[] = [];
+
+  if (task.assignees.length === 1) metadata.push(`assignee: ${task.assignees[0]}`);
+  if (task.assignees.length > 1) metadata.push(`assignees: ${task.assignees.join(", ")}`);
+  if (task.dueDate) metadata.push(`due: ${task.dueDate}`);
+  if (task.priority) metadata.push(`priority: ${task.priority}`);
+
+  return metadata;
+}
+
+/**
+ * Formats my tasks output for CLI display.
+ *
+ * Example output:
+ * ```
+ * Alpha Project:
+ *   - Dev | Code Review [active]
+ *     assignee: Marlon Marcello | due: 2026-06-24 | priority: high
+ * Beta Project:
+ *   - General | Meeting
+ * ```
+ */
+export function formatTeamworkTaskMineOutput(
+  groups: { projectId: number; projectName: string; tasks: MyWorkTask[] }[],
+  options: { json: boolean },
+): string {
+  if (options.json) return JSON.stringify(groups, null, 2);
+
+  if (!groups.length) return "No tasks found for the next 7 days.";
+
+  const lines: string[] = [];
+  for (const group of groups) {
+    if (!group.projectName) {
+      lines.push("Unknown project:");
+    } else {
+      lines.push(`${group.projectName}:`);
+    }
+
+    for (const task of group.tasks) {
+      lines.push(`  - ${task.name}${task.status ? ` [${task.status}]` : ""}`);
+      const metadata = formatMyWorkTaskMetadata(task);
+      if (metadata.length) lines.push(`    ${metadata.join(" | ")}`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
+/** Lists tasks assigned to the current user due within the next 7 days (including overdue). */
+export async function teamworkTaskMine(
+  args: { json: boolean },
+  actions = teamworkTaskMineActions,
+): Promise<void> {
+  const userId = await actions.getTeamworkCurrentUserId();
+  const groups = await actions.getTeamworkMyTasksGrouped(userId);
+  console.log(formatTeamworkTaskMineOutput(groups, { json: args.json }));
 }

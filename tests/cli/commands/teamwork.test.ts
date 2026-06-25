@@ -10,6 +10,7 @@ import {
 import type { ProjectConfig, ResolvedConfig } from "../../../src/api/config/schema.ts";
 import { TEAMWORK_BASE_URL } from "../../../src/api/teamwork/consts.ts";
 import type { TeamworkTask } from "../../../src/api/teamwork/task-list-tasks.ts";
+import type { MyWorkTask } from "../../../src/api/teamwork/my-tasks.ts";
 
 const resolvedConfig: ResolvedConfig = {
   user: { version: 1, workspaceName: "WTC" },
@@ -208,5 +209,133 @@ No pinned task lists configured.`,
 
     expect(openedUrls).toEqual([`${TEAMWORK_BASE_URL}/app/tasks/12345`]);
     expect(logs).toEqual([`Opened Teamwork task: ${TEAMWORK_BASE_URL}/app/tasks/12345`]);
+  });
+});
+
+const alphaTask: MyWorkTask = {
+  id: 1,
+  name: "Dev | Code Review",
+  status: "active",
+  url: null,
+  projectId: 5001,
+  projectName: "Alpha Project",
+  dueDate: "2026-06-24",
+  assignees: ["Marlon Marcello"],
+  priority: "high",
+};
+
+const betaTask: MyWorkTask = {
+  id: 2,
+  name: "General | Meeting",
+  status: null,
+  url: null,
+  projectId: 5002,
+  projectName: "Beta Project",
+  dueDate: null,
+  assignees: [],
+  priority: null,
+};
+
+describe("teamwork task mine", () => {
+  beforeEach(() => {
+    logs = [];
+    console.log = (message?: unknown) => {
+      logs.push(String(message));
+    };
+  });
+
+  afterEach(() => {
+    console.log = originalLog;
+  });
+
+  test("formats my tasks output as text", async () => {
+    const { formatTeamworkTaskMineOutput } = await import("../../../src/cli/commands/teamwork.ts");
+
+    const output = formatTeamworkTaskMineOutput(
+      [
+        {
+          projectId: 5001,
+          projectName: "Alpha Project",
+          tasks: [alphaTask],
+        },
+        {
+          projectId: 5002,
+          projectName: "Beta Project",
+          tasks: [betaTask],
+        },
+      ],
+      { json: false },
+    );
+
+    expect(output).toBe(`Alpha Project:
+  - Dev | Code Review [active]
+    assignee: Marlon Marcello | due: 2026-06-24 | priority: high
+Beta Project:
+  - General | Meeting`);
+  });
+
+  test("formats my tasks output as JSON", async () => {
+    const { formatTeamworkTaskMineOutput } = await import("../../../src/cli/commands/teamwork.ts");
+
+    const groups = [
+      {
+        projectId: 5001,
+        projectName: "Alpha Project",
+        tasks: [alphaTask],
+      },
+    ];
+
+    const output = formatTeamworkTaskMineOutput(groups, { json: true });
+    expect(JSON.parse(output)).toEqual(groups);
+  });
+
+  test("formats empty output", async () => {
+    const { formatTeamworkTaskMineOutput } = await import("../../../src/cli/commands/teamwork.ts");
+
+    const output = formatTeamworkTaskMineOutput([], { json: false });
+    expect(output).toBe("No tasks found for the next 7 days.");
+  });
+
+  test("prints my tasks using actions", async () => {
+    const { teamworkTaskMine } = await import("../../../src/cli/commands/teamwork.ts");
+
+    await teamworkTaskMine(
+      { json: false },
+      {
+        getTeamworkCurrentUserId: async () => 238814,
+        getTeamworkMyTasksGrouped: async () => [
+          {
+            projectId: 5001,
+            projectName: "Alpha Project",
+            tasks: [alphaTask],
+          },
+        ],
+      },
+    );
+
+    expect(logs[0]).toContain("Alpha Project");
+    expect(logs[0]).toContain("Dev | Code Review");
+  });
+
+  test("prints my tasks as JSON using actions", async () => {
+    const { teamworkTaskMine } = await import("../../../src/cli/commands/teamwork.ts");
+
+    await teamworkTaskMine(
+      { json: true },
+      {
+        getTeamworkCurrentUserId: async () => 238814,
+        getTeamworkMyTasksGrouped: async () => [
+          {
+            projectId: 5001,
+            projectName: "Alpha Project",
+            tasks: [alphaTask],
+          },
+        ],
+      },
+    );
+
+    const parsed = JSON.parse(logs[0] ?? "");
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0]?.projectName).toBe("Alpha Project");
   });
 });
