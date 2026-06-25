@@ -59,9 +59,9 @@ Create a lightweight, deletable runtime data layer:
 
 | File                                    | Purpose                                      |
 | --------------------------------------- | -------------------------------------------- |
-| `src/state/consts.ts`                   | `CACHE_DIR` constant                         |
-| `src/state/schema.ts`                   | Zod schemas for state file format            |
-| `src/state/manager.ts`                  | `loadTuiState`, `saveTuiState`, `clearCache` |
+| `src/api/cache/consts.ts`               | `CACHE_DIR` constant                         |
+| `src/api/state/schema.ts`               | Zod schemas for state file format            |
+| `src/api/state/manager.ts`              | `loadTuiState`, `saveTuiState`, `clearCache` |
 | `src/tui/components/state-provider.tsx` | Solid context provider + `useTuiState` hook  |
 | `src/cli/commands/cache.ts`             | CLI handler for `wtc cache clean`            |
 
@@ -90,7 +90,7 @@ Create a lightweight, deletable runtime data layer:
 
 ## Schema
 
-File: `src/state/schema.ts`
+File: `src/api/state/schema.ts`
 
 ```ts
 import { z } from "zod";
@@ -144,7 +144,7 @@ The `z.record(...)` pattern makes future fields (scroll position, collapsed sect
 
 ## State Manager
 
-File: `src/state/manager.ts`
+File: `src/api/state/manager.ts`
 
 All functions use Bun-native APIs directly (`Bun.file().json()`, `Bun.write()`, `Bun.file().exists()`). No shared wrappers.
 
@@ -262,14 +262,14 @@ This brings both caches under one deletable roof.
 
 ### Step 1 — Define schemas
 
-File: `src/state/schema.ts`
+File: `src/api/state/schema.ts`
 
 - `TuiStateEntrySchema` with nested `lastRoute: { page, tab }` + `lastUpdated` string
 - `TuiStateFileSchema` with `version: 1` + `entries` record
 
 ### Step 2 — Create state consts
 
-File: `src/state/consts.ts`
+File: `src/api/cache/consts.ts`
 
 ```ts
 export const CACHE_DIR = join(homedir(), ".config", "wtc", "cache");
@@ -277,7 +277,7 @@ export const CACHE_DIR = join(homedir(), ".config", "wtc", "cache");
 
 ### Step 3 — Implement state manager
 
-File: `src/state/manager.ts`
+File: `src/api/state/manager.ts`
 
 - `loadTuiState(dir)` — reads file, finds entry by key, returns entry or defaults
 - `saveTuiState(dir, partial)` — reads/creates file, merges entry, writes

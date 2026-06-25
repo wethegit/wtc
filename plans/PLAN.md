@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** Phase 5 Teamwork (5.1-5.2 complete, 5.3-5.4 in progress)
+- **Status:** Phase 5 Teamwork (5.1 ✅, 5.2 ✅, 5.4 ✅; 5.3 pending)
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js
@@ -111,7 +111,7 @@ See `CONFIG_SETUP.md` for the detailed implementation plan, config versioning mo
 - Start with one project-level field: `teamworkProjectId`
 - Treat config `version` as a file format version, not the WTC application version
 
-### Phase 4 — Persistent TUI State & Cache 🔨
+### Phase 4 — Persistent TUI State & Cache ✅
 
 See `STATE_MANAGER.md` for the detailed implementation plan, schema, manager API, TUI integration, CLI command, and testing boundaries.
 
@@ -138,7 +138,7 @@ Project-configured Teamwork task lists for recurring project tasks such as code 
 
 Assigned Teamwork tasks for the current user with selection and basic task actions.
 
-#### Phase 5.4 — [Timers and Time Tracking](teamwork/5.4-timers-and-time-tracking.md)
+#### Phase 5.4 — [Timers and Time Tracking](teamwork/5.4-timers-and-time-tracking.md) ✅
 
 Timer overview, task timer indicators, start/pause/delete actions, timesheet access, and timer conflict confirmations.
 

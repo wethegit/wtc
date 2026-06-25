@@ -191,7 +191,7 @@ At the end of MVP:
 
 - Self-upgrade (`wtc upgrade` command with binary download + atomic replace)
 - Full Terraform-backed Amplify config
-- Configuration layer with encrypted secrets (`src/config/`)
+- Configuration layer with encrypted secrets (`src/api/config/`)
 - Multi-platform build matrix in CI
 - Teamwork API integration details
 - Branch protection configuration via GitHub API

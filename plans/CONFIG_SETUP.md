@@ -226,7 +226,7 @@ The status bar should become contextual enough to show these hints on the Settin
 
 ### Step 1 — Define Config Schemas
 
-File: `src/config/schema.ts`
+File: `src/api/config/schema.ts`
 
 Add separate schemas:
 
@@ -243,7 +243,7 @@ Use zod defaults for missing optional fields where appropriate.
 
 ### Step 2 — Refactor Config Manager
 
-File: `src/config/manager.ts`
+File: `src/api/config/manager.ts`
 
 Add functions:
 
