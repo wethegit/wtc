@@ -288,7 +288,6 @@ export function ProjectTab() {
                       selectedTask()?.taskListId === taskList.id ? selectedTask()?.taskId : null
                     }
                     localTimers={localTimers()}
-                    now={new Date()}
                     flashOn={flashOn()}
                   />
                 )}
