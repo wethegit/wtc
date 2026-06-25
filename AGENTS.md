@@ -80,9 +80,9 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 
 Examples:
 
-- `getCacheDir()` belongs in `src/state/consts.ts` because it is shared and owns `WTC_CACHE_DIR`.
-- `getUserConfigDir()` belongs in `src/config/consts.ts` because it owns `WTC_CONFIG_DIR`.
-- `STATE_FILE = "tui-state.json"` belongs in `src/state/manager.ts` because only the state manager uses it.
+- `getCacheDir()` belongs in `src/api/cache/consts.ts` because it is shared and owns `WTC_CACHE_DIR`.
+- `getUserConfigDir()` belongs in `src/api/config/consts.ts` because it owns `WTC_CONFIG_DIR`.
+- `STATE_FILE = "tui-state.json"` belongs in `src/api/state/manager.ts` because only the state manager uses it.
 - `getStatePath()` should not exist if it only appends `STATE_FILE` to `getCacheDir()` in one module.
 - `formatUserConfig()` is valid because Bun's YAML parser does not preserve comments, so config saves need explicit commented formatting.
 
