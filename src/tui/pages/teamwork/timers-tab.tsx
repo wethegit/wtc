@@ -6,6 +6,7 @@ import {
   loadLocalTimers,
   removeLocalTimer,
   stopLocalTimer,
+  submitLocalTimer,
   type LocalTimerEntry,
 } from "../../../api/teamwork/timers/local.ts";
 import { createTaskTimeEntry } from "../../../api/teamwork/timers.ts";
@@ -118,26 +119,9 @@ export function TimersTab() {
         confirmLabel="submit"
         onConfirm={async () => {
           try {
-            const timerToSubmit = timer.status === "running" ? await stopLocalTimer() : timer;
-            if (!timerToSubmit) {
-              setMessage("No running timer found to submit.");
-              return;
-            }
-
-            const finalMinutes = Math.max(
-              1,
-              Math.ceil(getLocalTimerElapsedMs(timerToSubmit, new Date()) / 60_000),
-            );
-            await createTaskTimeEntry({
-              taskId: timerToSubmit.taskId,
-              date: timerToSubmit.startTime.slice(0, 10),
-              hours: Math.floor(finalMinutes / 60),
-              minutes: finalMinutes % 60,
-              description: timerToSubmit.taskName,
-            });
-            await removeLocalTimer(timerToSubmit.id);
+            const result = await submitLocalTimer(timer, { createTaskTimeEntry });
             await refreshTimers();
-            setMessage(`Timer submitted: ${timerToSubmit.taskName}`);
+            setMessage(`Timer submitted: ${result.taskName}`);
           } catch (error) {
             setMessage(error instanceof Error ? error.message : "Failed to submit timer.");
           }
