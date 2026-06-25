@@ -101,12 +101,6 @@ export function MyWorkTab() {
         },
       },
       {
-        key: "return",
-        desc: "Open task in browser",
-        group: "My Work",
-        cmd: () => openSelectedTask(selectedMyWorkTask()),
-      },
-      {
         key: "ctrl+o",
         desc: "Open task in browser",
         group: "My Work",

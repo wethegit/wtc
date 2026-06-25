@@ -232,12 +232,7 @@ function App(props: { dir: string; initialState: TuiStateEntry }) {
     // need the keymap so they can register modal Escape/Return bindings.
     <KeymapProvider keymap={keymap}>
       <DialogProvider>
-        <StatusBarProvider
-          globalHints={[
-            { key: "ctrl+p", label: "commands" },
-            { key: "ctrl+c", label: "quit" },
-          ]}
-        >
+        <StatusBarProvider globalHints={[{ key: "ctrl+p", label: "commands" }]}>
           <StateProvider dir={props.dir} initialState={props.initialState}>
             <Home />
           </StateProvider>
