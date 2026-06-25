@@ -89,7 +89,8 @@ export async function getTeamworkCurrentUser(): Promise<TeamworkCurrentUser> {
     };
 
     cache.user = {
-      ...user,
+      id: user.id,
+      name: user.name,
       email: user.email ?? undefined,
       avatarUrl: user.avatarUrl ?? undefined,
       cachedAt: now,

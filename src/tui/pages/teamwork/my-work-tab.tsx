@@ -35,7 +35,7 @@ export function MyWorkTab() {
   createEffect(() => {
     const sel = selectedTask();
     if (sel && scroll) {
-      scroll.scrollChildIntoView(`my-task-${sel.projectId}-${sel.taskId}`);
+      scroll.scrollChildIntoView(`task-${sel.projectId}-${sel.taskId}`);
     }
   });
 
@@ -52,6 +52,7 @@ export function MyWorkTab() {
 
   const loadMyWork = async () => {
     setMessage("Loading my tasks...");
+    setCurrentUser(null);
     setProjectGroups([]);
     setSelectedTask(null);
 
