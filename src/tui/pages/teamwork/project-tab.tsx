@@ -136,12 +136,6 @@ export function ProjectTab() {
         },
       },
       {
-        key: "return",
-        desc: "Open pinned Teamwork task",
-        group: "Teamwork",
-        cmd: () => openSelectedTask(selectedTeamworkTask()),
-      },
-      {
         key: "ctrl+o",
         desc: "Open pinned Teamwork task",
         group: "Teamwork",

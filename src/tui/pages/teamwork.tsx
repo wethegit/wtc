@@ -71,20 +71,23 @@ export function TeamworkPage(props: {
       tab === "project"
         ? [
             { key: "ctrl+←/→", label: "tabs" },
-            { key: "↑/↓", label: "tasks" },
-            { key: "enter/ctrl+o", label: "open" },
+            { key: "ctrl+o", label: "open" },
             { key: "ctrl+t", label: "timer" },
           ]
         : tab === "timers"
           ? [
               { key: "ctrl+←/→", label: "tabs" },
-              { key: "↑/↓", label: "timers" },
-              { key: "ctrl+t", label: "stop" },
+              { key: "ctrl+t", label: "toggle" },
               { key: "ctrl+s", label: "submit" },
               { key: "ctrl+d", label: "discard" },
               { key: "ctrl+o", label: "timesheet" },
             ]
-          : [{ key: "ctrl+←/→", label: "tabs" }],
+          : [
+              { key: "ctrl+←/→", label: "tabs" },
+              { key: "↑/↓", label: "tasks" },
+              { key: "ctrl+o", label: "open" },
+              { key: "ctrl+t", label: "timer" },
+            ],
     );
   });
 
