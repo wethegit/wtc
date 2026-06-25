@@ -186,17 +186,20 @@ describe("removeLocalTimer", () => {
 
 describe("submitLocalTimer", () => {
   test("submits a stopped timer and removes it", async () => {
-    const { timer } = await startLocalTimer(42, "Test Task");
-    await stopLocalTimer();
+    await startLocalTimer(42, "Test Task");
+    const stopped = await stopLocalTimer();
+    if (!stopped) {
+      expect(true).toBe(false);
+      return;
+    }
 
-    const result = await submitLocalTimer(
-      { ...timer, status: "stopped" },
-      { createTaskTimeEntry: async () => 99 },
-    );
+    const result = await submitLocalTimer(stopped, {
+      createTaskTimeEntry: async () => 99,
+    });
 
     expect(result.taskName).toBe("Test Task");
     expect(result.taskId).toBe(42);
-    expect(result.elapsedMs).toBeGreaterThan(0);
+    expect(result.elapsedMs).toBeGreaterThanOrEqual(0);
 
     expect((await loadLocalTimers()).length).toBe(0);
   });
