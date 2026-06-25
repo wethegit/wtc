@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.5
+
+### Patch Changes
+
+- [#38](https://github.com/wethegit/wtc/pull/38) [`6ac309f`](https://github.com/wethegit/wtc/commit/6ac309f0726cd86319e72b5e3d6f0ec6d1ad75f7) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Design tweaks and cleanup.
+
 ## 0.3.4
 
 ### Patch Changes
