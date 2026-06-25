@@ -11,7 +11,5 @@ export const upgradeCommand: CommandModule<{}, { check: boolean }> = {
       type: "boolean",
       describe: "Only check for updates",
     }) as unknown as Argv<{ check: boolean }>,
-  handler: (argv) => {
-    void upgrade({ check: argv.check ?? false });
-  },
+  handler: (argv) => upgrade({ check: argv.check ?? false }),
 };

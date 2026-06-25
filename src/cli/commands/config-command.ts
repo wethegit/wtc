@@ -11,9 +11,7 @@ import {
 const configInitCommand: CommandModule = {
   command: "init",
   describe: "Create a project config in the current directory",
-  handler: () => {
-    void configInit();
-  },
+  handler: () => configInit(),
 };
 
 const configAuthSetCommand: CommandModule<{}, { provider: string; token: string }> = {
@@ -31,9 +29,7 @@ const configAuthSetCommand: CommandModule<{}, { provider: string; token: string 
         describe: "API token to store",
         demandOption: true,
       }) as unknown as Argv<{ provider: string; token: string }>,
-  handler: (argv) => {
-    void configAuthSet({ provider: argv.provider ?? "", token: argv.token });
-  },
+  handler: (argv) => configAuthSet({ provider: argv.provider ?? "", token: argv.token }),
 };
 
 const configAuthStatusCommand: CommandModule<{}, { provider: string }> = {
@@ -45,9 +41,7 @@ const configAuthStatusCommand: CommandModule<{}, { provider: string }> = {
       choices: [...CONFIG_AUTH_PROVIDERS],
       describe: "Auth provider",
     }) as unknown as Argv<{ provider: string }>,
-  handler: (argv) => {
-    void configAuthStatus({ provider: argv.provider ?? "" });
-  },
+  handler: (argv) => configAuthStatus({ provider: argv.provider ?? "" }),
 };
 
 const configAuthDeleteCommand: CommandModule<{}, { provider: string }> = {
@@ -59,9 +53,7 @@ const configAuthDeleteCommand: CommandModule<{}, { provider: string }> = {
       choices: [...CONFIG_AUTH_PROVIDERS],
       describe: "Auth provider",
     }) as unknown as Argv<{ provider: string }>,
-  handler: (argv) => {
-    void configAuthDelete({ provider: argv.provider ?? "" });
-  },
+  handler: (argv) => configAuthDelete({ provider: argv.provider ?? "" }),
 };
 
 const configAuthCommand: CommandModule = {

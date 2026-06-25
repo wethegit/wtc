@@ -24,9 +24,7 @@ const taskListPinnedCommand: CommandModule<{}, { json: boolean }> = {
       describe: "Print JSON output",
       default: false,
     }) as unknown as Argv<{ json: boolean }>,
-  handler: (argv) => {
-    void teamworkTaskListPinned({ json: argv.json ?? false });
-  },
+  handler: (argv) => teamworkTaskListPinned({ json: argv.json ?? false }),
 };
 
 const taskListPinCommand: CommandModule<{}, { taskListId: number; name: string }> = {
@@ -43,12 +41,11 @@ const taskListPinCommand: CommandModule<{}, { taskListId: number; name: string }
         describe: "Display name for this task list",
         demandOption: true,
       }) as unknown as Argv<{ taskListId: number; name: string }>,
-  handler: (argv) => {
-    void teamworkTaskListPin({
+  handler: (argv) =>
+    teamworkTaskListPin({
       taskListId: argv.taskListId ?? 0,
       name: argv.name ?? "",
-    });
-  },
+    }),
 };
 
 const taskListUnpinCommand: CommandModule<{}, { taskListId: number }> = {
@@ -59,9 +56,7 @@ const taskListUnpinCommand: CommandModule<{}, { taskListId: number }> = {
       type: "number",
       describe: "Teamwork task list ID",
     }) as unknown as Argv<{ taskListId: number }>,
-  handler: (argv) => {
-    void teamworkTaskListUnpin({ taskListId: argv.taskListId ?? 0 });
-  },
+  handler: (argv) => teamworkTaskListUnpin({ taskListId: argv.taskListId ?? 0 }),
 };
 
 const taskListCommand: CommandModule = {
@@ -84,9 +79,7 @@ const taskOpenCommand: CommandModule<{}, { task: string }> = {
       type: "string",
       describe: "Teamwork task ID or URL",
     }) as unknown as Argv<{ task: string }>,
-  handler: (argv) => {
-    void teamworkTaskOpen({ task: argv.task ?? "" });
-  },
+  handler: (argv) => teamworkTaskOpen({ task: argv.task ?? "" }),
 };
 
 const taskCommand: CommandModule = {
@@ -106,9 +99,7 @@ const timerListCommand: CommandModule<{}, { json: boolean }> = {
       describe: "Print JSON output",
       default: false,
     }) as unknown as Argv<{ json: boolean }>,
-  handler: (argv) => {
-    void teamworkTimerList({ json: argv.json ?? false });
-  },
+  handler: (argv) => teamworkTimerList({ json: argv.json ?? false }),
 };
 
 const timerStartCommand: CommandModule<{}, { task: string }> = {
@@ -119,9 +110,7 @@ const timerStartCommand: CommandModule<{}, { task: string }> = {
       type: "string",
       describe: "Teamwork task ID or URL",
     }) as unknown as Argv<{ task: string }>,
-  handler: (argv) => {
-    void teamworkTimerStart({ task: argv.task ?? "" });
-  },
+  handler: (argv) => teamworkTimerStart({ task: argv.task ?? "" }),
 };
 
 const timerStopCommand: CommandModule<{}, { task: string }> = {
@@ -132,9 +121,7 @@ const timerStopCommand: CommandModule<{}, { task: string }> = {
       type: "string",
       describe: "Teamwork task ID or URL",
     }) as unknown as Argv<{ task: string }>,
-  handler: (argv) => {
-    void teamworkTimerStop({ task: argv.task ?? "" });
-  },
+  handler: (argv) => teamworkTimerStop({ task: argv.task ?? "" }),
 };
 
 const timerSubmitCommand: CommandModule<{}, { task: string }> = {
@@ -145,9 +132,7 @@ const timerSubmitCommand: CommandModule<{}, { task: string }> = {
       type: "string",
       describe: "Teamwork task ID or URL",
     }) as unknown as Argv<{ task: string }>,
-  handler: (argv) => {
-    void teamworkTimerSubmit({ task: argv.task ?? "" });
-  },
+  handler: (argv) => teamworkTimerSubmit({ task: argv.task ?? "" }),
 };
 
 const timerDiscardCommand: CommandModule<{}, { task: string }> = {
@@ -158,9 +143,7 @@ const timerDiscardCommand: CommandModule<{}, { task: string }> = {
       type: "string",
       describe: "Teamwork task ID or URL",
     }) as unknown as Argv<{ task: string }>,
-  handler: (argv) => {
-    void teamworkTimerDiscard({ task: argv.task ?? "" });
-  },
+  handler: (argv) => teamworkTimerDiscard({ task: argv.task ?? "" }),
 };
 
 const timerCommand: CommandModule = {
@@ -180,9 +163,7 @@ const timerCommand: CommandModule = {
 const timesheetCommand: CommandModule = {
   command: "timesheet",
   describe: "Open the Teamwork timesheet in the browser",
-  handler: () => {
-    void teamworkTimesheetOpen();
-  },
+  handler: () => teamworkTimesheetOpen(),
 };
 
 export const teamworkCommand: CommandModule = {

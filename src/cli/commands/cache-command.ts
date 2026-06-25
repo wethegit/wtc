@@ -5,9 +5,7 @@ import { cacheClean } from "./cache.ts";
 const cacheCleanCommand: CommandModule = {
   command: "clean",
   describe: "Delete all cached data",
-  handler: () => {
-    void cacheClean();
-  },
+  handler: () => cacheClean(),
 };
 
 export const cacheCommand: CommandModule = {
