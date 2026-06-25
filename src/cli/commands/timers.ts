@@ -268,7 +268,7 @@ export async function teamworkTimerDiscard(
   const taskTimers = timers.filter((t) => t.taskId === ref.id);
   if (taskTimers.length > 1) {
     console.log(
-      `Multiple local timers found for task #${ref.id}. Use submit or discard the timer IDs directly.`,
+      `Multiple local timers found for task #${ref.id}. Keep only one timer for this task before submitting or discarding.`,
     );
     return;
   }

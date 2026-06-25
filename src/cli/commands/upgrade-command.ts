@@ -9,7 +9,7 @@ export const upgradeCommand: CommandModule<{}, { check: boolean }> = {
     yargs.option("check", {
       alias: "c",
       type: "boolean",
-      description: "Only check for updates",
+      describe: "Only check for updates",
     }) as unknown as Argv<{ check: boolean }>,
   handler: (argv) => {
     void upgrade({ check: argv.check ?? false });
