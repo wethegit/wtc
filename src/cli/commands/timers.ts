@@ -1,7 +1,11 @@
 import { TEAMWORK_TIMESHEET_URL } from "../../api/teamwork/consts.ts";
 import { getTeamworkTaskReference, type TeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
-import { getLocalTimerElapsedMs, formatTimerDuration } from "../../api/teamwork/timers/local.ts";
+import {
+  getLocalTimerElapsedMs,
+  formatTimerDuration,
+  submitLocalTimer,
+} from "../../api/teamwork/timers/local.ts";
 import type { LocalTimerEntry } from "../../api/teamwork/timers/local.ts";
 import { createTaskTimeEntry, type TeamworkTaskTimeEntryInput } from "../../api/teamwork/timers.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
@@ -26,9 +30,7 @@ interface TimerStopActions extends TimerHandleActions {
 }
 
 interface TimerSubmitActions extends TimerHandleActions {
-  stopLocalTimer: () => Promise<LocalTimerEntry | null>;
   createTaskTimeEntry: (input: TeamworkTaskTimeEntryInput) => Promise<number>;
-  removeLocalTimer: (id: string) => Promise<void>;
 }
 
 interface TimerDiscardActions extends TimerHandleActions {
@@ -73,15 +75,7 @@ const timerStopActions: TimerStopActions = {
 
 const timerSubmitActions: TimerSubmitActions = {
   ...timerHandleActions,
-  stopLocalTimer: async () => {
-    const { stopLocalTimer } = await import("../../api/teamwork/timers/local.ts");
-    return stopLocalTimer();
-  },
   createTaskTimeEntry,
-  removeLocalTimer: async (id) => {
-    const { removeLocalTimer } = await import("../../api/teamwork/timers/local.ts");
-    return removeLocalTimer(id);
-  },
 };
 
 const timerDiscardActions: TimerDiscardActions = {
@@ -231,25 +225,14 @@ export async function teamworkTimerSubmit(
     return;
   }
 
-  const timerToSubmit = match.status === "running" ? await actions.stopLocalTimer() : match;
-  if (!timerToSubmit) {
-    console.log("No timer found to submit.");
-    return;
+  try {
+    const result = await submitLocalTimer(match, {
+      createTaskTimeEntry: actions.createTaskTimeEntry,
+    });
+    console.log(`Timer submitted for: ${result.taskName} (#${result.taskId})`);
+  } catch (error) {
+    console.log(error instanceof Error ? error.message : "No timer found to submit.");
   }
-
-  const elapsedMs = getLocalTimerElapsedMs(timerToSubmit, new Date());
-  const totalMinutes = Math.max(1, Math.ceil(elapsedMs / 60_000));
-
-  await actions.createTaskTimeEntry({
-    taskId: timerToSubmit.taskId,
-    date: timerToSubmit.startTime.slice(0, 10),
-    hours: Math.floor(totalMinutes / 60),
-    minutes: totalMinutes % 60,
-    description: timerToSubmit.taskName,
-  });
-
-  await actions.removeLocalTimer(timerToSubmit.id);
-  console.log(`Timer submitted for: ${timerToSubmit.taskName} (#${timerToSubmit.taskId})`);
 }
 
 export async function teamworkTimerDiscard(

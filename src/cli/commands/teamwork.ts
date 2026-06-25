@@ -4,20 +4,20 @@ import {
   type ProjectConfig,
   type ResolvedConfig,
 } from "../../api/config/schema.ts";
-import { getTeamworkTaskListTasks, type TeamworkTask } from "../../api/teamwork/task-list-tasks.ts";
+import {
+  getPinnedTaskListTasks,
+  getTeamworkTaskListTasks,
+} from "../../api/teamwork/task-list-tasks.ts";
+import type {
+  TeamworkTask,
+  PinnedTaskListFetchResult,
+} from "../../api/teamwork/task-list-tasks.ts";
 import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
 
-interface PinnedTaskListResult {
-  id: number;
-  name: string;
-  tasks: TeamworkTask[];
-  error: string | null;
-}
-
 interface PinnedTaskListsResult {
   projectConfigPath: string | null;
-  taskLists: PinnedTaskListResult[];
+  taskLists: PinnedTaskListFetchResult[];
 }
 
 interface TeamworkTaskListPinnedActions {
@@ -123,26 +123,10 @@ export async function teamworkTaskListPinned(
   const taskLists = config.project?.teamwork.pinnedTaskLists ?? [];
   const result: PinnedTaskListsResult = {
     projectConfigPath: config.paths.projectConfigPath,
-    taskLists: [],
+    taskLists: await getPinnedTaskListTasks(taskLists, {
+      getTeamworkTaskListTasks: actions.getTeamworkTaskListTasks,
+    }),
   };
-
-  for (const taskList of taskLists) {
-    try {
-      result.taskLists.push({
-        id: taskList.id,
-        name: taskList.name,
-        tasks: await actions.getTeamworkTaskListTasks(taskList.id),
-        error: null,
-      });
-    } catch (error) {
-      result.taskLists.push({
-        id: taskList.id,
-        name: taskList.name,
-        tasks: [],
-        error: error instanceof Error ? error.message : "Failed to load task list.",
-      });
-    }
-  }
 
   console.log(formatTeamworkTaskListPinnedOutput(result, { json: args.json }));
 }

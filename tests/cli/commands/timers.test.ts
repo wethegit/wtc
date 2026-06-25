@@ -182,9 +182,7 @@ describe("teamwork timer commands", () => {
           url: `https://teamwork.com/app/tasks/${value}`,
         }),
         loadLocalTimers: async () => [timerA, timerB],
-        stopLocalTimer: async () => null,
         createTaskTimeEntry: async () => 42,
-        removeLocalTimer: async () => {},
       };
 
       await teamworkTimerSubmit({ task: "2" }, actions);
@@ -193,23 +191,16 @@ describe("teamwork timer commands", () => {
     });
 
     test("submits a running timer (stops first)", async () => {
-      let stopped = false;
       const actions = {
         getTeamworkTaskReference: (value: string) => ({
           id: 1,
           url: `https://teamwork.com/app/tasks/${value}`,
         }),
         loadLocalTimers: async () => [timerA, timerB],
-        stopLocalTimer: async () => {
-          stopped = true;
-          return { ...timerA, status: "stopped" as const, endTime: new Date().toISOString() };
-        },
         createTaskTimeEntry: async () => 42,
-        removeLocalTimer: async () => {},
       };
 
       await teamworkTimerSubmit({ task: "1" }, actions);
-      expect(stopped).toBe(true);
       expect(logs[0]).toContain("Timer submitted");
     });
 

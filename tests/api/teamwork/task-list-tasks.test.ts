@@ -10,7 +10,8 @@ import { TEAMWORK_API_BASE_URL } from "../../../src/api/teamwork/consts.ts";
 mock.module("../../../src/api/teamwork/auth.ts", mockTeamworkAuthModule);
 
 const { createTeamworkAuthorizationHeader } = await import("../../../src/api/teamwork/auth.ts");
-const { getTeamworkTaskListTasks } = await import("../../../src/api/teamwork/task-list-tasks.ts");
+const { getTeamworkTaskListTasks, getPinnedTaskListTasks } =
+  await import("../../../src/api/teamwork/task-list-tasks.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -133,5 +134,116 @@ describe("teamwork task list tasks", () => {
       `${TEAMWORK_API_BASE_URL}/workflows/9.json?include=stages`,
     ]);
     expect(authorization).toBe(createTeamworkAuthorizationHeader("token-123"));
+  });
+});
+
+describe("getPinnedTaskListTasks", () => {
+  test("fetches all pinned task lists with error isolation", async () => {
+    const actions = {
+      getTeamworkTaskListTasks: async (id: number) => {
+        if (id === 1)
+          return [
+            {
+              id: 10,
+              name: "Task A",
+              status: null,
+              url: null,
+              assignees: [],
+              dueDate: null,
+              boardColumn: null,
+              priority: null,
+            },
+          ];
+        if (id === 2) return [];
+        return [];
+      },
+    };
+
+    const results = await getPinnedTaskListTasks(
+      [
+        { id: 1, name: "Active" },
+        { id: 2, name: "Empty" },
+      ],
+      actions,
+    );
+
+    expect(results).toEqual([
+      {
+        id: 1,
+        name: "Active",
+        tasks: [
+          {
+            id: 10,
+            name: "Task A",
+            status: null,
+            url: null,
+            assignees: [],
+            dueDate: null,
+            boardColumn: null,
+            priority: null,
+          },
+        ],
+        error: null,
+      },
+      { id: 2, name: "Empty", tasks: [], error: null },
+    ]);
+  });
+
+  test("isolates errors per list", async () => {
+    const actions = {
+      getTeamworkTaskListTasks: async (id: number) => {
+        if (id === 1) throw new Error("Network error");
+        return [
+          {
+            id: 20,
+            name: "Task B",
+            status: null,
+            url: null,
+            assignees: [],
+            dueDate: null,
+            boardColumn: null,
+            priority: null,
+          },
+        ];
+      },
+    };
+
+    const results = await getPinnedTaskListTasks(
+      [
+        { id: 1, name: "Failing" },
+        { id: 2, name: "Working" },
+      ],
+      actions,
+    );
+
+    expect(results).toEqual([
+      { id: 1, name: "Failing", tasks: [], error: "Network error" },
+      {
+        id: 2,
+        name: "Working",
+        tasks: [
+          {
+            id: 20,
+            name: "Task B",
+            status: null,
+            url: null,
+            assignees: [],
+            dueDate: null,
+            boardColumn: null,
+            priority: null,
+          },
+        ],
+        error: null,
+      },
+    ]);
+  });
+
+  test("returns empty array when no pinned task lists are configured", async () => {
+    const actions = {
+      getTeamworkTaskListTasks: async () => [],
+    };
+
+    const results = await getPinnedTaskListTasks([], actions);
+    expect(results).toEqual([]);
   });
 });

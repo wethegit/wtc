@@ -8,10 +8,8 @@ import {
   getTeamworkProjectMetadata,
   type TeamworkProjectMetadataResult,
 } from "../../../api/teamwork/project-metadata.ts";
-import {
-  getTeamworkTaskListTasks,
-  type TeamworkTask,
-} from "../../../api/teamwork/task-list-tasks.ts";
+import { getPinnedTaskListTasks } from "../../../api/teamwork/task-list-tasks.ts";
+import type { TeamworkTask } from "../../../api/teamwork/task-list-tasks.ts";
 import {
   loadLocalTimers,
   startLocalTimer,
@@ -107,24 +105,13 @@ export function ProjectTab() {
       const metadata = await getTeamworkProjectMetadata(projectId);
       setProjectMetadata(metadata);
 
-      const nextPinnedTaskLists: PinnedTaskListState[] = [];
-      for (const taskList of config.project.teamwork.pinnedTaskLists) {
-        try {
-          nextPinnedTaskLists.push({
-            id: taskList.id,
-            name: taskList.name,
-            tasks: await getTeamworkTaskListTasks(taskList.id),
-            message: null,
-          });
-        } catch (error) {
-          nextPinnedTaskLists.push({
-            id: taskList.id,
-            name: taskList.name,
-            tasks: [],
-            message: error instanceof Error ? error.message : "Failed to load task list.",
-          });
-        }
-      }
+      const results = await getPinnedTaskListTasks(config.project.teamwork.pinnedTaskLists);
+      const nextPinnedTaskLists: PinnedTaskListState[] = results.map((r) => ({
+        id: r.id,
+        name: r.name,
+        tasks: r.tasks,
+        message: r.error,
+      }));
 
       setPinnedTaskLists(nextPinnedTaskLists);
       setSelectedTask(getNextPinnedTaskSelection(nextPinnedTaskLists, selectedTask(), 1));

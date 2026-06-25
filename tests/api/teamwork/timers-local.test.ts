@@ -12,6 +12,7 @@ const {
   removeLocalTimer,
   getLocalTimerElapsedMs,
   formatTimerDuration,
+  submitLocalTimer,
 } = await import("../../../src/api/teamwork/timers/local.ts");
 
 describe("getRunningTimer", () => {
@@ -179,6 +180,74 @@ describe("removeLocalTimer", () => {
   test("does nothing when id does not exist", async () => {
     await startLocalTimer(42, "My Task");
     await removeLocalTimer("nonexistent");
+    expect((await loadLocalTimers()).length).toBe(1);
+  });
+});
+
+describe("submitLocalTimer", () => {
+  test("submits a stopped timer and removes it", async () => {
+    const { timer } = await startLocalTimer(42, "Test Task");
+    await stopLocalTimer();
+
+    const result = await submitLocalTimer(
+      { ...timer, status: "stopped" },
+      { createTaskTimeEntry: async () => 99 },
+    );
+
+    expect(result.taskName).toBe("Test Task");
+    expect(result.taskId).toBe(42);
+    expect(result.elapsedMs).toBeGreaterThan(0);
+
+    expect((await loadLocalTimers()).length).toBe(0);
+  });
+
+  test("stops and submits a running timer", async () => {
+    const { timer } = await startLocalTimer(42, "Test Task");
+
+    const result = await submitLocalTimer(timer, {
+      createTaskTimeEntry: async () => 99,
+    });
+
+    expect(result.taskName).toBe("Test Task");
+    expect((await loadLocalTimers()).length).toBe(0);
+  });
+
+  test("throws when stopLocalTimer returns null for a running timer", async () => {
+    const timer = {
+      id: "nonexistent",
+      taskId: 1,
+      taskName: "Test",
+      startTime: new Date().toISOString(),
+      endTime: null,
+      status: "running" as const,
+    };
+
+    try {
+      await submitLocalTimer(timer, { createTaskTimeEntry: async () => 99 });
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toBe("No timer found to submit.");
+    }
+  });
+
+  test("forwards API errors from createTaskTimeEntry", async () => {
+    const { timer } = await startLocalTimer(42, "Test Task");
+    await stopLocalTimer();
+
+    try {
+      await submitLocalTimer(
+        { ...timer, status: "stopped" },
+        {
+          createTaskTimeEntry: async () => {
+            throw new Error("API rejected");
+          },
+        },
+      );
+      expect(true).toBe(false);
+    } catch (error) {
+      expect((error as Error).message).toBe("API rejected");
+    }
+
     expect((await loadLocalTimers()).length).toBe(1);
   });
 });

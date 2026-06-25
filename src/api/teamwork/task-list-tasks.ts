@@ -204,3 +204,48 @@ export async function getTeamworkTaskListTasks(taskListId: number): Promise<Team
 
   return tasks;
 }
+
+/** A pinned task list with its fetched tasks (or an error message). */
+export interface PinnedTaskListFetchResult {
+  id: number;
+  name: string;
+  tasks: TeamworkTask[];
+  error: string | null;
+}
+
+/** External actions injected by callers that want testable fetching. */
+export interface GetPinnedTaskListTasksActions {
+  getTeamworkTaskListTasks: (taskListId: number) => Promise<TeamworkTask[]>;
+}
+
+/**
+ * Fetches tasks for each pinned task list with per-list error isolation.
+ * A single failing list does not prevent the others from loading.
+ */
+export async function getPinnedTaskListTasks(
+  pinnedTaskLists: readonly { id: number; name: string }[],
+  actions?: GetPinnedTaskListTasksActions,
+): Promise<PinnedTaskListFetchResult[]> {
+  const fetchTasks = actions?.getTeamworkTaskListTasks ?? getTeamworkTaskListTasks;
+  const results: PinnedTaskListFetchResult[] = [];
+
+  for (const taskList of pinnedTaskLists) {
+    try {
+      results.push({
+        id: taskList.id,
+        name: taskList.name,
+        tasks: await fetchTasks(taskList.id),
+        error: null,
+      });
+    } catch (error) {
+      results.push({
+        id: taskList.id,
+        name: taskList.name,
+        tasks: [],
+        error: error instanceof Error ? error.message : "Failed to load task list.",
+      });
+    }
+  }
+
+  return results;
+}
