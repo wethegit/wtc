@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { LocalTimerEntry } from "../../../src/api/teamwork/timers/local.ts";
+import { useTempCacheDir } from "../../helpers/teamwork.ts";
 
 const {
   formatTimerListOutput,
@@ -42,6 +43,8 @@ const timerC: LocalTimerEntry = {
 };
 
 describe("teamwork timer commands", () => {
+  useTempCacheDir();
+
   beforeEach(() => {
     logs = [];
     console.log = (message?: unknown) => {
@@ -191,6 +194,9 @@ describe("teamwork timer commands", () => {
     });
 
     test("submits a running timer (stops first)", async () => {
+      const { startLocalTimer } = await import("../../../src/api/teamwork/timers/local.ts");
+      await startLocalTimer(1, "General | Code Review");
+
       const actions = {
         getTeamworkTaskReference: (value: string) => ({
           id: 1,
