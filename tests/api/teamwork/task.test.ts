@@ -1,10 +1,10 @@
 import { describe, expect, mock, test, afterEach } from "bun:test";
 
-import { createMockFetch, mockTeamworkAuthModule } from "../helpers/teamwork.ts";
+import { createMockFetch, mockTeamworkAuthModule } from "../../helpers/teamwork.ts";
 
-mock.module("../../src/teamwork/auth.ts", mockTeamworkAuthModule);
+mock.module("../../../src/api/teamwork/auth.ts", mockTeamworkAuthModule);
 
-const { getTeamworkTaskById } = await import("../../src/teamwork/task.ts");
+const { getTeamworkTaskById } = await import("../../../src/api/teamwork/task.ts");
 
 const originalFetch = globalThis.fetch;
 

@@ -1,7 +1,7 @@
 import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 
-import { APP_VERSION, REPO } from "../../config/consts.ts";
+import { APP_VERSION, REPO } from "../../api/config/consts.ts";
 
 import { tokens } from "../tokens.ts";
 

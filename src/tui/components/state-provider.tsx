@@ -1,7 +1,7 @@
 import { createContext, createSignal, useContext, type ParentProps } from "solid-js";
 
-import { saveTuiState } from "../../state/manager.ts";
-import type { TuiStateEntry } from "../../state/schema.ts";
+import { saveTuiState } from "../../api/state/manager.ts";
+import type { TuiStateEntry } from "../../api/state/schema.ts";
 
 /** TUI state context: provides current state snapshot and a persist-to-disk updater. */
 export interface StateContextValue {

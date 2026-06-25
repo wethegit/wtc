@@ -1,4 +1,4 @@
-import type { TeamworkTask } from "../../../teamwork/task-list-tasks.ts";
+import type { TeamworkTask } from "../../../api/teamwork/task-list-tasks.ts";
 
 /** Builds an array of description strings for a task's metadata row. */
 export function buildTaskMetadata(task: TeamworkTask): string[] {

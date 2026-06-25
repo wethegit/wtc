@@ -12,7 +12,7 @@ import {
   validateSettingsForm,
   type SettingsFormState,
 } from "../../src/tui/pages/settings.tsx";
-import type { ResolvedConfig } from "../../src/config/schema.ts";
+import type { ResolvedConfig } from "../../src/api/config/schema.ts";
 
 describe("settings page helpers", () => {
   const resolvedConfig: ResolvedConfig = {

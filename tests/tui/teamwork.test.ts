@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import type { LocalTimerEntry } from "../../src/teamwork/timers/local.ts";
+import type { LocalTimerEntry } from "../../src/api/teamwork/timers/local.ts";
 import { getNextTeamworkTab } from "../../src/tui/pages/teamwork.tsx";
 import {
   getNextPinnedTaskSelection,

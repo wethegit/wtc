@@ -11,7 +11,7 @@ import {
   loadUserConfig,
   saveProjectConfig,
   saveUserConfig,
-} from "../../src/config/manager.ts";
+} from "../../../src/api/config/manager.ts";
 
 const TEST_ROOT = `${Bun.env.TMPDIR ?? "/tmp"}/wtc-config-tests-${process.pid}`;
 const USER_CONFIG_DIR = `${TEST_ROOT}/user-config`;

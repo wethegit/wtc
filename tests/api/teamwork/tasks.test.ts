@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
-import { TEAMWORK_BASE_URL } from "../../src/teamwork/consts.ts";
-import { getTeamworkTaskReference } from "../../src/teamwork/tasks.ts";
+import { TEAMWORK_BASE_URL } from "../../../src/api/teamwork/consts.ts";
+import { getTeamworkTaskReference } from "../../../src/api/teamwork/tasks.ts";
 
 describe("teamwork task references", () => {
   test("builds task reference from numeric ID", () => {

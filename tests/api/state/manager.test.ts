@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 
-import { clearCache, loadTuiState, saveTuiState } from "../../src/state/manager.ts";
-import { getCacheDir } from "../../src/state/consts.ts";
+import { clearCache } from "../../../src/api/cache/manager.ts";
+import { loadTuiState, saveTuiState } from "../../../src/api/state/manager.ts";
+import { getCacheDir } from "../../../src/api/cache/consts.ts";
 
 const TEST_CACHE = `/tmp/wtc-state-tests-${process.pid}`;
 

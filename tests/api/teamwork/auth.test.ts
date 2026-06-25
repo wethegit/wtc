@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { createTeamworkAuthorizationHeader } from "../../src/teamwork/auth.ts";
+import { createTeamworkAuthorizationHeader } from "../../../src/api/teamwork/auth.ts";
 
 describe("teamwork auth", () => {
   test("builds basic authorization header from API token", () => {

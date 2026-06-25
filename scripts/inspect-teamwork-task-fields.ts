@@ -1,4 +1,4 @@
-import { fetchTeamworkApiJson } from "../src/teamwork/client.ts";
+import { fetchTeamworkApiJson } from "../src/api/teamwork/client.ts";
 
 const DEFAULT_TASK_IDS = [26523243, 26751525, 26751526] as const;
 const DEFAULT_TASK_LIST_IDS = [1691926] as const;

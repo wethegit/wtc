@@ -1,21 +1,24 @@
 import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
-import { loadResolvedConfig } from "../../../config/manager.ts";
-import type { ResolvedConfig } from "../../../config/schema.ts";
-import { getTeamworkAuthStatus, type TeamworkAuthStatus } from "../../../teamwork/auth.ts";
+import { loadResolvedConfig } from "../../../api/config/manager.ts";
+import type { ResolvedConfig } from "../../../api/config/schema.ts";
+import { getTeamworkAuthStatus, type TeamworkAuthStatus } from "../../../api/teamwork/auth.ts";
 import {
   getTeamworkProjectMetadata,
   type TeamworkProjectMetadataResult,
-} from "../../../teamwork/project-metadata.ts";
-import { getTeamworkTaskListTasks, type TeamworkTask } from "../../../teamwork/task-list-tasks.ts";
+} from "../../../api/teamwork/project-metadata.ts";
+import {
+  getTeamworkTaskListTasks,
+  type TeamworkTask,
+} from "../../../api/teamwork/task-list-tasks.ts";
 import {
   loadLocalTimers,
   startLocalTimer,
   stopLocalTimer,
   type LocalTimerEntry,
-} from "../../../teamwork/timers/local.ts";
-import { getTeamworkTaskReference } from "../../../teamwork/tasks.ts";
+} from "../../../api/teamwork/timers/local.ts";
+import { getTeamworkTaskReference } from "../../../api/teamwork/tasks.ts";
 import { openUrlInBrowser } from "../../../utils/browser.ts";
 import { Card } from "../../components/layout/card.tsx";
 import { ConfirmDialog } from "../../components/confirm-dialog.tsx";

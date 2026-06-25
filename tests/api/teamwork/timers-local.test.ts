@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { useTempCacheDir } from "../helpers/teamwork.ts";
+import { useTempCacheDir } from "../../helpers/teamwork.ts";
 
 useTempCacheDir();
 
@@ -12,7 +12,7 @@ const {
   removeLocalTimer,
   getLocalTimerElapsedMs,
   formatTimerDuration,
-} = await import("../../src/teamwork/timers/local.ts");
+} = await import("../../../src/api/teamwork/timers/local.ts");
 
 describe("getRunningTimer", () => {
   test("returns null when no timers are running", () => {

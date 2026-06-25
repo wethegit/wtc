@@ -5,9 +5,9 @@ import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings, useKeymap } from "@opentui/keymap/solid";
 
 import { checkForUpdate } from "../utils/update-check.ts";
-import { loadTuiState } from "../state/manager.ts";
-import type { Route, TuiStateEntry } from "../state/schema.ts";
-import { TEAMWORK_TIMESHEET_URL } from "../teamwork/consts.ts";
+import { loadTuiState } from "../api/state/manager.ts";
+import type { Route, TuiStateEntry } from "../api/state/schema.ts";
+import { TEAMWORK_TIMESHEET_URL } from "../api/teamwork/consts.ts";
 import { openUrlInBrowser } from "../utils/browser.ts";
 
 import { DialogProvider, useDialog } from "./components/dialog.tsx";

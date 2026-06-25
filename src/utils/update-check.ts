@@ -1,5 +1,5 @@
-import { APP_VERSION } from "../config/consts";
-import { getCacheDir } from "../state/consts.ts";
+import { APP_VERSION } from "../api/config/consts.ts";
+import { getCacheDir } from "../api/cache/consts.ts";
 
 /** How long a successful GitHub release lookup remains fresh. */
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;

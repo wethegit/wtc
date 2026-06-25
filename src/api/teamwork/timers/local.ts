@@ -1,4 +1,4 @@
-import { getCacheDir } from "../../state/consts.ts";
+import { getCacheDir } from "../../cache/consts.ts";
 
 const LOCAL_TIMERS_CACHE_FILE = "teamwork-local-timers.json";
 

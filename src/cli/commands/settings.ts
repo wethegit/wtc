@@ -1,5 +1,5 @@
-import { loadResolvedConfig as loadResolvedConfigFn } from "../../config/manager.ts";
-import type { ResolvedConfig } from "../../config/schema.ts";
+import { loadResolvedConfig as loadResolvedConfigFn } from "../../api/config/manager.ts";
+import type { ResolvedConfig } from "../../api/config/schema.ts";
 
 interface SettingsActions {
   loadResolvedConfig: (startDir: string) => Promise<ResolvedConfig>;

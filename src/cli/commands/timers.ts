@@ -1,9 +1,9 @@
-import { TEAMWORK_TIMESHEET_URL } from "../../teamwork/consts.ts";
-import { getTeamworkTaskReference, type TeamworkTaskReference } from "../../teamwork/tasks.ts";
-import { getTeamworkTaskById } from "../../teamwork/task.ts";
-import { getLocalTimerElapsedMs, formatTimerDuration } from "../../teamwork/timers/local.ts";
-import type { LocalTimerEntry } from "../../teamwork/timers/local.ts";
-import { createTaskTimeEntry, type TeamworkTaskTimeEntryInput } from "../../teamwork/timers.ts";
+import { TEAMWORK_TIMESHEET_URL } from "../../api/teamwork/consts.ts";
+import { getTeamworkTaskReference, type TeamworkTaskReference } from "../../api/teamwork/tasks.ts";
+import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
+import { getLocalTimerElapsedMs, formatTimerDuration } from "../../api/teamwork/timers/local.ts";
+import type { LocalTimerEntry } from "../../api/teamwork/timers/local.ts";
+import { createTaskTimeEntry, type TeamworkTaskTimeEntryInput } from "../../api/teamwork/timers.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
 
 interface TimerListActions {
@@ -41,7 +41,7 @@ interface TimesheetOpenActions {
 
 const timerListActions: TimerListActions = {
   loadLocalTimers: async () => {
-    const { loadLocalTimers } = await import("../../teamwork/timers/local.ts");
+    const { loadLocalTimers } = await import("../../api/teamwork/timers/local.ts");
     return loadLocalTimers();
   },
 };
@@ -49,7 +49,7 @@ const timerListActions: TimerListActions = {
 const timerHandleActions: TimerHandleActions = {
   getTeamworkTaskReference,
   loadLocalTimers: async () => {
-    const { loadLocalTimers } = await import("../../teamwork/timers/local.ts");
+    const { loadLocalTimers } = await import("../../api/teamwork/timers/local.ts");
     return loadLocalTimers();
   },
 };
@@ -58,7 +58,7 @@ const timerStartActions: TimerStartActions = {
   getTeamworkTaskReference,
   getTeamworkTaskById,
   startLocalTimer: async (taskId, taskName) => {
-    const { startLocalTimer } = await import("../../teamwork/timers/local.ts");
+    const { startLocalTimer } = await import("../../api/teamwork/timers/local.ts");
     return (await startLocalTimer(taskId, taskName)).timer;
   },
 };
@@ -66,7 +66,7 @@ const timerStartActions: TimerStartActions = {
 const timerStopActions: TimerStopActions = {
   ...timerHandleActions,
   stopLocalTimer: async () => {
-    const { stopLocalTimer } = await import("../../teamwork/timers/local.ts");
+    const { stopLocalTimer } = await import("../../api/teamwork/timers/local.ts");
     return stopLocalTimer();
   },
 };
@@ -74,12 +74,12 @@ const timerStopActions: TimerStopActions = {
 const timerSubmitActions: TimerSubmitActions = {
   ...timerHandleActions,
   stopLocalTimer: async () => {
-    const { stopLocalTimer } = await import("../../teamwork/timers/local.ts");
+    const { stopLocalTimer } = await import("../../api/teamwork/timers/local.ts");
     return stopLocalTimer();
   },
   createTaskTimeEntry,
   removeLocalTimer: async (id) => {
-    const { removeLocalTimer } = await import("../../teamwork/timers/local.ts");
+    const { removeLocalTimer } = await import("../../api/teamwork/timers/local.ts");
     return removeLocalTimer(id);
   },
 };
@@ -87,7 +87,7 @@ const timerSubmitActions: TimerSubmitActions = {
 const timerDiscardActions: TimerDiscardActions = {
   ...timerHandleActions,
   removeLocalTimer: async (id) => {
-    const { removeLocalTimer } = await import("../../teamwork/timers/local.ts");
+    const { removeLocalTimer } = await import("../../api/teamwork/timers/local.ts");
     return removeLocalTimer(id);
   },
 };
