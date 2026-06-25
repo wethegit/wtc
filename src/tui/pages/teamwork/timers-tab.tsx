@@ -17,6 +17,7 @@ import { ListItem } from "../../components/layout/list-item.tsx";
 import { ConfirmDialog } from "../../components/confirm-dialog.tsx";
 import { TimerBadge } from "../../components/teamwork/timer-indicator.tsx";
 import { useDialog } from "../../components/dialog.tsx";
+import { useFlashInterval } from "../../hooks/use-flash-interval.ts";
 import { tokens } from "../../tokens.ts";
 
 /** Cycles through local timer IDs in display order, wrapping around. */
@@ -41,7 +42,7 @@ export function getNextLocalTimerSelection(
 export function TimersTab() {
   const [localTimers, setLocalTimers] = createSignal<LocalTimerEntry[]>([]);
   const [selectedTimerId, setSelectedTimerId] = createSignal<string | null>(null);
-  const [flashOn, setFlashOn] = createSignal(true);
+  const flashOn = useFlashInterval();
   const [now, setNow] = createSignal(new Date());
   const [message, setMessage] = createSignal("Local timers stay on this machine until submitted.");
   const dialog = useDialog();
@@ -201,15 +202,11 @@ export function TimersTab() {
   onMount(() => {
     void refreshTimers();
 
-    const flashInterval = setInterval(() => {
-      setFlashOn((prev) => !prev);
-    }, 800);
     const durationInterval = setInterval(() => {
       setNow(new Date());
     }, 1000);
 
     onCleanup(() => {
-      clearInterval(flashInterval);
       clearInterval(durationInterval);
     });
   });

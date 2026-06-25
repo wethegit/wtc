@@ -88,8 +88,8 @@ export interface TeamworkTask {
   assignees: string[];
   /** Due date in a display-safe `YYYY-MM-DD` shape when available. */
   dueDate: string | null;
-  /** Teamwork board column with name and optional color from the API. */
-  boardColumn: { name: string; color: string | null } | null;
+  /** Teamwork board column with name and optional color from the API, absent when not resolved. */
+  boardColumn?: { name: string; color: string | null } | null;
   /** Teamwork task priority when available. */
   priority: string | null;
 }

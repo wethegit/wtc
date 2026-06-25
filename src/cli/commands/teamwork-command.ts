@@ -4,6 +4,7 @@ import {
   teamworkTaskListPinned,
   teamworkTaskListPin,
   teamworkTaskListUnpin,
+  teamworkTaskMine,
   teamworkTaskOpen,
 } from "./teamwork.ts";
 import {
@@ -82,11 +83,26 @@ const taskOpenCommand: CommandModule<{}, { task: string }> = {
   handler: (argv) => teamworkTaskOpen({ task: argv.task ?? "" }),
 };
 
+const taskMineCommand: CommandModule<{}, { json: boolean }> = {
+  command: "mine",
+  describe: "List my Teamwork tasks due within the next 7 days",
+  builder: (yargs) =>
+    yargs.option("json", {
+      type: "boolean",
+      describe: "Print JSON output",
+      default: false,
+    }) as unknown as Argv<{ json: boolean }>,
+  handler: (argv) => teamworkTaskMine({ json: argv.json ?? false }),
+};
+
 const taskCommand: CommandModule = {
   command: "task",
   describe: "Manage Teamwork tasks",
   builder: (yargs) =>
-    yargs.command(taskOpenCommand).demandCommand(1, "Specify a task subcommand: open"),
+    yargs
+      .command(taskOpenCommand)
+      .command(taskMineCommand)
+      .demandCommand(1, "Specify a task subcommand: open, mine"),
   handler: () => {},
 };
 

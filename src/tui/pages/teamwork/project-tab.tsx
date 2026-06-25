@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
+import { createEffect, createSignal, For, onMount } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
 import { loadResolvedConfig } from "../../../api/config/manager.ts";
@@ -10,19 +10,11 @@ import {
 } from "../../../api/teamwork/project-metadata.ts";
 import { getPinnedTaskListTasks } from "../../../api/teamwork/task-list-tasks.ts";
 import type { TeamworkTask } from "../../../api/teamwork/task-list-tasks.ts";
-import {
-  loadLocalTimers,
-  startLocalTimer,
-  stopLocalTimer,
-  type LocalTimerEntry,
-} from "../../../api/teamwork/timers/local.ts";
-import { getTeamworkTaskReference } from "../../../api/teamwork/tasks.ts";
-import { openUrlInBrowser } from "../../../utils/browser.ts";
 import { Card } from "../../components/layout/card.tsx";
-import { ConfirmDialog } from "../../components/confirm-dialog.tsx";
 import { TaskList } from "../../components/teamwork/task-list.tsx";
-import { useDialog } from "../../components/dialog.tsx";
 import { usePageScroll } from "../../components/layout/scroll-context.tsx";
+import { useFlashInterval } from "../../hooks/use-flash-interval.ts";
+import { useTaskTimer } from "../../hooks/use-task-timer.tsx";
 import { tokens } from "../../tokens.ts";
 
 interface PinnedTaskListState {
@@ -47,11 +39,11 @@ export function ProjectTab() {
   );
   const [pinnedTaskLists, setPinnedTaskLists] = createSignal<PinnedTaskListState[]>([]);
   const [selectedTask, setSelectedTask] = createSignal<PinnedTaskSelection | null>(null);
-  const [localTimers, setLocalTimers] = createSignal<LocalTimerEntry[]>([]);
-  const [flashOn, setFlashOn] = createSignal(true);
   const [projectMessage, setProjectMessage] = createSignal("Loading project context...");
-  const dialog = useDialog();
   const scroll = usePageScroll();
+  const flashOn = useFlashInterval();
+  const { localTimers, refreshLocalTimers, toggleTimer, openSelectedTask } =
+    useTaskTimer(setProjectMessage);
 
   createEffect(() => {
     const sel = selectedTask();
@@ -125,70 +117,6 @@ export function ProjectTab() {
     }
   };
 
-  const openSelectedTask = async () => {
-    const task = selectedTeamworkTask();
-    if (!task) {
-      setProjectMessage("No pinned task selected.");
-      return;
-    }
-
-    const url = task.url ?? getTeamworkTaskReference(task.id.toString()).url;
-
-    try {
-      await openUrlInBrowser(url);
-      setProjectMessage(`Opened Teamwork task: ${task.name}`);
-    } catch (error) {
-      setProjectMessage(error instanceof Error ? error.message : "Failed to open Teamwork task.");
-    }
-  };
-
-  const refreshLocalTimers = async () => {
-    setLocalTimers(await loadLocalTimers());
-  };
-
-  const toggleTimer = async () => {
-    const task = selectedTeamworkTask();
-    if (!task) {
-      setProjectMessage("No pinned task selected.");
-      return;
-    }
-
-    try {
-      const timers = localTimers();
-      const runningTimer = timers.find((t) => t.status === "running");
-
-      if (runningTimer?.taskId === task.id) {
-        const stopped = await stopLocalTimer();
-        if (stopped) {
-          setProjectMessage(`Timer stopped for task: ${task.name}`);
-          await refreshLocalTimers();
-        }
-      } else {
-        if (runningTimer) {
-          dialog.replace(() => (
-            <ConfirmDialog
-              title="Switch timer?"
-              message={`Timer is already running for: ${runningTimer.taskName}`}
-              confirmLabel="switch"
-              onConfirm={async () => {
-                await startLocalTimer(task.id, task.name);
-                await refreshLocalTimers();
-                setProjectMessage(`Timer started for task: ${task.name} (previous paused)`);
-              }}
-            />
-          ));
-          return;
-        }
-
-        await startLocalTimer(task.id, task.name);
-        await refreshLocalTimers();
-        setProjectMessage(`Timer started for task: ${task.name}`);
-      }
-    } catch (error) {
-      setProjectMessage(error instanceof Error ? error.message : "Failed to toggle timer.");
-    }
-  };
-
   useBindings(() => ({
     bindings: [
       {
@@ -211,19 +139,19 @@ export function ProjectTab() {
         key: "return",
         desc: "Open pinned Teamwork task",
         group: "Teamwork",
-        cmd: openSelectedTask,
+        cmd: () => openSelectedTask(selectedTeamworkTask()),
       },
       {
         key: "ctrl+o",
         desc: "Open pinned Teamwork task",
         group: "Teamwork",
-        cmd: openSelectedTask,
+        cmd: () => openSelectedTask(selectedTeamworkTask()),
       },
       {
         key: "ctrl+t",
         desc: "Start/pause local timer",
         group: "Teamwork",
-        cmd: toggleTimer,
+        cmd: () => toggleTimer(selectedTeamworkTask()),
       },
     ],
   }));
@@ -231,12 +159,6 @@ export function ProjectTab() {
   onMount(() => {
     void loadProjectContext();
     void refreshLocalTimers();
-
-    const flashInterval = setInterval(() => {
-      setFlashOn((prev) => !prev);
-    }, 800);
-
-    onCleanup(() => clearInterval(flashInterval));
   });
 
   return (
