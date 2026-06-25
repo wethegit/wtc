@@ -2,4 +2,4 @@
 "wtc": patch
 ---
 
-feature: design tweaks and cleanup
+Design tweaks and cleanup.
