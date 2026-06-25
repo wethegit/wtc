@@ -1,5 +1,13 @@
-import { loadResolvedConfig } from "../../config/manager.ts";
+import { loadResolvedConfig as loadResolvedConfigFn } from "../../config/manager.ts";
 import type { ResolvedConfig } from "../../config/schema.ts";
+
+interface SettingsActions {
+  loadResolvedConfig: (startDir: string) => Promise<ResolvedConfig>;
+}
+
+const settingsActions: SettingsActions = {
+  loadResolvedConfig: loadResolvedConfigFn,
+};
 
 /**
  * Formats resolved config for `wtc settings` output.
@@ -25,6 +33,6 @@ export function formatSettingsOutput(config: ResolvedConfig): string {
 }
 
 /** Prints the resolved WTC config and the paths used to build it. */
-export async function settings(startDir = process.cwd()): Promise<void> {
-  console.log(formatSettingsOutput(await loadResolvedConfig(startDir)));
+export async function settings(startDir = process.cwd(), actions = settingsActions): Promise<void> {
+  console.log(formatSettingsOutput(await actions.loadResolvedConfig(startDir)));
 }
