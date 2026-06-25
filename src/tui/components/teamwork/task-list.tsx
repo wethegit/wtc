@@ -1,7 +1,10 @@
 import { For } from "solid-js";
 
-import type { TeamworkTask } from "../../../teamwork/task-list-tasks.ts";
-import { type LocalTimerEntry, getLocalTimerElapsedMs } from "../../../teamwork/timers/local.ts";
+import type { TeamworkTask } from "../../../api/teamwork/task-list-tasks.ts";
+import {
+  type LocalTimerEntry,
+  getLocalTimerElapsedMs,
+} from "../../../api/teamwork/timers/local.ts";
 
 import { tokens } from "../../tokens.ts";
 

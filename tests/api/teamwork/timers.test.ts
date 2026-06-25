@@ -1,13 +1,13 @@
 import { describe, expect, mock, test, afterEach } from "bun:test";
 
-import { createMockFetch, mockTeamworkAuthModule } from "../helpers/teamwork.ts";
-import { TEAMWORK_API_BASE_URL } from "../../src/teamwork/consts.ts";
+import { createMockFetch, mockTeamworkAuthModule } from "../../helpers/teamwork.ts";
+import { TEAMWORK_API_BASE_URL } from "../../../src/api/teamwork/consts.ts";
 
-mock.module("../../src/teamwork/auth.ts", mockTeamworkAuthModule);
+mock.module("../../../src/api/teamwork/auth.ts", mockTeamworkAuthModule);
 
-const { createTeamworkAuthorizationHeader } = await import("../../src/teamwork/auth.ts");
+const { createTeamworkAuthorizationHeader } = await import("../../../src/api/teamwork/auth.ts");
 const { createTaskTimeEntry, getTimers, pauseTimer, startTimer } =
-  await import("../../src/teamwork/timers.ts");
+  await import("../../../src/api/teamwork/timers.ts");
 
 const originalFetch = globalThis.fetch;
 

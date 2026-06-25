@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-/** Factory for `mock.module("../../src/teamwork/auth.ts", ...)`. */
+/** Factory for `mock.module("../../src/api/teamwork/auth.ts", ...)`. */
 export function mockTeamworkAuthModule() {
   return {
     createTeamworkAuthorizationHeader(token: string) {

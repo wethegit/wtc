@@ -34,6 +34,24 @@ bun run build        # Build standalone binary
 bun run changeset    # Add a release changeset
 ```
 
+## Project Architecture
+
+Source code is split into three layers:
+
+| Layer   | Directory  | Responsibility                                                                                                               |
+| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **API** | `src/api/` | Business logic + domain data types. Organized by domain: `teamwork/`, `config/`, `state/`, `cache/`. No rendering or stdout. |
+| **CLI** | `src/cli/` | Command-line interface. yargs parsing + stdout output. Calls `src/api/`.                                                     |
+| **TUI** | `src/tui/` | Terminal UI. Solid JSX components via OpenTUI. Calls `src/api/`.                                                             |
+
+The API layer is the only layer that both CLI and TUI import from. Each subdirectory has a `README.md` with detailed conventions:
+
+- [`src/api/README.md`](src/api/README.md) — shared business logic conventions
+- [`src/cli/README.md`](src/cli/README.md) — CLI handler patterns
+- [`src/tui/README.md`](src/tui/README.md) — TUI component conventions
+
+Tests mirror the source structure under `tests/`.
+
 ## Building Binaries
 
 Build a standalone binary for your current platform:

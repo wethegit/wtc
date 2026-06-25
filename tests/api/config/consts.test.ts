@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 
-import { getUserConfigDir } from "../../src/config/consts.ts";
+import { getUserConfigDir } from "../../../src/api/config/consts.ts";
 
 const TEST_DIR = `/tmp/wtc-config-consts-tests-${process.pid}`;
 

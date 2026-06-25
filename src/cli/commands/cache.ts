@@ -1,4 +1,4 @@
-import { clearCache as clearCacheFn } from "../../state/manager.ts";
+import { clearCache as clearCacheFn } from "../../api/cache/manager.ts";
 
 interface CacheCleanActions {
   clearCache: () => Promise<void>;

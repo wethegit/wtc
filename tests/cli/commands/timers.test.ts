@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import type { LocalTimerEntry } from "../../../src/teamwork/timers/local.ts";
+import type { LocalTimerEntry } from "../../../src/api/teamwork/timers/local.ts";
 
 const {
   formatTimerListOutput,
@@ -105,14 +105,15 @@ describe("teamwork timer commands", () => {
           url: `https://teamwork.com/app/tasks/${value}`,
         }),
         getTeamworkTaskById: async (id: number) => ({ id, name: "General | Code Review" }),
-        startLocalTimer: async (taskId: number, taskName: string) => ({
-          id: "new-timer",
-          taskId,
-          taskName,
-          startTime: "2026-06-24T12:00:00Z",
-          endTime: null,
-          status: "running",
-        } satisfies LocalTimerEntry),
+        startLocalTimer: async (taskId: number, taskName: string) =>
+          ({
+            id: "new-timer",
+            taskId,
+            taskName,
+            startTime: "2026-06-24T12:00:00Z",
+            endTime: null,
+            status: "running",
+          }) satisfies LocalTimerEntry,
       };
 
       await teamworkTimerStart({ task: "12345" }, actions);

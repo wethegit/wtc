@@ -1,4 +1,4 @@
-import type { TeamworkAuthStatus } from "../../../teamwork/auth.ts";
+import type { TeamworkAuthStatus } from "../../../api/teamwork/auth.ts";
 import { TextField } from "../../components/forms/text-field.tsx";
 import { AccordionSection } from "../../components/layout/accordion-section.tsx";
 import { tokens } from "../../tokens.ts";

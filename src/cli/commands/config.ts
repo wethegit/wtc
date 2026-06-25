@@ -1,10 +1,10 @@
-import { initProjectConfig } from "../../config/manager.ts";
+import { initProjectConfig } from "../../api/config/manager.ts";
 import {
   deleteTeamworkApiToken,
   getTeamworkAuthStatus,
   setTeamworkApiToken,
   type TeamworkAuthStatus,
-} from "../../teamwork/auth.ts";
+} from "../../api/teamwork/auth.ts";
 
 /** Shared with yargs so accepted CLI providers and handler validation stay in sync. */
 export const CONFIG_AUTH_PROVIDERS = ["teamwork"] as const;

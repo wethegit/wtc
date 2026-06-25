@@ -1,7 +1,6 @@
-import { mkdir, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { getCacheDir } from "./consts.ts";
+import { getCacheDir } from "../cache/consts.ts";
 import { TuiStateFileSchema, type TuiStateEntry, type TuiStateFile } from "./schema.ts";
 
 const STATE_FILE = "tui-state.json";
@@ -48,11 +47,4 @@ export async function saveTuiState(dir: string, partial: Partial<TuiStateEntry>)
   file.entries[key] = { ...existing, ...partial, lastUpdated: new Date().toISOString() };
 
   await Bun.write(path, `${JSON.stringify(file, null, 2)}\n`);
-}
-
-/** Deletes the entire cache directory. */
-export async function clearCache(): Promise<void> {
-  const cacheDir = getCacheDir();
-  await rm(cacheDir, { recursive: true, force: true });
-  await mkdir(cacheDir, { recursive: true });
 }

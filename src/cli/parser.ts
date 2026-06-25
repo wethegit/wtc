@@ -1,7 +1,7 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { APP_VERSION } from "../config/consts.ts";
+import { APP_VERSION } from "../api/config/consts.ts";
 
 import { cacheCommand } from "./commands/cache-command.ts";
 import { configCommand } from "./commands/config-command.ts";

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 
-import { getCacheDir } from "../../src/state/consts.ts";
+import { getCacheDir } from "../../../src/api/cache/consts.ts";
 
 const TEST_CACHE = `/tmp/wtc-state-consts-tests-${process.pid}`;
 

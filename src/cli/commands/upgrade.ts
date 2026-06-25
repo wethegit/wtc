@@ -1,4 +1,4 @@
-import { APP_VERSION } from "../../config/consts.ts";
+import { APP_VERSION } from "../../api/config/consts.ts";
 import { checkForUpdate as checkForUpdateFn, type UpdateInfo } from "../../utils/update-check.ts";
 
 const REPO = "wethegit/wtc";

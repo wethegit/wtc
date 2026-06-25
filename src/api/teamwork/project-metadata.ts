@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { getCacheDir } from "../state/consts.ts";
+import { getCacheDir } from "../cache/consts.ts";
 
 import { fetchTeamworkApiJson } from "./client.ts";
 

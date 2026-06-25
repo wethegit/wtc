@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { ProjectConfigSchema, UserConfigSchema } from "../../src/config/schema.ts";
+import { ProjectConfigSchema, UserConfigSchema } from "../../../src/api/config/schema.ts";
 
 describe("config schemas", () => {
   test("rejects unsupported config versions", () => {

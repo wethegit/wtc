@@ -1,11 +1,11 @@
-import { loadResolvedConfig, saveProjectConfig } from "../../config/manager.ts";
+import { loadResolvedConfig, saveProjectConfig } from "../../api/config/manager.ts";
 import {
   PROJECT_CONFIG_VERSION,
   type ProjectConfig,
   type ResolvedConfig,
-} from "../../config/schema.ts";
-import { getTeamworkTaskListTasks, type TeamworkTask } from "../../teamwork/task-list-tasks.ts";
-import { getTeamworkTaskReference } from "../../teamwork/tasks.ts";
+} from "../../api/config/schema.ts";
+import { getTeamworkTaskListTasks, type TeamworkTask } from "../../api/teamwork/task-list-tasks.ts";
+import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
 
 interface PinnedTaskListResult {

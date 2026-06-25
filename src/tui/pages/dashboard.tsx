@@ -1,6 +1,6 @@
 import { TextAttributes } from "@opentui/core";
 
-import { APP_VERSION } from "../../config/consts.ts";
+import { APP_VERSION } from "../../api/config/consts.ts";
 
 import { tokens } from "../tokens.ts";
 

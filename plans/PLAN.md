@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** Phase 5 Teamwork Foundation (5.1-5.2 complete, 5.4 in progress)
+- **Status:** Phase 5 Teamwork (5.1-5.2 complete, 5.3-5.4 in progress)
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js
@@ -31,6 +31,16 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 
 ## Architecture
 
+Source code is organised in three layers:
+
+| Layer   | Directory  | Responsibility                                                                                                                  |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **API** | `src/api/` | Business logic and domain data types. Organised by domain (`teamwork/`, `config/`, `state/`, `cache/`). No rendering or stdout. |
+| **CLI** | `src/cli/` | Command-line interface. yargs parsing and stdout output. Calls `src/api/`.                                                      |
+| **TUI** | `src/tui/` | Terminal UI. Solid JSX components via OpenTUI. Calls `src/api/`.                                                                |
+
+The API layer is the only layer that both CLI and TUI import from. Each directory has a `README.md` with detailed conventions.
+
 ### File Organization Conventions
 
 - Keep helpers scoped to the smallest place that needs them.
@@ -41,13 +51,13 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 - Do not export helpers only for tests unless they represent meaningful domain behavior.
 - Comments should explain why code exists or why a tradeoff was chosen, not restate obvious mechanics.
 - Add comments to TypeScript interfaces/types when they clarify domain meaning or intended usage.
+- Format-producing functions include a JSDoc `Example output:` block showing the expected output format.
 
 Examples:
 
-- `getCacheDir()` lives in `src/state/consts.ts` because it is shared and owns `WTC_CACHE_DIR`.
-- `getUserConfigDir()` lives in `src/config/consts.ts` because it owns `WTC_CONFIG_DIR`.
-- `STATE_FILE = "tui-state.json"` stays in `src/state/manager.ts` because it is state-manager-only.
-- `getStatePath()` should not exist if it only appends `STATE_FILE` to `getCacheDir()` in one module.
+- `getCacheDir()` lives in `src/api/cache/consts.ts` because it owns `WTC_CACHE_DIR`.
+- `getUserConfigDir()` lives in `src/api/config/consts.ts` because it owns `WTC_CONFIG_DIR`.
+- `STATE_FILE = "tui-state.json"` stays in `src/api/state/manager.ts` because it is state-manager-only.
 
 ## Phases
 

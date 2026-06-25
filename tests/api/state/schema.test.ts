@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { TuiStateEntrySchema, TuiStateFileSchema } from "../../src/state/schema.ts";
+import { TuiStateEntrySchema, TuiStateFileSchema } from "../../../src/api/state/schema.ts";
 
 describe("TuiStateEntrySchema", () => {
   test("accepts extra unknown fields for forward compat", () => {

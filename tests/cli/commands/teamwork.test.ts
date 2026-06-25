@@ -7,9 +7,9 @@ import {
   teamworkTaskListUnpin,
   teamworkTaskOpen,
 } from "../../../src/cli/commands/teamwork.ts";
-import type { ProjectConfig, ResolvedConfig } from "../../../src/config/schema.ts";
-import { TEAMWORK_BASE_URL } from "../../../src/teamwork/consts.ts";
-import type { TeamworkTask } from "../../../src/teamwork/task-list-tasks.ts";
+import type { ProjectConfig, ResolvedConfig } from "../../../src/api/config/schema.ts";
+import { TEAMWORK_BASE_URL } from "../../../src/api/teamwork/consts.ts";
+import type { TeamworkTask } from "../../../src/api/teamwork/task-list-tasks.ts";
 
 const resolvedConfig: ResolvedConfig = {
   user: { version: 1, workspaceName: "WTC" },

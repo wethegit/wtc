@@ -1,10 +1,10 @@
 import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
-import { loadResolvedConfig, saveProjectConfig, saveUserConfig } from "../../config/manager.ts";
-import type { ProjectConfig, ResolvedConfig, UserConfig } from "../../config/schema.ts";
-import { getTeamworkAuthStatus, setTeamworkApiToken } from "../../teamwork/auth.ts";
-import type { TeamworkAuthStatus } from "../../teamwork/auth.ts";
+import { loadResolvedConfig, saveProjectConfig, saveUserConfig } from "../../api/config/manager.ts";
+import type { ProjectConfig, ResolvedConfig, UserConfig } from "../../api/config/schema.ts";
+import { getTeamworkAuthStatus, setTeamworkApiToken } from "../../api/teamwork/auth.ts";
+import type { TeamworkAuthStatus } from "../../api/teamwork/auth.ts";
 import { ActionButton } from "../components/forms/action-button.tsx";
 import { Page } from "../components/layout/page.tsx";
 import { useStatusBar } from "../components/status-bar.tsx";

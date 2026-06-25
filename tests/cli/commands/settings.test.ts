@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { formatSettingsOutput } from "../../../src/cli/commands/settings.ts";
-import type { ResolvedConfig } from "../../../src/config/schema.ts";
+import type { ResolvedConfig } from "../../../src/api/config/schema.ts";
 
 describe("settings command", () => {
   test("formats resolved config with project config path", () => {
