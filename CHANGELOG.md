@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.7
+
+### Patch Changes
+
+- [#43](https://github.com/wethegit/wtc/pull/43) [`e605625`](https://github.com/wethegit/wtc/commit/e605625b3e089ff70957c5d39d5ded9d2ee1980b) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - feature: adds my work tab
+
 ## 0.3.6
 
 ### Patch Changes
