@@ -6,7 +6,5 @@ import { settings } from "./settings.ts";
 export const settingsCommand: CommandModule = {
   command: "settings",
   describe: "Print resolved config and config file paths",
-  handler: () => {
-    void settings();
-  },
+  handler: () => settings(),
 };
