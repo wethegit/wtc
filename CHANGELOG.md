@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.6
+
+### Patch Changes
+
+- [#40](https://github.com/wethegit/wtc/pull/40) [`03191a3`](https://github.com/wethegit/wtc/commit/03191a3ca4ab66e05dc2cd9dafa7067b77b62506) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Adds timers feature to CLI
+
 ## 0.3.5
 
 ### Patch Changes
