@@ -38,8 +38,12 @@ const defaultProviderActions: Record<ConfigAuthProvider, ProviderActions> = {
   },
 };
 
+function isConfigAuthProvider(provider: string): provider is ConfigAuthProvider {
+  return CONFIG_AUTH_PROVIDERS.some((value) => value === provider);
+}
+
 function requireConfigAuthProvider(provider: string): ConfigAuthProvider {
-  if (provider === "github" || provider === "teamwork") return provider;
+  if (isConfigAuthProvider(provider)) return provider;
   throw new Error(`Unsupported auth provider: ${provider}`);
 }
 
