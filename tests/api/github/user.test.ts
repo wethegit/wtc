@@ -1,20 +1,43 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, mock, test, beforeEach } from "bun:test";
 
-import { mockGitHubAuthModule, mockGitHubClientModule } from "../../helpers/github.ts";
+import { mockGitHubAuthModule } from "../../helpers/github.ts";
 import { useTempCacheDir } from "../../helpers/teamwork.ts";
 
 mock.module("../../../src/api/github/auth.ts", () => ({
   ...mockGitHubAuthModule(),
 }));
 
+// Stateful mock so tests can simulate network errors without replacing
+// the module-level mock (which leaks to other test files).
+let mockError: Error | null = null;
+
 mock.module("../../../src/api/github/client.ts", () => ({
-  ...mockGitHubClientModule(),
+  getOctokit: async () => {
+    if (mockError) throw mockError;
+    return {
+      rest: {
+        users: {
+          getAuthenticated: async () => ({
+            data: {
+              login: "testuser",
+              name: "Test User",
+              avatar_url: "https://example.com/avatar.png",
+            },
+          }),
+        },
+      },
+    };
+  },
 }));
 
 const { getGitHubCurrentUser } = await import("../../../src/api/github/user.ts");
 
 describe("github current user", () => {
   useTempCacheDir();
+
+  beforeEach(() => {
+    mockError = null;
+  });
 
   test("fetches current user with GitHub auth", async () => {
     const user = await getGitHubCurrentUser();
@@ -27,28 +50,15 @@ describe("github current user", () => {
   });
 
   test("returns cached user without fetching", async () => {
-    const first = await getGitHubCurrentUser();
-    expect(first.login).toBe("testuser");
-    expect(first.name).toBe("Test User");
-
-    const second = await getGitHubCurrentUser();
-    expect(second.login).toBe("testuser");
-    expect(second.name).toBe("Test User");
+    await getGitHubCurrentUser();
+    const user = await getGitHubCurrentUser();
+    expect(user.login).toBe("testuser");
   });
 
   test("falls back to stale cache on network error", async () => {
-    // Prime the cache with a successful fetch
     await getGitHubCurrentUser();
-
-    // Replace the module mock so the next fetch throws
-    mock.module("../../../src/api/github/client.ts", () => ({
-      getOctokit: async () => {
-        throw new Error("Network failure");
-      },
-    }));
-
-    const { getGitHubCurrentUser: getStale } = await import("../../../src/api/github/user.ts");
-    const user = await getStale();
+    mockError = new Error("Network failure");
+    const user = await getGitHubCurrentUser();
     expect(user.login).toBe("testuser");
     expect(user.name).toBe("Test User");
   });
