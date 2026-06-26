@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.10
+
+### Patch Changes
+
+- [#49](https://github.com/wethegit/wtc/pull/49) [`5dc7237`](https://github.com/wethegit/wtc/commit/5dc72378c518817365f3073fbcad96a3f99ae378) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Adds the branch creation flow to TUI
+
 ## 0.3.9
 
 ### Patch Changes
