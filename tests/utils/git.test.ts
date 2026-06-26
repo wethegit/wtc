@@ -22,8 +22,22 @@ describe("parseGitHubRemoteUrl", () => {
     });
   });
 
+  test("parses SSH remote URL in ssh:// form", () => {
+    expect(parseGitHubRemoteUrl("ssh://git@github.com/owner/repo.git")).toEqual({
+      owner: "owner",
+      repo: "repo",
+    });
+  });
+
   test("parses HTTPS remote URL with .git suffix", () => {
     expect(parseGitHubRemoteUrl("https://github.com/owner/repo.git")).toEqual({
+      owner: "owner",
+      repo: "repo",
+    });
+  });
+
+  test("parses HTTPS remote URL with trailing slash", () => {
+    expect(parseGitHubRemoteUrl("https://github.com/owner/repo.git/")).toEqual({
       owner: "owner",
       repo: "repo",
     });
