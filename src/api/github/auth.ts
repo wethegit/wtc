@@ -6,7 +6,7 @@ export type GitHubAuthStatus = "configured" | "missing";
 
 /** Returns the stored GitHub personal access token, or null when not configured. */
 export async function getGitHubApiToken(): Promise<string | null> {
-  return Bun.secrets.get({
+  return await Bun.secrets.get({
     service: GITHUB_SECRET_SERVICE,
     name: GITHUB_TOKEN_SECRET_NAME,
   });
