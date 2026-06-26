@@ -53,7 +53,6 @@ GitHub recommends fine-grained PATs over classic tokens. You need a token with w
    - **Resource owner** — your account or the relevant organization
    - **Repository access** — **Only select repositories** (preferred) or **All repositories**
 4. Under **Permissions** select:
-   - **Commit statuses** (Read only) — needed to create branches and push
    - **Contents** (Read and Write) — needed to create branches and push
    - **Pull requests** (Read and Write) — needed to create draft PRs
 5. Click **Generate token**.

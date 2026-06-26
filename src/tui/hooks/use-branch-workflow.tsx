@@ -1,6 +1,6 @@
 import { getGitHubCurrentUser } from "../../api/github/user.ts";
 import { setTaskBranch } from "../../api/github/task-branches.ts";
-import { detectRepo, createBranch, pushBranch } from "../../utils/git.ts";
+import { detectRepo, parseGithubRemoteUrl, createBranch, pushBranch } from "../../utils/git.ts";
 import { ConfirmDialog } from "../components/confirm-dialog.tsx";
 import { useDialog } from "../components/dialog.tsx";
 
@@ -14,7 +14,7 @@ export function useBranchWorkflow(setMessage: (msg: string) => void) {
     }
 
     const repoUrl = await detectRepo();
-    if (!repoUrl) {
+    if (!repoUrl || !parseGithubRemoteUrl(repoUrl)) {
       setMessage("Not in a git repo with a GitHub remote.");
       return;
     }
@@ -29,10 +29,14 @@ export function useBranchWorkflow(setMessage: (msg: string) => void) {
           message={`Create branch "${branchName}" for task "${task.name}"?`}
           confirmLabel="Create"
           onConfirm={async () => {
-            await createBranch(branchName);
-            await pushBranch(branchName);
-            await setTaskBranch(repoUrl, task.id, branchName);
-            setMessage(`Branch "${branchName}" created for task: ${task.name}`);
+            try {
+              await createBranch(branchName);
+              await pushBranch(branchName);
+              await setTaskBranch(repoUrl, task.id, branchName);
+              setMessage(`Branch "${branchName}" created for task: ${task.name}`);
+            } catch (error) {
+              setMessage(error instanceof Error ? error.message : "Failed to create branch.");
+            }
           }}
         />
       ));
