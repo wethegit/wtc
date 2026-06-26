@@ -36,14 +36,9 @@ describe("task-branch cache", () => {
   });
 
   test("setTaskBranchPrUrl throws for unknown task", async () => {
-    try {
-      await setTaskBranchPrUrl(REPO_URL, 999, "https://github.com/owner/repo/pull/1");
-      throw new Error("Expected setTaskBranchPrUrl to throw.");
-    } catch (error) {
-      expect(error).toEqual(
-        new Error("No branch found for task 999 in repo git@github.com:owner/repo.git"),
-      );
-    }
+    await expect(
+      setTaskBranchPrUrl(REPO_URL, 999, "https://github.com/owner/repo/pull/1"),
+    ).rejects.toThrow("No branch found for task 999 in repo git@github.com:owner/repo.git");
   });
 
   test("multiple repos are isolated", async () => {
