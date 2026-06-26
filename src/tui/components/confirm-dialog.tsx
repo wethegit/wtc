@@ -11,6 +11,10 @@ export interface ConfirmDialogProps {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  /** When true (default), closes the dialog after onConfirm completes. */
+  autoClose?: boolean;
+  /** Called when the user cancels instead of calling dialog.clear(). */
+  onCancel?: () => void;
   onConfirm: () => void | Promise<void>;
 }
 
@@ -24,7 +28,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
     } catch (error) {
       console.error(error);
     } finally {
-      dialog.clear();
+      if (props.autoClose !== false) dialog.clear();
     }
   };
 
@@ -45,13 +49,20 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
     <box gap={1}>
       <box flexDirection="row" justifyContent="space-between">
         <text attributes={TextAttributes.BOLD}>{props.title}</text>
-        <text fg={tokens.textDim} onMouseUp={() => dialog.clear()}>
+        <text
+          fg={tokens.textDim}
+          onMouseUp={() => (props.onCancel ? props.onCancel() : dialog.clear())}
+        >
           esc
         </text>
       </box>
       <text fg={tokens.textDim}>{props.message}</text>
       <box flexDirection="row" justifyContent="flex-end" gap={1} paddingTop={1}>
-        <box paddingX={2} backgroundColor={tokens.surfaceOverlay} onMouseUp={() => dialog.clear()}>
+        <box
+          paddingX={2}
+          backgroundColor={tokens.surfaceOverlay}
+          onMouseUp={() => (props.onCancel ? props.onCancel() : dialog.clear())}
+        >
           <text fg={tokens.text}>{props.cancelLabel ?? "cancel"}</text>
         </box>
         <box

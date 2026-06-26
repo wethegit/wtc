@@ -4,7 +4,7 @@ import { rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const { parseGitHubRemoteUrl, detectRepo, currentBranch, createBranch, pushBranch } =
+const { parseGitHubRemoteUrl, detectRepo, currentBranch, createBranch, pushBranch, branchExists } =
   await import("../../src/utils/git.ts");
 
 describe("parseGitHubRemoteUrl", () => {
@@ -102,6 +102,16 @@ describe("git shell commands", () => {
   test("currentBranch returns the current branch name", async () => {
     const branch = await currentBranch(tempDir);
     expect(branch).toBe("main");
+  });
+
+  test("branchExists returns false for non-existent branch", async () => {
+    expect(await branchExists("feature/nope", tempDir)).toBe(false);
+  });
+
+  test("branchExists returns true after branch is created", async () => {
+    expect(await branchExists("feature/test-branch", tempDir)).toBe(false);
+    await createBranch("feature/test-branch", tempDir);
+    expect(await branchExists("feature/test-branch", tempDir)).toBe(true);
   });
 
   test("createBranch creates and checks out a new branch", async () => {
