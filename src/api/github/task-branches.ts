@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getCacheDir } from "../cache/consts.ts";
+import { parseGitHubRemoteUrl } from "../../utils/git.ts";
 
 const TASK_BRANCHES_CACHE_FILE = "task-branches.json";
 
@@ -17,6 +18,12 @@ const TaskBranchesCacheFileSchema = z.object({
 
 type TaskBranchesCacheFile = z.infer<typeof TaskBranchesCacheFileSchema>;
 
+function normalizeRepoUrl(url: string): string {
+  const parsed = parseGitHubRemoteUrl(url);
+  if (parsed) return `${parsed.owner}/${parsed.repo}`;
+  return url;
+}
+
 export interface TaskBranchEntry {
   branch: string;
   prUrl?: string;
@@ -28,7 +35,7 @@ export async function getTaskBranch(
   taskId: number,
 ): Promise<TaskBranchEntry | null> {
   const cache = await readCache();
-  return cache.repos[repoUrl]?.[taskId.toString()] ?? null;
+  return cache.repos[normalizeRepoUrl(repoUrl)]?.[taskId.toString()] ?? null;
 }
 
 export async function setTaskBranch(
@@ -37,9 +44,10 @@ export async function setTaskBranch(
   branch: string,
 ): Promise<void> {
   const cache = await readCache();
-  const repoBranches = cache.repos[repoUrl] ?? {};
+  const key = normalizeRepoUrl(repoUrl);
+  const repoBranches = cache.repos[key] ?? {};
   repoBranches[taskId.toString()] = { branch, createdAt: Date.now() };
-  cache.repos[repoUrl] = repoBranches;
+  cache.repos[key] = repoBranches;
   await writeCache(cache);
 }
 
@@ -49,7 +57,8 @@ export async function setTaskBranchPrUrl(
   prUrl: string,
 ): Promise<void> {
   const cache = await readCache();
-  const entry = cache.repos[repoUrl]?.[taskId.toString()];
+  const key = normalizeRepoUrl(repoUrl);
+  const entry = cache.repos[key]?.[taskId.toString()];
   if (!entry) throw new Error(`No branch found for task ${taskId} in repo ${repoUrl}`);
   entry.prUrl = prUrl;
   await writeCache(cache);
