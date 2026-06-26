@@ -114,6 +114,9 @@ export function DialogProvider(props: ParentProps) {
       setStore("stack", [...store.stack, { element, onClose }]);
     },
     replace(element: DialogElement, onClose?: () => void) {
+      for (const item of store.stack) {
+        item.onClose?.();
+      }
       setStore("stack", [{ element, onClose }]);
     },
     clear() {

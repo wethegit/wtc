@@ -42,6 +42,18 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
           void confirm();
         },
       },
+      ...(props.onCancel
+        ? [
+            {
+              key: "escape",
+              desc: "Cancel",
+              group: "Dialog",
+              cmd: () => {
+                props.onCancel?.();
+              },
+            },
+          ]
+        : []),
     ],
   }));
 
