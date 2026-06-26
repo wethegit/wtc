@@ -52,9 +52,10 @@ GitHub recommends fine-grained PATs over classic tokens. You need a token with w
    - **Expiration** — choose a duration (90 days recommended)
    - **Resource owner** — your account or the relevant organization
    - **Repository access** — **Only select repositories** (preferred) or **All repositories**
-4. Under **Repository permissions**, set these to **Read and write**:
-   - **Contents** — needed to create branches and push
-   - **Pull requests** — needed to create draft PRs
+4. Under **Permissions** select:
+   - **Commit statuses** (Read only) — needed to create branches and push
+   - **Contents** (Read and Write) — needed to create branches and push
+   - **Pull requests** (Read and Write) — needed to create draft PRs
 5. Click **Generate token**.
 6. **Copy the token immediately** — you will not be able to see it again.
 

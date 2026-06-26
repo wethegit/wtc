@@ -14,6 +14,7 @@ import { Card } from "../../components/layout/card.tsx";
 import { TaskList } from "../../components/teamwork/task-list.tsx";
 import { usePageScroll } from "../../components/layout/scroll-context.tsx";
 import { useFlashInterval } from "../../hooks/use-flash-interval.ts";
+import { useBranchWorkflow } from "../../hooks/use-branch-workflow.tsx";
 import { useTaskTimer } from "../../hooks/use-task-timer.tsx";
 import { tokens } from "../../tokens.ts";
 
@@ -44,6 +45,7 @@ export function ProjectTab() {
   const flashOn = useFlashInterval();
   const { localTimers, refreshLocalTimers, toggleTimer, openSelectedTask } =
     useTaskTimer(setProjectMessage);
+  const { createBranchForTask } = useBranchWorkflow(setProjectMessage);
 
   createEffect(() => {
     const sel = selectedTask();
@@ -146,6 +148,12 @@ export function ProjectTab() {
         desc: "Start/pause local timer",
         group: "Teamwork",
         cmd: () => toggleTimer(selectedTeamworkTask()),
+      },
+      {
+        key: "ctrl+b",
+        desc: "Create branch for selected task",
+        group: "Teamwork",
+        cmd: () => createBranchForTask(selectedTeamworkTask()),
       },
     ],
   }));
