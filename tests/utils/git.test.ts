@@ -50,7 +50,7 @@ describe("git shell commands", () => {
 
   beforeEach(async () => {
     tempDir = mkdtempSync(join(tmpdir(), "wtc-git-test-"));
-    await Bun.$`git init`.cwd(tempDir);
+    await Bun.$`git init --initial-branch=main`.cwd(tempDir);
     await Bun.$`git config user.name Test`.cwd(tempDir);
     await Bun.$`git config user.email test@test.com`.cwd(tempDir);
     // Create an initial commit so HEAD is valid
@@ -76,7 +76,7 @@ describe("git shell commands", () => {
 
   test("currentBranch returns the current branch name", async () => {
     const branch = await currentBranch(tempDir);
-    expect(["master", "main"]).toContain(branch);
+    expect(branch).toBe("main");
   });
 
   test("createBranch creates and checks out a new branch", async () => {
