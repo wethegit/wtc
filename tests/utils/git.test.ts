@@ -4,7 +4,7 @@ import { rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const { parseGitHubRemoteUrl, detectRepo, currentBranch, createBranch } =
+const { parseGitHubRemoteUrl, detectRepo, currentBranch, createBranch, pushBranch } =
   await import("../../src/utils/git.ts");
 
 describe("parseGitHubRemoteUrl", () => {
@@ -94,5 +94,21 @@ describe("git shell commands", () => {
     await createBranch("feature/test-branch", tempDir);
     const branch = await currentBranch(tempDir);
     expect(branch).toBe("feature/test-branch");
+  });
+
+  test("pushBranch pushes to remote and sets upstream", async () => {
+    const bareDir = mkdtempSync(join(tmpdir(), "wtc-git-bare-"));
+    try {
+      await Bun.$`git init --bare`.cwd(bareDir);
+      await Bun.$`git remote add origin ${bareDir}`.cwd(tempDir);
+
+      await createBranch("feature/push-test", tempDir);
+      await pushBranch("feature/push-test", tempDir);
+
+      const remoteBranches = (await Bun.$`git branch -r`.cwd(tempDir).text()).trim();
+      expect(remoteBranches).toContain("origin/feature/push-test");
+    } finally {
+      rmSync(bareDir, { recursive: true, force: true });
+    }
   });
 });

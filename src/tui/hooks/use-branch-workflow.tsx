@@ -6,6 +6,7 @@ import { useDialog } from "../components/dialog.tsx";
 
 export function useBranchWorkflow(setMessage: (msg: string) => void) {
   const dialog = useDialog();
+  let creating = false;
 
   const createBranchForTask = async (task: { id: number; name: string } | null) => {
     if (!task) {
@@ -24,12 +25,15 @@ export function useBranchWorkflow(setMessage: (msg: string) => void) {
       const user = await getGitHubCurrentUser();
       const branchName = `${user.login}/tw${task.id}`;
 
+      creating = false;
       dialog.replace(() => (
         <ConfirmDialog
           title="Create Branch"
           message={`Create branch "${branchName}" for task "${task.name}"?`}
           confirmLabel="Create"
           onConfirm={async () => {
+            if (creating) return;
+            creating = true;
             try {
               await createBranch(branchName);
               await pushBranch(branchName);

@@ -3,6 +3,9 @@ export interface GitHubRemote {
   repo: string;
 }
 
+// Assumes `.git` suffix appears only at the end of the URL, not in a repo/organisation
+// name. This is almost always the case — GitHub rejects dots in org names and repo names
+// with `.git` that are not the suffix are exceedingly rare.
 const SSH_PATTERN = /^git@github\.com:([^/]+)\/([^/]+?)(?:\.git)?$/;
 const HTTPS_PATTERN = /^https:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?$/;
 

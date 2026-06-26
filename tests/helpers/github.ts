@@ -7,27 +7,3 @@ export function mockGitHubAuthModule() {
     deleteGitHubApiToken: async () => true,
   };
 }
-
-/** Factory for `mock.module("../../src/api/github/client.ts", ...)`. */
-export function mockGitHubClientModule() {
-  return {
-    getOctokit: async () => ({
-      rest: {
-        users: {
-          getAuthenticated: async () => ({
-            data: {
-              login: "testuser",
-              name: "Test User",
-              avatar_url: "https://example.com/avatar.png",
-            },
-          }),
-        },
-        repos: {
-          get: async () => ({
-            data: { default_branch: "main" },
-          }),
-        },
-      },
-    }),
-  };
-}
