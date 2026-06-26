@@ -1,4 +1,4 @@
-import { describe, expect, mock, test, beforeEach } from "bun:test";
+import { describe, expect, mock, test, afterEach, beforeEach } from "bun:test";
 
 import { mockGitHubAuthModule } from "../../helpers/github.ts";
 import { useTempCacheDir } from "../../helpers/teamwork.ts";
@@ -36,6 +36,10 @@ describe("github current user", () => {
   useTempCacheDir();
 
   beforeEach(() => {
+    mockError = null;
+  });
+
+  afterEach(() => {
     mockError = null;
   });
 
