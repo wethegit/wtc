@@ -37,6 +37,10 @@ describe("parseGithubRemoteUrl", () => {
     expect(parseGithubRemoteUrl("not-a-url")).toBeNull();
   });
 
+  test("rejects URL with extra path segments", () => {
+    expect(parseGithubRemoteUrl("https://github.com/owner/repo/extra")).toBeNull();
+  });
+
   test("trims whitespace", () => {
     expect(parseGithubRemoteUrl("  git@github.com:owner/repo.git  ")).toEqual({
       owner: "owner",

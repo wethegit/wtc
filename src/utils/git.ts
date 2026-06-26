@@ -3,8 +3,8 @@ export interface GithubRemote {
   repo: string;
 }
 
-const SSH_PATTERN = /^git@github\.com:([^/]+)\/(.+)\.git$/;
-const HTTPS_PATTERN = /^https:\/\/github\.com\/([^/]+)\/(.+?)(?:\.git)?$/;
+const SSH_PATTERN = /^git@github\.com:([^/]+)\/([^/]+)\.git$/;
+const HTTPS_PATTERN = /^https:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?$/;
 
 function extractSshMatch(url: string): GithubRemote | null {
   const match = url.match(SSH_PATTERN);
@@ -12,7 +12,7 @@ function extractSshMatch(url: string): GithubRemote | null {
   const owner = match[1];
   const repo = match[2];
   if (!owner || !repo) return null;
-  return { owner, repo: repo.replace(/\.git$/, "") };
+  return { owner, repo };
 }
 
 function extractHttpsMatch(url: string): GithubRemote | null {
