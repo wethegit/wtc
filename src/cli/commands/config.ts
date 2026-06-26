@@ -1,31 +1,42 @@
 import { initProjectConfig } from "../../api/config/manager.ts";
 import {
+  deleteGitHubApiToken,
+  getGitHubAuthStatus,
+  setGitHubApiToken,
+} from "../../api/github/auth.ts";
+import {
   deleteTeamworkApiToken,
   getTeamworkAuthStatus,
   setTeamworkApiToken,
-  type TeamworkAuthStatus,
 } from "../../api/teamwork/auth.ts";
 
 /** Shared with yargs so accepted CLI providers and handler validation stay in sync. */
-export const CONFIG_AUTH_PROVIDERS = ["teamwork"] as const;
+export const CONFIG_AUTH_PROVIDERS = ["github", "teamwork"] as const;
 /** Supported auth provider names for `wtc config auth`. */
 export type ConfigAuthProvider = (typeof CONFIG_AUTH_PROVIDERS)[number];
 
 /** Auth dependency boundary so command tests do not touch the OS secret store. */
-interface ConfigAuthActions {
-  setTeamworkApiToken: (token: string) => Promise<void>;
-  getTeamworkAuthStatus: () => Promise<TeamworkAuthStatus>;
-  deleteTeamworkApiToken: () => Promise<boolean>;
+export interface ProviderActions {
+  setToken: (token: string) => Promise<void>;
+  getStatus: () => Promise<string>;
+  deleteToken: () => Promise<boolean>;
 }
 
-const teamworkAuthActions: ConfigAuthActions = {
-  setTeamworkApiToken,
-  getTeamworkAuthStatus,
-  deleteTeamworkApiToken,
+const defaultProviderActions: Record<ConfigAuthProvider, ProviderActions> = {
+  github: {
+    setToken: setGitHubApiToken,
+    getStatus: getGitHubAuthStatus,
+    deleteToken: deleteGitHubApiToken,
+  },
+  teamwork: {
+    setToken: setTeamworkApiToken,
+    getStatus: getTeamworkAuthStatus,
+    deleteToken: deleteTeamworkApiToken,
+  },
 };
 
 function requireConfigAuthProvider(provider: string): ConfigAuthProvider {
-  if (provider === "teamwork") return provider;
+  if (provider === "github" || provider === "teamwork") return provider;
   throw new Error(`Unsupported auth provider: ${provider}`);
 }
 
@@ -38,30 +49,30 @@ export async function configInit(startDir = process.cwd()): Promise<void> {
 /** Stores an auth token for a provider in OS secrets. */
 export async function configAuthSet(
   args: { provider: string; token: string | undefined },
-  actions = teamworkAuthActions,
+  actions = defaultProviderActions,
 ): Promise<void> {
   const provider = requireConfigAuthProvider(args.provider);
   if (!args.token) throw new Error(`Missing token for ${provider}.`);
 
-  await actions.setTeamworkApiToken(args.token);
+  await actions[provider].setToken(args.token);
   console.log(`Configured ${provider} auth.`);
 }
 
 /** Prints whether auth is configured for a provider (without exposing the token). */
 export async function configAuthStatus(
   args: { provider: string },
-  actions = teamworkAuthActions,
+  actions = defaultProviderActions,
 ): Promise<void> {
   const provider = requireConfigAuthProvider(args.provider);
-  console.log(`${provider}: ${await actions.getTeamworkAuthStatus()}`);
+  console.log(`${provider}: ${await actions[provider].getStatus()}`);
 }
 
 /** Deletes stored auth for a provider. */
 export async function configAuthDelete(
   args: { provider: string },
-  actions = teamworkAuthActions,
+  actions = defaultProviderActions,
 ): Promise<void> {
   const provider = requireConfigAuthProvider(args.provider);
-  const deleted = await actions.deleteTeamworkApiToken();
+  const deleted = await actions[provider].deleteToken();
   console.log(deleted ? `Deleted ${provider} auth.` : `${provider}: missing`);
 }

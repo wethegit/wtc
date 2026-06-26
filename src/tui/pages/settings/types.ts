@@ -16,6 +16,7 @@ export interface SettingsFormState {
   user: {
     workspaceName: string;
     teamworkApiToken: string;
+    githubApiToken: string;
   };
   /** Project-level `.wtc.yaml` settings. */
   project: {
@@ -30,7 +31,10 @@ export type SettingsFormErrors = Record<string, string>;
 
 /** A focusable control on the Settings page. */
 export type SettingsFocusTarget =
-  | { type: "field"; name: "workspaceName" | "teamworkApiToken" | "teamworkProjectId" }
+  | {
+      type: "field";
+      name: "workspaceName" | "teamworkApiToken" | "githubApiToken" | "teamworkProjectId";
+    }
   | { type: "projectLink"; index: number; field: "name" | "url" }
   | { type: "pinnedTaskList"; index: number; field: "name" | "id" }
   | {

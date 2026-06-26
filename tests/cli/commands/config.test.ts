@@ -6,11 +6,27 @@ import {
   configAuthSet,
   configAuthStatus,
   configInit,
+  type ProviderActions,
 } from "../../../src/cli/commands/config.ts";
 
 const TEST_ROOT = `${Bun.env.TMPDIR ?? "/tmp"}/wtc-config-command-tests-${process.pid}`;
 const originalLog = console.log;
 let logs: string[];
+
+function mockActions(
+  providerOverrides?: Partial<Record<"github" | "teamwork", Partial<ProviderActions>>>,
+): Record<"github" | "teamwork", ProviderActions> {
+  const defaults: ProviderActions = {
+    setToken: async () => {},
+    getStatus: async () => "missing",
+    deleteToken: async () => false,
+  };
+
+  return {
+    github: { ...defaults, ...providerOverrides?.github },
+    teamwork: { ...defaults, ...providerOverrides?.teamwork },
+  };
+}
 
 describe("config command", () => {
   beforeEach(async () => {
@@ -52,51 +68,87 @@ describe("config command", () => {
 
     await configAuthSet(
       { provider: "teamwork", token: "abc123" },
-      {
-        setTeamworkApiToken: async (token) => {
-          savedToken = token;
+      mockActions({
+        teamwork: {
+          setToken: async (token) => {
+            savedToken = token;
+          },
         },
-        getTeamworkAuthStatus: async () => "missing",
-        deleteTeamworkApiToken: async () => false,
-      },
+      }),
     );
 
     expect(savedToken).toBe("abc123");
     expect(logs).toContain("Configured teamwork auth.");
   });
 
+  test("config auth set stores github token", async () => {
+    let savedToken = "";
+
+    await configAuthSet(
+      { provider: "github", token: "ghp_abc123" },
+      mockActions({
+        github: {
+          setToken: async (token) => {
+            savedToken = token;
+          },
+        },
+      }),
+    );
+
+    expect(savedToken).toBe("ghp_abc123");
+    expect(logs).toContain("Configured github auth.");
+  });
+
   test("config auth status prints teamwork status", async () => {
     await configAuthStatus(
       { provider: "teamwork" },
-      {
-        setTeamworkApiToken: async () => {},
-        getTeamworkAuthStatus: async () => "configured",
-        deleteTeamworkApiToken: async () => false,
-      },
+      mockActions({
+        teamwork: { getStatus: async () => "configured" },
+      }),
     );
 
     expect(logs).toContain("teamwork: configured");
   });
 
+  test("config auth status prints github status", async () => {
+    await configAuthStatus(
+      { provider: "github" },
+      mockActions({
+        github: { getStatus: async () => "configured" },
+      }),
+    );
+
+    expect(logs).toContain("github: configured");
+  });
+
   test("config auth delete reports deleted teamwork auth", async () => {
     await configAuthDelete(
       { provider: "teamwork" },
-      {
-        setTeamworkApiToken: async () => {},
-        getTeamworkAuthStatus: async () => "configured",
-        deleteTeamworkApiToken: async () => true,
-      },
+      mockActions({
+        teamwork: { deleteToken: async () => true },
+      }),
     );
 
     expect(logs).toContain("Deleted teamwork auth.");
   });
 
+  test("config auth delete reports deleted github auth", async () => {
+    await configAuthDelete(
+      { provider: "github" },
+      mockActions({
+        github: { deleteToken: async () => true },
+      }),
+    );
+
+    expect(logs).toContain("Deleted github auth.");
+  });
+
   test("config auth rejects unsupported providers", async () => {
     try {
-      await configAuthStatus({ provider: "github" });
+      await configAuthStatus({ provider: "gitlab" });
       throw new Error("Expected configAuthStatus to reject.");
     } catch (error) {
-      expect(error).toEqual(new Error("Unsupported auth provider: github"));
+      expect(error).toEqual(new Error("Unsupported auth provider: gitlab"));
     }
   });
 });

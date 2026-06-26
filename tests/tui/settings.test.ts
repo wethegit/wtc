@@ -33,7 +33,7 @@ describe("settings page helpers", () => {
   };
 
   const formState: SettingsFormState = {
-    user: { workspaceName: "WTC", teamworkApiToken: "" },
+    user: { workspaceName: "WTC", teamworkApiToken: "", githubApiToken: "" },
     project: {
       teamworkProjectId: "12345",
       links: [{ name: "Figma", url: "https://figma.com/file/abc" }],
@@ -64,7 +64,7 @@ describe("settings page helpers", () => {
 
   test("builds settings form state without project config", () => {
     expect(buildSettingsFormState({ ...resolvedConfig, project: null })).toEqual({
-      user: { workspaceName: "WTC", teamworkApiToken: "" },
+      user: { workspaceName: "WTC", teamworkApiToken: "", githubApiToken: "" },
       project: { teamworkProjectId: "", links: [], pinnedTaskLists: [] },
     });
   });
@@ -73,6 +73,7 @@ describe("settings page helpers", () => {
     expect(getSettingsFocusOrder(formState)).toEqual([
       { type: "field", name: "workspaceName" },
       { type: "field", name: "teamworkApiToken" },
+      { type: "field", name: "githubApiToken" },
       { type: "field", name: "teamworkProjectId" },
       { type: "listAction", list: "projectLinks", action: "add" },
       { type: "projectLink", index: 0, field: "name" },
@@ -93,8 +94,12 @@ describe("settings page helpers", () => {
       name: "teamworkApiToken",
     });
     expect(getNextSettingsFocus({ type: "field", name: "teamworkApiToken" }, formState, 1)).toEqual(
-      { type: "field", name: "teamworkProjectId" },
+      { type: "field", name: "githubApiToken" },
     );
+    expect(getNextSettingsFocus({ type: "field", name: "githubApiToken" }, formState, 1)).toEqual({
+      type: "field",
+      name: "teamworkProjectId",
+    });
     expect(getNextSettingsFocus({ type: "action", name: "reload" }, formState, 1)).toEqual({
       type: "field",
       name: "workspaceName",
@@ -107,7 +112,7 @@ describe("settings page helpers", () => {
 
   test("validates invalid settings form state", () => {
     const invalid: SettingsFormState = {
-      user: { workspaceName: "WTC", teamworkApiToken: "" },
+      user: { workspaceName: "WTC", teamworkApiToken: "", githubApiToken: "" },
       project: {
         teamworkProjectId: "abc",
         links: [{ name: "Figma", url: "not-a-url" }],
@@ -133,7 +138,7 @@ describe("settings page helpers", () => {
   test("applies settings form state to config objects", () => {
     expect(
       applySettingsFormState({
-        user: { workspaceName: "New", teamworkApiToken: "abc123" },
+        user: { workspaceName: "New", teamworkApiToken: "abc123", githubApiToken: "" },
         project: {
           teamworkProjectId: "98765",
           links: [{ name: "Docs", url: "https://docs.example.com" }],
@@ -156,7 +161,7 @@ describe("settings page helpers", () => {
   test("drops blank dynamic rows when applying settings form state", () => {
     expect(
       applySettingsFormState({
-        user: { workspaceName: "New", teamworkApiToken: "" },
+        user: { workspaceName: "New", teamworkApiToken: "", githubApiToken: "" },
         project: {
           teamworkProjectId: "",
           links: [{ name: "", url: "" }],
