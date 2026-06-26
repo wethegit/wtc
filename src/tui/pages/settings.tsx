@@ -3,6 +3,8 @@ import { useBindings } from "@opentui/keymap/solid";
 
 import { loadResolvedConfig, saveProjectConfig, saveUserConfig } from "../../api/config/manager.ts";
 import type { ProjectConfig, ResolvedConfig, UserConfig } from "../../api/config/schema.ts";
+import { getGitHubAuthStatus, setGitHubApiToken } from "../../api/github/auth.ts";
+import type { GitHubAuthStatus } from "../../api/github/auth.ts";
 import { getTeamworkAuthStatus, setTeamworkApiToken } from "../../api/teamwork/auth.ts";
 import type { TeamworkAuthStatus } from "../../api/teamwork/auth.ts";
 import { ActionButton } from "../components/forms/action-button.tsx";
@@ -46,12 +48,13 @@ export function SettingsPage() {
   const [resolved, setResolved] = createSignal<ResolvedConfig | null>(null);
   const [savedForm, setSavedForm] = createSignal<SettingsFormState | null>(null);
   const [form, setForm] = createSignal<SettingsFormState>({
-    user: { workspaceName: "", teamworkApiToken: "" },
+    user: { workspaceName: "", teamworkApiToken: "", githubApiToken: "" },
     project: { teamworkProjectId: "", links: [], pinnedTaskLists: [] },
   });
   const [expandedSections, setExpandedSections] =
     createSignal<SettingsExpandedSections>(DEFAULT_EXPANDED_SECTIONS);
   const [teamworkAuthStatus, setTeamworkAuthStatus] = createSignal<TeamworkAuthStatus>("missing");
+  const [githubAuthStatus, setGitHubAuthStatus] = createSignal<GitHubAuthStatus>("missing");
   const [message, setMessage] = createSignal("Loading settings...");
   const [isSaving, setIsSaving] = createSignal(false);
   const [focusedTarget, setFocusedTarget] = createSignal<SettingsFocusTarget>(FIRST_FOCUS);
@@ -72,9 +75,10 @@ export function SettingsPage() {
     try {
       const config = await loadResolvedConfig(process.cwd());
       const nextForm = buildSettingsFormState(config);
-      const authStatus = await getTeamworkAuthStatus();
+      const [twAuth, ghAuth] = await Promise.all([getTeamworkAuthStatus(), getGitHubAuthStatus()]);
       setResolved(config);
-      setTeamworkAuthStatus(authStatus);
+      setTeamworkAuthStatus(twAuth);
+      setGitHubAuthStatus(ghAuth);
       setSavedForm(nextForm);
       setForm(nextForm);
       setFocusedTarget(FIRST_FOCUS);
@@ -97,10 +101,12 @@ export function SettingsPage() {
     try {
       const nextConfig = applySettingsFormState(form());
       const teamworkApiToken = parseTeamworkApiTokenInput(form().user.teamworkApiToken);
+      const githubApiToken = parseTeamworkApiTokenInput(form().user.githubApiToken);
       await saveUserConfig(nextConfig.user);
       await saveProjectConfig(nextConfig.project, process.cwd());
       // Blank token input means "leave the existing OS secret unchanged".
       if (teamworkApiToken) await setTeamworkApiToken(teamworkApiToken);
+      if (githubApiToken) await setGitHubApiToken(githubApiToken);
       await reload();
       setMessage("Settings saved.");
     } catch (error) {
@@ -316,6 +322,7 @@ export function SettingsPage() {
             userConfigPath={resolved()?.paths.userConfigPath}
             expanded={expandedSections().user}
             teamworkAuthStatus={teamworkAuthStatus()}
+            githubAuthStatus={githubAuthStatus()}
             isFocused={(target) => isSettingsFocusTarget(focusedTarget(), target)}
             onToggle={() => toggleSection("user")}
             onWorkspaceNameInput={(workspaceName) => {
@@ -328,6 +335,12 @@ export function SettingsPage() {
               setForm((current) => ({
                 ...current,
                 user: { ...current.user, teamworkApiToken },
+              }));
+            }}
+            onGitHubApiTokenInput={(githubApiToken) => {
+              setForm((current) => ({
+                ...current,
+                user: { ...current.user, githubApiToken },
               }));
             }}
           />
@@ -422,6 +435,7 @@ export function buildSettingsFormState(config: ResolvedConfig): SettingsFormStat
     user: {
       workspaceName: config.user.workspaceName,
       teamworkApiToken: "",
+      githubApiToken: "",
     },
     project: {
       teamworkProjectId: config.project?.teamwork.projectId?.toString() ?? "",
@@ -454,6 +468,7 @@ export function getSettingsFocusOrder(
   if (expanded.user) {
     order.push({ type: "field", name: "workspaceName" });
     order.push({ type: "field", name: "teamworkApiToken" });
+    order.push({ type: "field", name: "githubApiToken" });
   }
 
   if (expanded.project) order.push({ type: "field", name: "teamworkProjectId" });

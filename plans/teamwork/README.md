@@ -8,7 +8,12 @@ Teamwork work is split into focused subphase documents so `plans/PLAN.md` stays 
 - [5.2 Pinned Project Task Lists](5.2-pinned-project-task-lists.md): project-configured task lists that surface recurring tasks like meetings, code reviews, documentation, and project management.
 - [5.3 My Work Tasks](5.3-my-work-tasks.md): tasks assigned to the current user across Teamwork.
 - [5.4 Timers and Time Tracking](5.4-timers-and-time-tracking.md): active timers, timer actions, task timer indicators, and timesheet access.
-- [5.5 Branch and PR Workflow](5.5-branch-and-pr-workflow.md): create branches and draft PRs from Teamwork tasks with timer prompts and useful PR body links.
+- [5.5 Branch and PR Workflow](5.5-branch-and-pr-workflow.md): create branches and draft PRs from Teamwork tasks with timer prompts and useful PR body links. Split into sub-phases:
+  - 5.5.1 — GitHub API Foundation
+  - 5.5.2 — Git Utilities & Task-Branch Cache
+  - 5.5.3 — Branch from Task (TUI)
+  - 5.5.4 — Draft PR (TUI)
+  - 5.5.5 — CLI Commands
 
 ## Implementation Order
 
@@ -17,7 +22,7 @@ Teamwork work is split into focused subphase documents so `plans/PLAN.md` stays 
 3. Add shared task list selection behavior and task actions.
 4. Add My Work assigned-task view.
 5. Add timer read/actions and timer state indicators.
-6. Add branch and PR workflows from selected tasks.
+6. Add branch and PR workflows from selected tasks (5.5.1 → 5.5.2 → 5.5.3 → 5.5.4 → 5.5.5).
 
 ## Feature Workflow
 

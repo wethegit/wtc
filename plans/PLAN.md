@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** Phase 5 Teamwork (5.1 ✅, 5.2 ✅, 5.3 ✅, 5.4 ✅)
+- **Status:** Phase 5 Teamwork (5.1 ✅, 5.2 ✅, 5.3 ✅, 5.4 ✅; 5.5 in progress)
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js
@@ -134,7 +134,7 @@ Auth, project config, Teamwork route, project metadata, project links, and share
 
 Project-configured Teamwork task lists for recurring project tasks such as code review, meetings, miscellaneous work, project management, and documentation.
 
-#### Phase 5.3 — [My Work Tasks](teamwork/5.3-my-work-tasks.md)
+#### Phase 5.3 — [My Work Tasks](teamwork/5.3-my-work-tasks.md) ✅
 
 Assigned Teamwork tasks for the current user with selection and basic task actions.
 
@@ -142,9 +142,15 @@ Assigned Teamwork tasks for the current user with selection and basic task actio
 
 Timer overview, task timer indicators, start/pause/delete actions, timesheet access, and timer conflict confirmations.
 
-#### Phase 5.5 — [Branch and PR Workflow](teamwork/5.5-branch-and-pr-workflow.md)
+#### Phase 5.5 — [Branch and PR Workflow](teamwork/5.5-branch-and-pr-workflow.md) 🔨
 
-Create branches and draft PRs from Teamwork tasks with timer prompts and useful PR body links.
+Create branches and draft PRs from Teamwork tasks with timer prompts and useful PR body links. Split into sub-phases:
+
+- 5.5.1 — GitHub API Foundation
+- 5.5.2 — Git Utilities & Task-Branch Cache
+- 5.5.3 — Branch from Task (TUI)
+- 5.5.4 — Draft PR (TUI)
+- 5.5.5 — CLI Commands
 
 ### Phase 6 — GitHub Repo Creation
 

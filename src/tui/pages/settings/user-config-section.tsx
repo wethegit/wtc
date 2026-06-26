@@ -1,19 +1,22 @@
+import type { GitHubAuthStatus } from "../../../api/github/auth.ts";
 import type { TeamworkAuthStatus } from "../../../api/teamwork/auth.ts";
 import { TextField } from "../../components/forms/text-field.tsx";
 import { AccordionSection } from "../../components/layout/accordion-section.tsx";
 import { tokens } from "../../tokens.ts";
 import type { SettingsFocusTarget, SettingsFormState } from "./types.ts";
 
-/** Settings section for user-level config (workspace name, Teamwork auth). */
+/** Settings section for user-level config (workspace name, Teamwork auth, GitHub auth). */
 export function UserConfigSection(props: {
   form: SettingsFormState;
   userConfigPath: string | undefined;
   expanded: boolean;
   teamworkAuthStatus: TeamworkAuthStatus;
+  githubAuthStatus: GitHubAuthStatus;
   isFocused: (target: SettingsFocusTarget) => boolean;
   onToggle: () => void;
   onWorkspaceNameInput: (value: string) => void;
   onTeamworkApiTokenInput: (value: string) => void;
+  onGitHubApiTokenInput: (value: string) => void;
 }) {
   return (
     <AccordionSection
@@ -53,6 +56,29 @@ export function UserConfigSection(props: {
             description="User-level secret stored outside YAML; this field clears after save."
             focused={props.isFocused({ type: "field", name: "teamworkApiToken" })}
             onInput={props.onTeamworkApiTokenInput}
+          />
+        </box>
+
+        <box
+          flexDirection="column"
+          gap={1}
+          paddingLeft={1}
+          border={["left"]}
+          borderColor={tokens.accentSoft}
+        >
+          <box flexDirection="column" gap={0}>
+            <text fg={tokens.text}>GitHub auth</text>
+            <text fg={tokens.textDim}>Status: {props.githubAuthStatus}</text>
+          </box>
+          <TextField
+            name="githubApiToken"
+            label="githubApiToken"
+            value={props.form.user.githubApiToken}
+            width={40}
+            placeholder="Paste new token"
+            description="User-level secret stored outside YAML; this field clears after save."
+            focused={props.isFocused({ type: "field", name: "githubApiToken" })}
+            onInput={props.onGitHubApiTokenInput}
           />
         </box>
       </box>
