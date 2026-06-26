@@ -86,14 +86,12 @@ export async function loadProjectConfig(startDir: string): Promise<ProjectConfig
 }
 
 /**
- * Saves project config to the nearest discovered `.wtc.yaml`.
+ * Saves project config to `startDir`, creating or overwriting `.wtc.yaml` there.
  *
- * If discovery finds no project config, the file is created in `startDir`. The
- * written path is returned so CLI/TUI callers can show users where changes went.
+ * The written path is returned so CLI/TUI callers can show users where changes went.
  */
 export async function saveProjectConfig(config: ProjectConfig, startDir: string): Promise<string> {
-  const path =
-    (await getProjectConfigPath(startDir)) ?? join(resolve(startDir), PROJECT_CONFIG_FILE);
+  const path = join(resolve(startDir), PROJECT_CONFIG_FILE);
   await Bun.write(path, formatProjectConfig(ProjectConfigSchema.parse(config)));
   return path;
 }

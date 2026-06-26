@@ -47,9 +47,18 @@ export async function currentBranch(projectDir = process.cwd()): Promise<string>
 }
 
 export async function createBranch(name: string, projectDir = process.cwd()): Promise<void> {
-  await Bun.$`git checkout -b ${name}`.cwd(projectDir);
+  await Bun.$`git checkout -b ${name}`.cwd(projectDir).quiet();
 }
 
 export async function pushBranch(name: string, projectDir = process.cwd()): Promise<void> {
-  await Bun.$`git push -u origin ${name}`.cwd(projectDir);
+  await Bun.$`git push -u origin ${name}`.cwd(projectDir).quiet();
+}
+
+export async function branchExists(name: string, projectDir = process.cwd()): Promise<boolean> {
+  try {
+    await Bun.$`git rev-parse --verify refs/heads/${name}`.cwd(projectDir).quiet();
+    return true;
+  } catch {
+    return false;
+  }
 }

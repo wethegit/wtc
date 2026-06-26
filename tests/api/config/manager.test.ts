@@ -104,6 +104,32 @@ describe("config manager", () => {
     expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toBeNull();
   });
 
+  test("writes to startDir even when ancestor config exists", async () => {
+    // Create an ancestor config in PROJECT_ROOT
+    await saveProjectConfig(
+      { version: 1, project: { links: [] }, teamwork: { projectId: 1, pinnedTaskLists: [] } },
+      PROJECT_ROOT,
+    );
+
+    // Save from a subdirectory — should write to subdir, not overwrite ancestor
+    const subdirPath = await saveProjectConfig(
+      { version: 1, project: { links: [] }, teamwork: { projectId: 2, pinnedTaskLists: [] } },
+      `${PROJECT_ROOT}/packages/app`,
+    );
+
+    expect(subdirPath).toBe(`${PROJECT_ROOT}/packages/app/.wtc.yaml`);
+    expect(await loadProjectConfig(PROJECT_ROOT)).toEqual({
+      version: 1,
+      project: { links: [] },
+      teamwork: { projectId: 1, pinnedTaskLists: [] },
+    });
+    expect(await loadProjectConfig(`${PROJECT_ROOT}/packages/app`)).toEqual({
+      version: 1,
+      project: { links: [] },
+      teamwork: { projectId: 2, pinnedTaskLists: [] },
+    });
+  });
+
   test("creates project config in start directory when none exists", async () => {
     const projectPath = await saveProjectConfig(
       { version: 1, project: { links: [] }, teamwork: { projectId: 98765, pinnedTaskLists: [] } },
