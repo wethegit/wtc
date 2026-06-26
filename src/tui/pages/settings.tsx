@@ -100,8 +100,8 @@ export function SettingsPage() {
 
     try {
       const nextConfig = applySettingsFormState(form());
-      const teamworkApiToken = parseTeamworkApiTokenInput(form().user.teamworkApiToken);
-      const githubApiToken = parseTeamworkApiTokenInput(form().user.githubApiToken);
+      const teamworkApiToken = form().user.teamworkApiToken.trim() || null;
+      const githubApiToken = form().user.githubApiToken.trim() || null;
       await saveUserConfig(nextConfig.user);
       await saveProjectConfig(nextConfig.project, process.cwd());
       // Blank token input means "leave the existing OS secret unchanged".
@@ -421,12 +421,6 @@ export function parsePinnedTaskListId(value: string): number | null {
   const parsed = Number(trimmed);
   if (!Number.isInteger(parsed) || parsed <= 0) return null;
   return parsed;
-}
-
-/** Blank input intentionally preserves the existing Teamwork token secret. */
-export function parseTeamworkApiTokenInput(value: string): string | null {
-  const trimmed = value.trim();
-  return trimmed || null;
 }
 
 /** Builds initial Settings form state from a resolved config. */
