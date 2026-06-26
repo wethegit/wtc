@@ -1,4 +1,4 @@
-import { describe, expect, mock, test, afterEach, beforeEach } from "bun:test";
+import { describe, expect, mock, test, afterAll, afterEach, beforeEach } from "bun:test";
 
 import { mockGitHubAuthModule } from "../../helpers/github.ts";
 import { useTempCacheDir } from "../../helpers/teamwork.ts";
@@ -25,6 +25,9 @@ mock.module("../../../src/api/github/client.ts", () => ({
             },
           }),
         },
+        pulls: {
+          create: async () => ({}),
+        },
       },
     };
   },
@@ -41,6 +44,10 @@ describe("github current user", () => {
 
   afterEach(() => {
     mockError = null;
+  });
+
+  afterAll(() => {
+    mock.restore();
   });
 
   test("fetches current user with GitHub auth", async () => {
