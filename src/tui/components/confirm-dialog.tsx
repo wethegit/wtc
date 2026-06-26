@@ -36,7 +36,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
     bindings: [
       {
         key: "return",
-        desc: "Confirm",
+        desc: props.confirmLabel ?? "Confirm",
         group: "Dialog",
         cmd: () => {
           void confirm();
