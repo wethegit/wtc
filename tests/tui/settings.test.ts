@@ -7,7 +7,6 @@ import {
   getNextSettingsFocus,
   getSettingsFocusOrder,
   parsePinnedTaskListId,
-  parseTeamworkApiTokenInput,
   parseTeamworkProjectId,
   validateSettingsForm,
   type SettingsFormState,
@@ -128,11 +127,6 @@ describe("settings page helpers", () => {
     expect(getSettingsFormError(invalid)).toBe("Teamwork project ID must be a positive integer.");
     expect(validateSettingsForm(formState)).toEqual({});
     expect(getSettingsFormError(formState)).toBeNull();
-  });
-
-  test("normalizes teamwork API token input", () => {
-    expect(parseTeamworkApiTokenInput("  abc123  ")).toBe("abc123");
-    expect(parseTeamworkApiTokenInput("   ")).toBeNull();
   });
 
   test("applies settings form state to config objects", () => {

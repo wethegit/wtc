@@ -21,10 +21,10 @@ Required for all Teamwork features (task lists, timers, branch/PR workflows).
 #### How to store it
 
 ```bash
-wtc config auth set teamwork
+wtc config auth set teamwork --token <your-token>
 ```
 
-Paste the token when prompted. The value is stored in your OS keychain.
+The `--token` flag is required. Replace `<your-token>` with your actual token. The value is stored in your OS keychain.
 
 Alternatively you can also use the TUI by:
 
@@ -61,10 +61,10 @@ GitHub recommends fine-grained PATs over classic tokens. You need a token with w
 #### How to store it
 
 ```bash
-wtc config auth set github
+wtc config auth set github --token <your-token>
 ```
 
-Paste the token when prompted. The value is stored in your OS keychain.
+The `--token` flag is required. Replace `<your-token>` with your actual token. The value is stored in your OS keychain.
 
 Alternatively you can also use the TUI by:
 
