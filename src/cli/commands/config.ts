@@ -1,9 +1,11 @@
 import { initProjectConfig } from "../../api/config/manager.ts";
+import type { GitHubAuthStatus } from "../../api/github/auth.ts";
 import {
   deleteGitHubApiToken,
   getGitHubAuthStatus,
   setGitHubApiToken,
 } from "../../api/github/auth.ts";
+import type { TeamworkAuthStatus } from "../../api/teamwork/auth.ts";
 import {
   deleteTeamworkApiToken,
   getTeamworkAuthStatus,
@@ -14,11 +16,12 @@ import {
 export const CONFIG_AUTH_PROVIDERS = ["github", "teamwork"] as const;
 /** Supported auth provider names for `wtc config auth`. */
 export type ConfigAuthProvider = (typeof CONFIG_AUTH_PROVIDERS)[number];
+type ConfigAuthStatus = GitHubAuthStatus | TeamworkAuthStatus;
 
 /** Auth dependency boundary so command tests do not touch the OS secret store. */
 export interface ProviderActions {
   setToken: (token: string) => Promise<void>;
-  getStatus: () => Promise<string>;
+  getStatus: () => Promise<ConfigAuthStatus>;
   deleteToken: () => Promise<boolean>;
 }
 
