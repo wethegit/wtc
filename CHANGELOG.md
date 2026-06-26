@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.8
+
+### Patch Changes
+
+- [#45](https://github.com/wethegit/wtc/pull/45) [`ce6700e`](https://github.com/wethegit/wtc/commit/ce6700e36b970d9a83319cc0b6091944b2860abc) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - feature: adds github auth
+
 ## 0.3.7
 
 ### Patch Changes
