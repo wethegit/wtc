@@ -73,6 +73,7 @@ export function TeamworkPage(props: {
             { key: "ctrl+←/→", label: "tabs" },
             { key: "ctrl+o", label: "open" },
             { key: "ctrl+t", label: "timer" },
+            { key: "ctrl+b", label: "branch" },
           ]
         : tab === "timers"
           ? [
