@@ -8,7 +8,7 @@ export type TeamworkAuthStatus = "configured" | "missing";
 
 /** Returns the stored Teamwork API token, or null when not configured. */
 export async function getTeamworkApiToken(): Promise<string | null> {
-  return Bun.secrets.get({
+  return await Bun.secrets.get({
     service: TEAMWORK_SECRET_SERVICE,
     name: TEAMWORK_TOKEN_SECRET_NAME,
   });
