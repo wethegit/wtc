@@ -69,7 +69,7 @@ Paste the token when prompted. The value is stored in your OS keychain.
 Alternatively you can also use the TUI by:
 
 1. Open TUI with `wtc`
-2. Open command palette with `control+p`
+2. Open command palette with `ctrl+p`
 3. Navigate to `Open Settings`
 4. Under `User config` add your token to `GitHub auth`
-5. Press `control+s` to save
+5. Press `ctrl+s` to save
