@@ -4,45 +4,52 @@ import { rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const { parseGithubRemoteUrl, detectRepo, currentBranch, createBranch } =
+const { parseGitHubRemoteUrl, detectRepo, currentBranch, createBranch } =
   await import("../../src/utils/git.ts");
 
-describe("parseGithubRemoteUrl", () => {
+describe("parseGitHubRemoteUrl", () => {
   test("parses SSH remote URL", () => {
-    expect(parseGithubRemoteUrl("git@github.com:owner/repo.git")).toEqual({
+    expect(parseGitHubRemoteUrl("git@github.com:owner/repo.git")).toEqual({
+      owner: "owner",
+      repo: "repo",
+    });
+  });
+
+  test("parses SSH remote URL without .git suffix", () => {
+    expect(parseGitHubRemoteUrl("git@github.com:owner/repo")).toEqual({
       owner: "owner",
       repo: "repo",
     });
   });
 
   test("parses HTTPS remote URL with .git suffix", () => {
-    expect(parseGithubRemoteUrl("https://github.com/owner/repo.git")).toEqual({
+    expect(parseGitHubRemoteUrl("https://github.com/owner/repo.git")).toEqual({
       owner: "owner",
       repo: "repo",
     });
   });
 
   test("parses HTTPS remote URL without .git suffix", () => {
-    expect(parseGithubRemoteUrl("https://github.com/owner/repo")).toEqual({
+    expect(parseGitHubRemoteUrl("https://github.com/owner/repo")).toEqual({
       owner: "owner",
       repo: "repo",
     });
   });
 
   test("rejects non-GitHub URL", () => {
-    expect(parseGithubRemoteUrl("https://gitlab.com/owner/repo.git")).toBeNull();
+    expect(parseGitHubRemoteUrl("https://gitlab.com/owner/repo.git")).toBeNull();
   });
 
   test("rejects malformed URL", () => {
-    expect(parseGithubRemoteUrl("not-a-url")).toBeNull();
+    expect(parseGitHubRemoteUrl("not-a-url")).toBeNull();
   });
 
   test("rejects URL with extra path segments", () => {
-    expect(parseGithubRemoteUrl("https://github.com/owner/repo/extra")).toBeNull();
+    expect(parseGitHubRemoteUrl("https://github.com/owner/repo/extra")).toBeNull();
   });
 
   test("trims whitespace", () => {
-    expect(parseGithubRemoteUrl("  git@github.com:owner/repo.git  ")).toEqual({
+    expect(parseGitHubRemoteUrl("  git@github.com:owner/repo.git  ")).toEqual({
       owner: "owner",
       repo: "repo",
     });

@@ -64,7 +64,7 @@ export async function getGitHubCurrentUser(): Promise<GitHubCurrentUser> {
       avatarUrl: parsed.avatar_url,
     };
 
-    cache.user = { ...user, avatarUrl: user.avatarUrl, cachedAt: now };
+    cache.user = { ...user, cachedAt: now };
     await Bun.write(`${getCacheDir()}/${USER_CACHE_FILE}`, `${JSON.stringify(cache, null, 2)}\n`);
     return user;
   } catch (error) {
