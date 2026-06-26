@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.9
+
+### Patch Changes
+
+- [#47](https://github.com/wethegit/wtc/pull/47) [`0bc2e5b`](https://github.com/wethegit/wtc/commit/0bc2e5b69363b2b67996de5d79f0cd0ea3051364) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Adds branch creation from task. Only works if CLI is started from a git repo with a GitHub `origin` remote for now.
+
 ## 0.3.8
 
 ### Patch Changes
