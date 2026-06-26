@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import { InputRenderable, TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 
@@ -12,6 +12,8 @@ export interface DialogInputProps {
   initialValue: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  /** Called when the user cancels instead of calling dialog.clear(). */
+  onCancel?: () => void;
   onConfirm: (value: string) => void;
 }
 
@@ -21,22 +23,32 @@ export function DialogInput(props: DialogInputProps) {
 
   let input: InputRenderable | undefined;
 
+  onMount(() => {
+    if (input && !input.isDestroyed) input.focus();
+  });
+
   useBindings(() => ({
     bindings: [
       {
         key: "escape",
         desc: "Cancel",
         group: "Dialog",
-        cmd: () => dialog.clear(),
+        cmd: () => {
+          if (props.onCancel) {
+            props.onCancel();
+          } else {
+            dialog.clear();
+          }
+        },
       },
       {
         key: "return",
         desc: props.confirmLabel ?? "Confirm",
         group: "Dialog",
         cmd: () => {
-          const v = value();
-          if (!v.trim()) return;
-          props.onConfirm(v);
+          const trimmed = value().trim();
+          if (!trimmed) return;
+          props.onConfirm(trimmed);
         },
       },
     ],
@@ -48,7 +60,10 @@ export function DialogInput(props: DialogInputProps) {
         <text attributes={TextAttributes.BOLD} fg={tokens.text}>
           {props.title}
         </text>
-        <text fg={tokens.textDim} onMouseUp={() => dialog.clear()}>
+        <text
+          fg={tokens.textDim}
+          onMouseUp={() => (props.onCancel ? props.onCancel() : dialog.clear())}
+        >
           esc
         </text>
       </box>
@@ -59,10 +74,6 @@ export function DialogInput(props: DialogInputProps) {
           onInput={(v: string) => setValue(v)}
           ref={(renderable) => {
             input = renderable;
-            setTimeout(() => {
-              if (!input || input.isDestroyed) return;
-              input.focus();
-            }, 1);
           }}
         />
       </box>

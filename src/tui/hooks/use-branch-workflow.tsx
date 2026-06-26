@@ -10,6 +10,7 @@ import {
 } from "../../utils/git.ts";
 import { ConfirmDialog } from "../components/confirm-dialog.tsx";
 import { DialogInput } from "../components/dialog-input.tsx";
+import { LoadingDialog } from "../components/loading-dialog.tsx";
 import { useDialog } from "../components/dialog.tsx";
 
 export function useBranchWorkflow(setMessage: (msg: string) => void) {
@@ -22,10 +23,19 @@ export function useBranchWorkflow(setMessage: (msg: string) => void) {
       return;
     }
 
+    dialog.replace(() => <LoadingDialog message="Checking repository..." />);
+
     const repoUrl = await detectRepo();
     const repo = repoUrl ? parseGitHubRemoteUrl(repoUrl) : null;
     if (!repoUrl || !repo) {
-      setMessage("Not in a git repo with a GitHub remote.");
+      dialog.replace(() => (
+        <ConfirmDialog
+          title="Error"
+          message="Not in a git repo with a GitHub remote."
+          confirmLabel="OK"
+          onConfirm={async () => {}}
+        />
+      ));
       return;
     }
 
@@ -47,7 +57,14 @@ export function useBranchWorkflow(setMessage: (msg: string) => void) {
 
       showTimerStep(task, defaultBranchName, repo);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Failed to create branch.");
+      dialog.replace(() => (
+        <ConfirmDialog
+          title="Error"
+          message={error instanceof Error ? error.message : "Failed to create branch."}
+          confirmLabel="OK"
+          onConfirm={async () => {}}
+        />
+      ));
     }
   };
 
@@ -90,6 +107,10 @@ export function useBranchWorkflow(setMessage: (msg: string) => void) {
         onConfirm={(name) => {
           createBranchAndFinish(task, name, repo);
         }}
+        onCancel={() => {
+          dialog.clear();
+          setMessage("Branch creation cancelled.");
+        }}
       />
     ));
   };
@@ -107,9 +128,12 @@ export function useBranchWorkflow(setMessage: (msg: string) => void) {
       await pushBranch(branchName);
       await setTaskBranch(`${repo.owner}/${repo.repo}`, task.id, branchName);
 
+      dialog.clear();
       setMessage(`Branch "${branchName}" created for task: ${task.name}`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Failed to create branch.");
+    } finally {
+      creating = false;
     }
   };
 
