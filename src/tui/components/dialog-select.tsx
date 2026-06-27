@@ -59,7 +59,11 @@ export function filterDialogSelectOptions<T>(
  * `useBindings()` for Escape, Up, Down, and Return. Callers provide the options
  * and decide what each option does in `onSelect`.
  */
-export function DialogSelect<T>(props: { title: string; options: DialogSelectOption<T>[] }) {
+export function DialogSelect<T>(props: {
+  title: string;
+  options: DialogSelectOption<T>[];
+  onCancel?: () => void;
+}) {
   const dialog = useDialog();
   const [query, setQuery] = createSignal("");
   const [selectedIndex, setSelectedIndex] = createSignal(0);
@@ -112,7 +116,7 @@ export function DialogSelect<T>(props: { title: string; options: DialogSelectOpt
         key: "escape",
         desc: "Close dialog",
         group: "Dialog",
-        cmd: () => dialog.clear(),
+        cmd: () => (props.onCancel ? props.onCancel() : dialog.clear()),
       },
       {
         key: "up",

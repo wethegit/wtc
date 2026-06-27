@@ -77,6 +77,20 @@ describe("createDraftPullRequest", () => {
     expect(capturedPullArgs?.draft).toBe(true);
   });
 
+  test("uses baseBranch when provided", async () => {
+    await createDraftPullRequest({
+      ...BASE_INPUT,
+      projectDir: tempDir,
+      baseBranch: "develop",
+    });
+    expect(capturedPullArgs?.base).toBe("develop");
+  });
+
+  test("falls back to repo default branch when baseBranch is omitted", async () => {
+    await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
+    expect(capturedPullArgs?.base).toBe("main");
+  });
+
   test("includes task reference in PR body", async () => {
     await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
 
