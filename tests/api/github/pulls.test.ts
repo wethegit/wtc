@@ -1,4 +1,4 @@
-import { describe, expect, mock, test, afterAll, afterEach, beforeEach } from "bun:test";
+import { describe, expect, mock, test, afterAll, beforeEach } from "bun:test";
 import { mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -9,7 +9,7 @@ mock.module("../../../src/api/github/auth.ts", () => ({
   ...mockGitHubAuthModule(),
 }));
 
-let capturedPullArgs: Record<string, unknown> | null = null;
+const capturedPullArgsByHead = new Map<string, Record<string, unknown>>();
 
 mock.module("../../../src/api/github/client.ts", () => ({
   getOctokit: async () => ({
@@ -19,7 +19,8 @@ mock.module("../../../src/api/github/client.ts", () => ({
       },
       pulls: {
         create: async (args: Record<string, unknown>) => {
-          capturedPullArgs = args;
+          const head = typeof args.head === "string" ? args.head : "";
+          if (head) capturedPullArgsByHead.set(head, args);
           return {
             data: {
               html_url: "https://github.com/owner/repo/pull/42",
@@ -42,16 +43,36 @@ const BASE_INPUT = {
   task: { id: 123, name: "My task" },
 };
 
+let testBranchCounter = 0;
+
+async function createDraftPullRequestAndCaptureArgs(
+  input: Partial<typeof BASE_INPUT & { baseBranch?: string; reviewTask?: { id: number; name: string } | null }>,
+  projectDir: string,
+): Promise<{
+  args: Record<string, unknown>;
+  result: { url: string; number: number };
+}> {
+  testBranchCounter += 1;
+  const branchName = `user/tw123-${testBranchCounter}`;
+
+  const result = await createDraftPullRequest({
+    ...BASE_INPUT,
+    ...input,
+    branchName,
+    projectDir,
+  });
+
+  const args = capturedPullArgsByHead.get(branchName);
+  if (!args) throw new Error(`Failed to capture pull request args for branch "${branchName}".`);
+  capturedPullArgsByHead.delete(branchName);
+  return { args, result };
+}
+
 describe("createDraftPullRequest", () => {
   let tempDir: string;
 
   beforeEach(() => {
-    capturedPullArgs = null;
     tempDir = mkdtempSync(join(tmpdir(), "wtc-pr-test-"));
-  });
-
-  afterEach(() => {
-    capturedPullArgs = null;
   });
 
   afterAll(() => {
@@ -59,55 +80,55 @@ describe("createDraftPullRequest", () => {
   });
 
   test("creates draft PR with minimal input", async () => {
-    const result = await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
+    const { args, result } = await createDraftPullRequestAndCaptureArgs({}, tempDir);
 
     expect(result.url).toBe("https://github.com/owner/repo/pull/42");
     expect(result.number).toBe(42);
 
-    expect(capturedPullArgs?.owner).toBe("owner");
-    expect(capturedPullArgs?.repo).toBe("repo");
-    expect(capturedPullArgs?.head).toBe("user/tw123");
-    expect(capturedPullArgs?.base).toBe("main");
-    expect(capturedPullArgs?.title).toBe("feat: My task");
-    expect(capturedPullArgs?.draft).toBe(true);
+    expect(args.owner).toBe("owner");
+    expect(args.repo).toBe("repo");
+    expect(args.head).toContain("user/tw123-");
+    expect(args.base).toBe("main");
+    expect(args.title).toBe("feat: My task");
+    expect(args.draft).toBe(true);
   });
 
   test("sets draft flag on PR", async () => {
-    await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
-    expect(capturedPullArgs?.draft).toBe(true);
+    const { args } = await createDraftPullRequestAndCaptureArgs({}, tempDir);
+    expect(args.draft).toBe(true);
   });
 
   test("uses baseBranch when provided", async () => {
-    await createDraftPullRequest({
-      ...BASE_INPUT,
-      projectDir: tempDir,
-      baseBranch: "develop",
-    });
-    expect(capturedPullArgs?.base).toBe("develop");
+    const { args } = await createDraftPullRequestAndCaptureArgs(
+      {
+        baseBranch: "develop",
+      },
+      tempDir,
+    );
+    expect(args.base).toBe("develop");
   });
 
   test("falls back to repo default branch when baseBranch is omitted", async () => {
-    await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
-    expect(capturedPullArgs?.base).toBe("main");
+    const { args } = await createDraftPullRequestAndCaptureArgs({}, tempDir);
+    expect(args.base).toBe("main");
   });
 
   test("includes task reference in PR body", async () => {
-    await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
-
-    const body = capturedPullArgs?.body as string;
+    const { args } = await createDraftPullRequestAndCaptureArgs({}, tempDir);
+    const body = args.body as string;
     expect(body).toContain("Teamwork Task");
     expect(body).toContain("My task");
     expect(body).toContain("#123");
   });
 
   test("includes review task reference in PR body when provided", async () => {
-    await createDraftPullRequest({
-      ...BASE_INPUT,
-      projectDir: tempDir,
-      reviewTask: { id: 456, name: "General | Code review" },
-    });
-
-    const body = capturedPullArgs?.body as string;
+    const { args } = await createDraftPullRequestAndCaptureArgs(
+      {
+        reviewTask: { id: 456, name: "General | Code review" },
+      },
+      tempDir,
+    );
+    const body = args.body as string;
     expect(body).toContain("Teamwork Task");
     expect(body).toContain("Code Review Task");
     expect(body).toContain("General | Code review");
@@ -115,9 +136,8 @@ describe("createDraftPullRequest", () => {
   });
 
   test("omits review task from body when not provided", async () => {
-    await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
-
-    const body = capturedPullArgs?.body as string;
+    const { args } = await createDraftPullRequestAndCaptureArgs({}, tempDir);
+    const body = args.body as string;
     expect(body).toContain("Teamwork Task");
     expect(body).not.toContain("Code Review Task");
   });
@@ -129,9 +149,8 @@ describe("createDraftPullRequest", () => {
       "## Description\n\nPlease describe your changes.",
     );
 
-    await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
-
-    const body = capturedPullArgs?.body as string;
+    const { args } = await createDraftPullRequestAndCaptureArgs({}, tempDir);
+    const body = args.body as string;
     expect(body).toContain("Teamwork Task");
     expect(body).toContain("## Description");
     expect(body).toContain("Please describe your changes.");
@@ -141,18 +160,16 @@ describe("createDraftPullRequest", () => {
     mkdirSync(join(tempDir, "docs"), { recursive: true });
     writeFileSync(join(tempDir, "docs/PULL_REQUEST_TEMPLATE.md"), "## Checklist");
 
-    await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
-
-    const body = capturedPullArgs?.body as string;
+    const { args } = await createDraftPullRequestAndCaptureArgs({}, tempDir);
+    const body = args.body as string;
     expect(body).toContain("## Checklist");
   });
 
   test("includes PR template from root PULL_REQUEST_TEMPLATE.md", async () => {
     writeFileSync(join(tempDir, "PULL_REQUEST_TEMPLATE.md"), "## Root template");
 
-    await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
-
-    const body = capturedPullArgs?.body as string;
+    const { args } = await createDraftPullRequestAndCaptureArgs({}, tempDir);
+    const body = args.body as string;
     expect(body).toContain("## Root template");
   });
 
@@ -161,17 +178,15 @@ describe("createDraftPullRequest", () => {
     writeFileSync(join(tempDir, ".github/PULL_REQUEST_TEMPLATE.md"), "## From .github");
     writeFileSync(join(tempDir, "PULL_REQUEST_TEMPLATE.md"), "## From root");
 
-    await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
-
-    const body = capturedPullArgs?.body as string;
+    const { args } = await createDraftPullRequestAndCaptureArgs({}, tempDir);
+    const body = args.body as string;
     expect(body).toContain("## From .github");
     expect(body).not.toContain("## From root");
   });
 
   test("creates clean body when no template exists", async () => {
-    await createDraftPullRequest({ ...BASE_INPUT, projectDir: tempDir });
-
-    const body = capturedPullArgs?.body as string;
+    const { args } = await createDraftPullRequestAndCaptureArgs({}, tempDir);
+    const body = args.body as string;
     expect(body).toContain("Teamwork Task");
     expect(body).not.toContain("undefined");
     expect(body).not.toContain("null");
