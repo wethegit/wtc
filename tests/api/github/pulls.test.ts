@@ -9,7 +9,7 @@ mock.module("../../../src/api/github/auth.ts", () => ({
   ...mockGitHubAuthModule(),
 }));
 
-const capturedPullArgsByHead = new Map<string, Record<string, unknown>>();
+let capturedPullArgs: Record<string, unknown> | null = null;
 
 mock.module("../../../src/api/github/client.ts", () => ({
   getOctokit: async () => ({
@@ -19,8 +19,7 @@ mock.module("../../../src/api/github/client.ts", () => ({
       },
       pulls: {
         create: async (args: Record<string, unknown>) => {
-          const head = typeof args.head === "string" ? args.head : "";
-          if (head) capturedPullArgsByHead.set(head, args);
+          capturedPullArgs = args;
           return {
             data: {
               html_url: "https://github.com/owner/repo/pull/42",
@@ -54,6 +53,7 @@ async function createDraftPullRequestAndCaptureArgs(
 }> {
   testBranchCounter += 1;
   const branchName = `user/tw123-${testBranchCounter}`;
+  capturedPullArgs = null;
 
   const result = await createDraftPullRequest({
     ...BASE_INPUT,
@@ -62,9 +62,8 @@ async function createDraftPullRequestAndCaptureArgs(
     projectDir,
   });
 
-  const args = capturedPullArgsByHead.get(branchName);
-  if (!args) throw new Error(`Failed to capture pull request args for branch "${branchName}".`);
-  capturedPullArgsByHead.delete(branchName);
+  const args = capturedPullArgs;
+  if (!args) throw new Error("Failed to capture pull request args.");
   return { args, result };
 }
 
