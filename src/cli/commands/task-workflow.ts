@@ -34,13 +34,16 @@ export async function teamworkTaskBranch(args: {
       repoKey: `${repo.owner}/${repo.repo}`,
       projectDir: args.startDir,
     });
-  } catch {
-    console.log(
-      args.json
-        ? JSON.stringify({ taskId: taskData.id, branch: branchName, exists: true })
-        : `Branch "${branchName}" already exists.`,
-    );
-    return;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("already exists")) {
+      console.log(
+        args.json
+          ? JSON.stringify({ taskId: taskData.id, branch: branchName, exists: true })
+          : `Branch "${branchName}" already exists.`,
+      );
+      return;
+    }
+    throw error;
   }
 
   if (args.startTimer) {

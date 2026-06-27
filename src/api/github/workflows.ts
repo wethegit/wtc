@@ -45,6 +45,7 @@ export async function writeTaskPr(
     projectDir: input.projectDir,
   });
 
+  await setTaskBranch(input.repoKey, input.taskId, input.branchName);
   await setTaskBranchPrUrl(input.repoKey, input.taskId, result.url);
 
   if (input.reviewTask) {
