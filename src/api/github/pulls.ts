@@ -16,6 +16,7 @@ export interface CreatePullRequestInput {
   branchName: string;
   title: string;
   task: { id: number; name: string };
+  baseBranch?: string;
   reviewTask?: { id: number; name: string } | null;
   projectDir?: string;
 }
@@ -80,7 +81,7 @@ export async function createDraftPullRequest(
     repo: input.repo,
     title: input.title,
     head: input.branchName,
-    base: repo.default_branch,
+    base: input.baseBranch ?? repo.default_branch,
     body,
     draft: true,
   });
