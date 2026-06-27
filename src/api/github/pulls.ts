@@ -71,14 +71,16 @@ export async function createDraftPullRequest(
 
   const body = await buildPrBody(input.task, input.reviewTask, input.projectDir ?? process.cwd());
 
-  const base =
-    input.baseBranch ??
-    (
+  let base = input.baseBranch;
+  if (!base) {
+    const defaultBranch = (
       await octokit.rest.repos.get({
         owner: input.owner,
         repo: input.repo,
       })
     ).data.default_branch;
+    base = defaultBranch?.trim() ? defaultBranch : "main";
+  }
 
   const { data } = await octokit.rest.pulls.create({
     owner: input.owner,
