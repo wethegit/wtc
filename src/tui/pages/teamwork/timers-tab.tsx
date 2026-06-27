@@ -20,7 +20,7 @@ import { useFlashInterval } from "../../hooks/use-flash-interval.ts";
 import { tokens } from "../../tokens.ts";
 
 /** Cycles through local timer IDs in display order, wrapping around. */
-export function getNextLocalTimerSelection(
+function getNextLocalTimerSelection(
   timers: readonly LocalTimerEntry[],
   currentId: string | null,
   direction: 1 | -1,

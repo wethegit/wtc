@@ -8,7 +8,7 @@ export interface RepoBranchInfo {
   defaultBranch: string;
 }
 
-export function parseLsRemoteOutput(output: string): RepoBranchInfo {
+function parseLsRemoteOutput(output: string): RepoBranchInfo {
   const lines = output.trim().split("\n").filter(Boolean);
   let defaultBranch = "";
   const branchNames: string[] = [];

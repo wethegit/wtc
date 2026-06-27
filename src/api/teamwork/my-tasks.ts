@@ -118,7 +118,7 @@ function getNamedValue(
  * Tasks are grouped by project using included tasklist and project data.
  * Does NOT cache — task lists change too frequently.
  */
-export async function getTeamworkMyTasks(userId: number): Promise<MyWorkTask[]> {
+async function getTeamworkMyTasks(userId: number): Promise<MyWorkTask[]> {
   const query = new URLSearchParams({
     responsiblePartyIds: String(userId),
     includeTeamUserIds: "true",

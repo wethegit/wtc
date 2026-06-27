@@ -27,7 +27,7 @@ export function getUserConfigPath(): string {
  * This mirrors tools like Git: nested directories inherit the closest parent
  * `.wtc.yaml`, and discovery stops at the filesystem root.
  */
-export async function getProjectConfigPath(startDir: string): Promise<string | null> {
+async function getProjectConfigPath(startDir: string): Promise<string | null> {
   let current = resolve(startDir);
 
   while (true) {
@@ -41,7 +41,7 @@ export async function getProjectConfigPath(startDir: string): Promise<string | n
 }
 
 /** Ensures the user config file exists with Phase 3 defaults. */
-export async function initUserConfig(): Promise<void> {
+async function initUserConfig(): Promise<void> {
   const path = getUserConfigPath();
   if (!(await Bun.file(path).exists())) {
     await Bun.write(path, formatUserConfig({ version: USER_CONFIG_VERSION, workspaceName: "" }));
@@ -67,7 +67,7 @@ export async function initProjectConfig(startDir: string): Promise<string> {
 }
 
 /** Loads and validates the user-level config file. */
-export async function loadUserConfig(): Promise<UserConfig> {
+async function loadUserConfig(): Promise<UserConfig> {
   await initUserConfig();
   return UserConfigSchema.parse(YAML.parse(await Bun.file(getUserConfigPath()).text()));
 }

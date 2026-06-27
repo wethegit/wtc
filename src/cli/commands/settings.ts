@@ -4,7 +4,7 @@ import type { ResolvedConfig } from "../../api/config/schema.ts";
 /**
  * Formats resolved config for `wtc settings` output.
  */
-export function formatSettingsOutput(config: ResolvedConfig): string {
+function formatSettingsOutput(config: ResolvedConfig): string {
   return [
     `User config: ${config.paths.userConfigPath}`,
     `Project search start: ${config.paths.projectConfigSearchStart}`,

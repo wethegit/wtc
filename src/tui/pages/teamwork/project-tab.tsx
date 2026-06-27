@@ -228,7 +228,7 @@ interface PinnedTaskSelectionSource {
 }
 
 /** Flattens all tasks across pinned task lists into a flat ordered selection array for keyboard navigation. */
-export function getPinnedTaskSelectionOrder(
+function getPinnedTaskSelectionOrder(
   taskLists: readonly PinnedTaskSelectionSource[],
 ): PinnedTaskSelection[] {
   return taskLists.flatMap((taskList) =>
@@ -237,7 +237,7 @@ export function getPinnedTaskSelectionOrder(
 }
 
 /** Cycles to the next or previous pinned task across all task lists, wrapping around. */
-export function getNextPinnedTaskSelection(
+function getNextPinnedTaskSelection(
   taskLists: readonly PinnedTaskSelectionSource[],
   current: PinnedTaskSelection | null,
   direction: 1 | -1,

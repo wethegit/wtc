@@ -29,15 +29,6 @@ import type {
 } from "./settings/types.ts";
 import { UserConfigSection } from "./settings/user-config-section.tsx";
 
-export type {
-  PinnedTaskListFormState,
-  ProjectLinkFormState,
-  SettingsExpandedSections,
-  SettingsFocusTarget,
-  SettingsFormErrors,
-  SettingsFormState,
-} from "./settings/types.ts";
-
 const DEFAULT_EXPANDED_SECTIONS: SettingsExpandedSections = {
   user: true,
   project: true,
@@ -414,7 +405,7 @@ export function SettingsPage() {
 }
 
 /** Parses a user-provided teamwork project ID string, returning null when invalid. */
-export function parseTeamworkProjectId(value: string): number | null {
+function parseTeamworkProjectId(value: string): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
 
@@ -424,7 +415,7 @@ export function parseTeamworkProjectId(value: string): number | null {
 }
 
 /** Parses a user-provided pinned task list ID string, returning null when invalid. */
-export function parsePinnedTaskListId(value: string): number | null {
+function parsePinnedTaskListId(value: string): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
 
@@ -434,7 +425,7 @@ export function parsePinnedTaskListId(value: string): number | null {
 }
 
 /** Builds initial Settings form state from a resolved config. */
-export function buildSettingsFormState(config: ResolvedConfig): SettingsFormState {
+function buildSettingsFormState(config: ResolvedConfig): SettingsFormState {
   return {
     user: {
       workspaceName: config.user.workspaceName,
@@ -455,7 +446,7 @@ export function buildSettingsFormState(config: ResolvedConfig): SettingsFormStat
 }
 
 /** Compares two focus targets by value (serializes to JSON). */
-export function isSettingsFocusTarget(
+function isSettingsFocusTarget(
   current: SettingsFocusTarget,
   expected: SettingsFocusTarget,
 ): boolean {
@@ -463,7 +454,7 @@ export function isSettingsFocusTarget(
 }
 
 /** Builds the ordered list of focusable controls based on which accordion sections are expanded. */
-export function getSettingsFocusOrder(
+function getSettingsFocusOrder(
   state: SettingsFormState,
   expanded: SettingsExpandedSections = DEFAULT_EXPANDED_SECTIONS,
 ): SettingsFocusTarget[] {
@@ -502,7 +493,7 @@ export function getSettingsFocusOrder(
 }
 
 /** Cycles to the next or previous Settings control in focus order, wrapping around. */
-export function getNextSettingsFocus(
+function getNextSettingsFocus(
   current: SettingsFocusTarget,
   state: SettingsFormState,
   direction: 1 | -1,
@@ -517,13 +508,8 @@ export function getNextSettingsFocus(
   return order[nextIndex] ?? FIRST_FOCUS;
 }
 
-/** Returns the first validation error message, or null when the form is valid. */
-export function getSettingsFormError(state: SettingsFormState): string | null {
-  return Object.values(validateSettingsForm(state))[0] ?? null;
-}
-
 /** Validates all Settings form fields and returns error messages keyed by field path. */
-export function validateSettingsForm(state: SettingsFormState): SettingsFormErrors {
+function validateSettingsForm(state: SettingsFormState): SettingsFormErrors {
   const errors: SettingsFormErrors = {};
 
   if (
@@ -564,7 +550,7 @@ export function validateSettingsForm(state: SettingsFormState): SettingsFormErro
 }
 
 /** Converts validated Settings form state into UserConfig and ProjectConfig objects, dropping blank dynamic rows. Non-form project fields (e.g. reviewTaskId) are set to null and must be preserved by the caller. */
-export function applySettingsFormState(state: SettingsFormState): {
+function applySettingsFormState(state: SettingsFormState): {
   user: UserConfig;
   project: ProjectConfig;
 } {

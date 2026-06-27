@@ -44,7 +44,7 @@ function formatTeamworkTaskMetadata(task: TeamworkTask): string[] {
  *     assignee: Marlon Bain | due: 2026-06-24 | board: To Do | priority: high
  * ```
  */
-export function formatTeamworkTaskListPinnedOutput(
+function formatTeamworkTaskListPinnedOutput(
   result: PinnedTaskListsResult,
   options: { json: boolean },
 ): string {
@@ -191,7 +191,7 @@ function formatMyWorkTaskMetadata(task: MyWorkTask): string[] {
  *   - General | Meeting
  * ```
  */
-export function formatTeamworkTaskMineOutput(
+function formatTeamworkTaskMineOutput(
   groups: { projectId: number; projectName: string; tasks: MyWorkTask[] }[],
   options: { json: boolean },
 ): string {
