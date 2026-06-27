@@ -12,6 +12,8 @@ import { Card } from "../../components/layout/card.tsx";
 import { TaskList } from "../../components/teamwork/task-list.tsx";
 import { usePageScroll } from "../../components/layout/scroll-context.tsx";
 import { useFlashInterval } from "../../hooks/use-flash-interval.ts";
+import { useBranchWorkflow } from "../../hooks/use-branch-workflow.tsx";
+import { usePrWorkflow } from "../../hooks/use-pr-workflow.tsx";
 import { useTaskTimer } from "../../hooks/use-task-timer.tsx";
 import { tokens } from "../../tokens.ts";
 
@@ -31,6 +33,8 @@ export function MyWorkTab() {
   const flashOn = useFlashInterval();
   const { localTimers, refreshLocalTimers, toggleTimer, openSelectedTask } =
     useTaskTimer(setMessage);
+  const { createBranchForTask } = useBranchWorkflow(setMessage);
+  const { createPrForTask } = usePrWorkflow(setMessage);
 
   createEffect(() => {
     const sel = selectedTask();
@@ -112,6 +116,18 @@ export function MyWorkTab() {
         desc: "Start/pause local timer",
         group: "My Work",
         cmd: () => toggleTimer(selectedMyWorkTask()),
+      },
+      {
+        key: "ctrl+b",
+        desc: "Create branch for selected task",
+        group: "My Work",
+        cmd: () => createBranchForTask(selectedMyWorkTask()),
+      },
+      {
+        key: "ctrl+r",
+        desc: "Create PR for selected task",
+        group: "My Work",
+        cmd: () => createPrForTask(selectedMyWorkTask()),
       },
     ],
   }));

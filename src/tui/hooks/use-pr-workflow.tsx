@@ -1,7 +1,7 @@
-import { getTaskBranch, setTaskBranchPrUrl } from "../../api/github/task-branches.ts";
-import { createDraftPullRequest } from "../../api/github/pulls.ts";
+import { getTaskBranch } from "../../api/github/task-branches.ts";
+import { writeTaskPr } from "../../api/github/workflows.ts";
 import { getRepoBranchInfo, type RepoBranch } from "../../api/github/branches.ts";
-import { loadProjectConfig, saveProjectConfig } from "../../api/config/manager.ts";
+import { loadProjectConfig } from "../../api/config/manager.ts";
 import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
 import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { detectRepo, parseGitHubRemoteUrl } from "../../utils/git.ts";
@@ -254,7 +254,7 @@ export function usePrWorkflow(setMessage: (msg: string) => void) {
     dialog.replace(() => <LoadingDialog message="Creating draft pull request..." />);
 
     try {
-      const result = await createDraftPullRequest({
+      const result = await writeTaskPr({
         owner: getCtx().repo.owner,
         repo: getCtx().repo.repo,
         branchName: getCtx().branchName,
@@ -262,35 +262,9 @@ export function usePrWorkflow(setMessage: (msg: string) => void) {
         task: getCtx().task,
         baseBranch: getCtx().baseBranch || undefined,
         reviewTask: reviewTask ?? undefined,
+        repoKey: `${getCtx().repo.owner}/${getCtx().repo.repo}`,
+        taskId: getCtx().task.id,
       });
-
-      await setTaskBranchPrUrl(
-        `${getCtx().repo.owner}/${getCtx().repo.repo}`,
-        getCtx().task.id,
-        result.url,
-      );
-
-      if (reviewTask) {
-        const existing = await loadProjectConfig(process.cwd());
-        await saveProjectConfig(
-          {
-            ...(existing ?? {
-              version: 1,
-              project: { links: [] },
-              teamwork: { projectId: null, reviewTaskId: null, pinnedTaskLists: [] },
-            }),
-            teamwork: {
-              ...(existing?.teamwork ?? {
-                projectId: null,
-                reviewTaskId: null,
-                pinnedTaskLists: [],
-              }),
-              reviewTaskId: reviewTask.id,
-            },
-          },
-          process.cwd(),
-        );
-      }
 
       getCtx().resultUrl = result.url;
       getCtx().resultNumber = result.number;

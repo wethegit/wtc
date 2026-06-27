@@ -34,7 +34,7 @@ async function getPrTemplate(projectDir: string): Promise<string> {
         return await Bun.file(fullPath).text();
       }
     } catch {
-      return "";
+      continue;
     }
   }
   return "";
@@ -69,19 +69,23 @@ export async function createDraftPullRequest(
 ): Promise<CreatePullRequestResult> {
   const octokit = await getOctokit();
 
-  const { data: repo } = await octokit.rest.repos.get({
-    owner: input.owner,
-    repo: input.repo,
-  });
-
   const body = await buildPrBody(input.task, input.reviewTask, input.projectDir ?? process.cwd());
+
+  const base =
+    input.baseBranch ??
+    (
+      await octokit.rest.repos.get({
+        owner: input.owner,
+        repo: input.repo,
+      })
+    ).data.default_branch;
 
   const { data } = await octokit.rest.pulls.create({
     owner: input.owner,
     repo: input.repo,
     title: input.title,
     head: input.branchName,
-    base: input.baseBranch ?? repo.default_branch,
+    base,
     body,
     draft: true,
   });
