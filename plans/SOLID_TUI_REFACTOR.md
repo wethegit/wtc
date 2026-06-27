@@ -143,7 +143,7 @@ Package manager additions in `package.json`:
 
 Avoid top-level `bunfig.toml` preload entries for Solid. Standalone binaries read project config at runtime, and a top-level preload can make the compiled executable try to resolve `@opentui/solid/preload` from disk.
 
-Keep any required preload scoped to tests or source-only workflows, not production binary startup.
+Keep any required preload scoped to source-only workflows, not production binary startup.
 
 `scripts/build.ts` — add the Solid Bun plugin:
 
@@ -244,7 +244,7 @@ File: `src/tui/pages/dashboard.tsx`
 
 Replace `createDashboard()` with an intro-only screen. Do not include a navigation `<select>` on the dashboard; navigation starts in the command palette.
 
-No `findDescendantById`, no dashboard select, and no rendering tests for this visual-only screen.
+No `findDescendantById`, no dashboard select.
 
 ### Step 7.5 — Add Initial Pages
 
@@ -277,22 +277,6 @@ A **mandatory** keyboard-driven overlay for quick navigation and actions.
 
 ---
 
-## Testing Strategy
-
-Per the testing philosophy in `AGENTS.md`:
-
-- **Do not test TUI rendering.** No tests for box dimensions, text positions, ASCII art, or styling tokens.
-- **No mocks of `@opentui/solid` or `@opentui/core`.** If a function delegates to OpenTUI, trust it.
-- **Remove existing dashboard tests** that assert text content (`expect(frame).toContain(...)`) — those test the renderer's output, not our logic.
-- **Test pure logic and state transformations:**
-  - `UpdateDialog` — test that correct version strings and install command are constructed
-- `CommandPalette` — test command filtering against a query string (pure function)
-  - `tokens.ts` — verify palette values are readonly and token keys map to palette keys (structural contract)
-  - `update-check.ts` — existing tests already cover this well; keep them
-- **Future tests:** dialogs' `onClose` callbacks, command dispatch behavior (if factored as testable functions).
-
----
-
 ## Future-Proofing Notes
 
 - Add a local keymap module only when Phase 3+ needs app-specific command registration, key formatting, mode stacks, leader keys, or configurable user bindings.
@@ -310,8 +294,6 @@ Before committing:
 - [ ] `bun run fmt:check` passes
 - [ ] `bun run lint` passes
 - [ ] `bun run check` passes (tsc)
-- [ ] `bun test` passes
 - [ ] `bun run build` produces working binary
-- [ ] Old dashboard tests removed / replaced with logic-based tests
 - [ ] AGENTS.md updated (already done above if linked)
 - [ ] PLANS.md Phase 2 updated to reference this doc

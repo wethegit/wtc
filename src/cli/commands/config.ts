@@ -1,11 +1,9 @@
 import { initProjectConfig } from "../../api/config/manager.ts";
-import type { GitHubAuthStatus } from "../../api/github/auth.ts";
 import {
   deleteGitHubApiToken,
   getGitHubAuthStatus,
   setGitHubApiToken,
 } from "../../api/github/auth.ts";
-import type { TeamworkAuthStatus } from "../../api/teamwork/auth.ts";
 import {
   deleteTeamworkApiToken,
   getTeamworkAuthStatus,
@@ -16,27 +14,6 @@ import {
 export const CONFIG_AUTH_PROVIDERS = ["github", "teamwork"] as const;
 /** Supported auth provider names for `wtc config auth`. */
 export type ConfigAuthProvider = (typeof CONFIG_AUTH_PROVIDERS)[number];
-type ConfigAuthStatus = GitHubAuthStatus | TeamworkAuthStatus;
-
-/** Auth dependency boundary so command tests do not touch the OS secret store. */
-export interface ProviderActions {
-  setToken: (token: string) => Promise<void>;
-  getStatus: () => Promise<ConfigAuthStatus>;
-  deleteToken: () => Promise<boolean>;
-}
-
-const defaultProviderActions: Record<ConfigAuthProvider, ProviderActions> = {
-  github: {
-    setToken: setGitHubApiToken,
-    getStatus: getGitHubAuthStatus,
-    deleteToken: deleteGitHubApiToken,
-  },
-  teamwork: {
-    setToken: setTeamworkApiToken,
-    getStatus: getTeamworkAuthStatus,
-    deleteToken: deleteTeamworkApiToken,
-  },
-};
 
 function isConfigAuthProvider(provider: string): provider is ConfigAuthProvider {
   return CONFIG_AUTH_PROVIDERS.some((value) => value === provider);
@@ -54,32 +31,36 @@ export async function configInit(startDir = process.cwd()): Promise<void> {
 }
 
 /** Stores an auth token for a provider in OS secrets. */
-export async function configAuthSet(
-  args: { provider: string; token: string | undefined },
-  actions = defaultProviderActions,
-): Promise<void> {
+export async function configAuthSet(args: {
+  provider: string;
+  token: string | undefined;
+}): Promise<void> {
   const provider = requireConfigAuthProvider(args.provider);
   if (!args.token) throw new Error(`Missing token for ${provider}.`);
 
-  await actions[provider].setToken(args.token);
+  switch (provider) {
+    case "github":
+      await setGitHubApiToken(args.token);
+      break;
+    case "teamwork":
+      await setTeamworkApiToken(args.token);
+      break;
+  }
   console.log(`Configured ${provider} auth.`);
 }
 
 /** Prints whether auth is configured for a provider (without exposing the token). */
-export async function configAuthStatus(
-  args: { provider: string },
-  actions = defaultProviderActions,
-): Promise<void> {
+export async function configAuthStatus(args: { provider: string }): Promise<void> {
   const provider = requireConfigAuthProvider(args.provider);
-  console.log(`${provider}: ${await actions[provider].getStatus()}`);
+  const status =
+    provider === "github" ? await getGitHubAuthStatus() : await getTeamworkAuthStatus();
+  console.log(`${provider}: ${status}`);
 }
 
 /** Deletes stored auth for a provider. */
-export async function configAuthDelete(
-  args: { provider: string },
-  actions = defaultProviderActions,
-): Promise<void> {
+export async function configAuthDelete(args: { provider: string }): Promise<void> {
   const provider = requireConfigAuthProvider(args.provider);
-  const deleted = await actions[provider].deleteToken();
+  const deleted =
+    provider === "github" ? await deleteGitHubApiToken() : await deleteTeamworkApiToken();
   console.log(deleted ? `Deleted ${provider} auth.` : `${provider}: missing`);
 }

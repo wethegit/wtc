@@ -9,7 +9,6 @@ import {
   submitLocalTimer,
   type LocalTimerEntry,
 } from "../../../api/teamwork/timers/local.ts";
-import { createTaskTimeEntry } from "../../../api/teamwork/timers.ts";
 import { TEAMWORK_TIMESHEET_URL } from "../../../api/teamwork/consts.ts";
 import { openUrlInBrowser } from "../../../utils/browser.ts";
 import { Card } from "../../components/layout/card.tsx";
@@ -120,7 +119,7 @@ export function TimersTab() {
         confirmLabel="submit"
         onConfirm={async () => {
           try {
-            const result = await submitLocalTimer(timer, { createTaskTimeEntry });
+            const result = await submitLocalTimer(timer);
             await refreshTimers();
             setMessage(`Timer submitted: ${result.taskName}`);
           } catch (error) {

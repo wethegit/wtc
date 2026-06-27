@@ -41,7 +41,6 @@ For each feature:
 - Use `get*` for Teamwork read APIs even when data may come from cache.
 - Keep shared HTTP behavior in `src/api/teamwork/client.ts`.
 - Do not create one-off private helpers for endpoint workflows unless they represent meaningful domain behavior or are reused.
-- Test Teamwork logic and HTTP boundaries, not TUI rendering.
 - User-facing key labels should use arrow glyphs such as `↑`, `↓`, `←`, and `→`.
 
 ## CLI Hierarchy

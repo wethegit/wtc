@@ -5,7 +5,7 @@ import { getCacheDir } from "../api/cache/consts.ts";
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const REPO = "wethegit/wtc";
 
-/** Returns the update cache location, allowing tests to override the directory. */
+/** Returns the update cache location. */
 function getCachePaths(): { cacheDir: string; cachePath: string } {
   const cacheDir = getCacheDir();
   return { cacheDir, cachePath: `${cacheDir}/update-check.json` };

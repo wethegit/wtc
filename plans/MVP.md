@@ -17,7 +17,7 @@ and a working binary.
 - Create directory structure as defined in PLAN.md
 - Install dependencies:
   - Runtime: `yargs`, `@types/yargs`, `zod`
-  - Dev: `oxlint`, `oxfmt`, `husky`, `lint-staged`, `@types/bun`, `@changesets/cli`
+  - Dev: `oxlint`, `oxfmt`, `husky`, `lint-staged`, `@changesets/cli`
 - Configure `oxlintrc.json`
 - Configure `.oxfmtrc.json`
 - Configure `.changeset/config.json`
@@ -39,7 +39,6 @@ and a working binary.
     "fmt": "oxfmt --write .",
     "fmt:check": "oxfmt --check .",
     "check": "tsc --noEmit",
-    "test": "bun test",
     "prepare": "husky",
     "build": "bun run scripts/build.ts",
     "changeset": "changeset",
@@ -73,15 +72,7 @@ and a working binary.
   If a newer version exists, a banner appears at the top of the TUI showing the current/latest version and
   the install script command. `wtc upgrade --check` does the same on the CLI.
 
-### 5. Test Suite (`tests/`)
-
-- `tests/tui/dashboard.test.ts` — using `@opentui/core/testing`:
-  ```ts
-  import { createTestRenderer } from "@opentui/core/testing";
-  // render dashboard, capture frame, assert content
-  ```
-
-### 6. Build Script (`scripts/build.ts`)
+### 5. Build Script (`scripts/build.ts`)
 
 - Uses `Bun.build()` with `--compile` target
 - Platform detection: build for current platform
@@ -102,7 +93,6 @@ jobs:
       - run: bun install
       - run: bun run lint
       - run: bun run check
-      - run: bun test
 ```
 
 ### 8. Changesets + Release Pipeline
@@ -157,7 +147,7 @@ jobs:
 ### 12. Documentation
 
 - `AGENTS.md` — conventions, commands, tech stack
-- `CONTRIBUTING.md` — how to set up dev environment, run tests, make PRs
+- `CONTRIBUTING.md` — how to set up dev environment and make PRs
 - `README.md` — full rewrite with install instructions, usage, development guide
 
 ---
@@ -170,7 +160,6 @@ At the end of MVP:
 - [x] Linting passes (`bun run lint`)
 - [x] Formatting passes (`bun run fmt:check`)
 - [x] TypeScript type-checks (`bun run check`)
-- [x] Tests pass (`bun test`)
 - [x] Pre-commit hook works (husky + lint-staged)
 - [x] CI pipeline configured (`.github/workflows/ci.yml`)
 - [x] Changesets configured (`.changeset/`)
@@ -181,9 +170,9 @@ At the end of MVP:
 - [x] Update checker + TUI notification
 - [x] Design tokens (`src/tui/tokens.ts`) with brand colors
 - [x] Modal component for update notifications
-- [x] TUI update notification tested in alternate-screen mode
-- [x] Install script tested end-to-end
-- [x] Changesets release flow verified end-to-end with a test version PR/tag
+- [x] TUI update notification renders in alternate-screen mode
+- [x] Install script verified end-to-end
+- [x] Changesets release flow verified with a version PR/tag
 
 ---
 

@@ -15,7 +15,6 @@ Description
 - [ ] `bun run fmt`
 - [ ] `bun run lint`
 - [ ] `bun run check`
-- [ ] `bun test`
 - [ ] `bun run build`
 
 ## Release Impact

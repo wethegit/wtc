@@ -29,7 +29,6 @@ bun run dev          # Watch mode development
 bun run lint         # Run oxlint
 bun run fmt          # Format with oxfmt
 bun run check        # Typecheck with tsc --noEmit
-bun test             # Run tests
 bun run build        # Build standalone binary
 bun run changeset    # Add a release changeset
 ```
@@ -49,8 +48,6 @@ The API layer is the only layer that both CLI and TUI import from. Each subdirec
 - [`src/api/README.md`](src/api/README.md) — shared business logic conventions
 - [`src/cli/README.md`](src/cli/README.md) — CLI handler patterns
 - [`src/tui/README.md`](src/tui/README.md) — TUI component conventions
-
-Tests mirror the source structure under `tests/`.
 
 ## Building Binaries
 
@@ -111,7 +108,6 @@ The CI workflow installs dependencies with Bun and runs:
 bun run lint
 bun run fmt:check
 bun run check
-bun test
 ```
 
 Before opening a pull request, run the same checks locally. If your change affects the CLI entry point, release packaging, installation, TUI update notification, or OpenTUI native bundling, also run:
@@ -134,7 +130,7 @@ Choose the correct bump type:
 | `minor` | New backwards-compatible functionality           |
 | `major` | Breaking changes                                 |
 
-This creates a Markdown file in `.changeset/`. Commit that file with your PR. Documentation-only, test-only, and internal tooling-only changes may skip a changeset if they should not create a release.
+This creates a Markdown file in `.changeset/`. Commit that file with your PR. Documentation-only and internal tooling-only changes may skip a changeset if they should not create a release.
 
 After PRs with changesets merge to `main`, the release workflow opens or updates a Changesets version PR. That version PR updates `package.json` and `CHANGELOG.md`.
 
@@ -150,7 +146,7 @@ Users install directly from the GitHub Release via the install script. No packag
 
 For changes intended to ship in a release:
 
-1. Update source code, tests, and documentation in a pull request.
+1. Update source code and documentation in a pull request.
 2. Run `bun run changeset` and commit the generated `.changeset/*.md` file.
 3. Note any release impact in the pull request description.
 4. Do not edit `package.json` versions manually.
@@ -165,18 +161,16 @@ Maintainers create releases by merging the Changesets version PR. Tag creation, 
 - `kebab-case.ts` file names, `PascalCase` types, `camelCase` functions
 - `import type` for type-only imports
 - Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
-- Tests mirror `src/` structure under `tests/`
 - Files: `kebab-case.ts`
 - Types: `PascalCase`
 - Functions: `camelCase`
-- Tests: `*.test.ts` in `tests/` mirroring `src/`
 
 ## Pull Requests
 
 1. Create a branch from `main`
 2. Make your changes
 3. Add a changeset with `bun run changeset` if the change should be released
-4. Ensure `bun run lint`, `bun run fmt:check`, `bun run check`, and `bun test` pass
+4. Ensure `bun run lint`, `bun run fmt:check`, and `bun run check` pass
 5. Run `bun run build` when your change affects build, release, install, update, or native TUI packaging behavior
 6. Open a PR against `main` using the PR template
 

@@ -213,20 +213,13 @@ export interface PinnedTaskListFetchResult {
   error: string | null;
 }
 
-/** External actions injected by callers that want testable fetching. */
-export interface GetPinnedTaskListTasksActions {
-  getTeamworkTaskListTasks: (taskListId: number) => Promise<TeamworkTask[]>;
-}
-
 /**
  * Fetches tasks for each pinned task list with per-list error isolation.
  * A single failing list does not prevent the others from loading.
  */
 export async function getPinnedTaskListTasks(
   pinnedTaskLists: readonly { id: number; name: string }[],
-  actions?: GetPinnedTaskListTasksActions,
 ): Promise<PinnedTaskListFetchResult[]> {
-  const fetchTasks = actions?.getTeamworkTaskListTasks ?? getTeamworkTaskListTasks;
   const results: PinnedTaskListFetchResult[] = [];
 
   for (const taskList of pinnedTaskLists) {
@@ -234,7 +227,7 @@ export async function getPinnedTaskListTasks(
       results.push({
         id: taskList.id,
         name: taskList.name,
-        tasks: await fetchTasks(taskList.id),
+        tasks: await getTeamworkTaskListTasks(taskList.id),
         error: null,
       });
     } catch (error) {

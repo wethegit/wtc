@@ -1,94 +1,17 @@
 import { TEAMWORK_TIMESHEET_URL } from "../../api/teamwork/consts.ts";
-import { getTeamworkTaskReference, type TeamworkTaskReference } from "../../api/teamwork/tasks.ts";
+import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
 import {
   getLocalTimerElapsedMs,
   formatTimerDuration,
   submitLocalTimer,
+  loadLocalTimers,
+  startLocalTimer as startLocalTimerImpl,
+  stopLocalTimer,
+  removeLocalTimer,
 } from "../../api/teamwork/timers/local.ts";
 import type { LocalTimerEntry } from "../../api/teamwork/timers/local.ts";
-import { createTaskTimeEntry, type TeamworkTaskTimeEntryInput } from "../../api/teamwork/timers.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
-
-interface TimerListActions {
-  loadLocalTimers: () => Promise<LocalTimerEntry[]>;
-}
-
-interface TimerHandleActions {
-  getTeamworkTaskReference: (value: string) => TeamworkTaskReference;
-  loadLocalTimers: () => Promise<LocalTimerEntry[]>;
-}
-
-interface TimerStartActions {
-  getTeamworkTaskReference: (value: string) => TeamworkTaskReference;
-  getTeamworkTaskById: (id: number) => Promise<{ id: number; name: string }>;
-  startLocalTimer: (taskId: number, taskName: string) => Promise<LocalTimerEntry>;
-}
-
-interface TimerStopActions extends TimerHandleActions {
-  stopLocalTimer: () => Promise<LocalTimerEntry | null>;
-}
-
-interface TimerSubmitActions extends TimerHandleActions {
-  createTaskTimeEntry: (input: TeamworkTaskTimeEntryInput) => Promise<number>;
-}
-
-interface TimerDiscardActions extends TimerHandleActions {
-  removeLocalTimer: (id: string) => Promise<void>;
-}
-
-interface TimesheetOpenActions {
-  openUrlInBrowser: (url: string) => Promise<void>;
-}
-
-const timerListActions: TimerListActions = {
-  loadLocalTimers: async () => {
-    const { loadLocalTimers } = await import("../../api/teamwork/timers/local.ts");
-    return loadLocalTimers();
-  },
-};
-
-const timerHandleActions: TimerHandleActions = {
-  getTeamworkTaskReference,
-  loadLocalTimers: async () => {
-    const { loadLocalTimers } = await import("../../api/teamwork/timers/local.ts");
-    return loadLocalTimers();
-  },
-};
-
-const timerStartActions: TimerStartActions = {
-  getTeamworkTaskReference,
-  getTeamworkTaskById,
-  startLocalTimer: async (taskId, taskName) => {
-    const { startLocalTimer } = await import("../../api/teamwork/timers/local.ts");
-    return (await startLocalTimer(taskId, taskName)).timer;
-  },
-};
-
-const timerStopActions: TimerStopActions = {
-  ...timerHandleActions,
-  stopLocalTimer: async () => {
-    const { stopLocalTimer } = await import("../../api/teamwork/timers/local.ts");
-    return stopLocalTimer();
-  },
-};
-
-const timerSubmitActions: TimerSubmitActions = {
-  ...timerHandleActions,
-  createTaskTimeEntry,
-};
-
-const timerDiscardActions: TimerDiscardActions = {
-  ...timerHandleActions,
-  removeLocalTimer: async (id) => {
-    const { removeLocalTimer } = await import("../../api/teamwork/timers/local.ts");
-    return removeLocalTimer(id);
-  },
-};
-
-const timesheetOpenActions: TimesheetOpenActions = {
-  openUrlInBrowser,
-};
 
 function findTimerByTaskId(
   timers: readonly LocalTimerEntry[],
@@ -172,30 +95,21 @@ export function formatTimerListOutput(
   return lines.join("\n");
 }
 
-export async function teamworkTimerList(
-  args: { json: boolean },
-  actions = timerListActions,
-): Promise<void> {
-  const timers = await actions.loadLocalTimers();
+export async function teamworkTimerList(args: { json: boolean }): Promise<void> {
+  const timers = await loadLocalTimers();
   console.log(formatTimerListOutput(timers, { json: args.json }));
 }
 
-export async function teamworkTimerStart(
-  args: { task: string },
-  actions = timerStartActions,
-): Promise<void> {
-  const ref = actions.getTeamworkTaskReference(args.task);
-  const task = await actions.getTeamworkTaskById(ref.id);
-  await actions.startLocalTimer(task.id, task.name);
+export async function teamworkTimerStart(args: { task: string }): Promise<void> {
+  const ref = getTeamworkTaskReference(args.task);
+  const task = await getTeamworkTaskById(ref.id);
+  await startLocalTimerImpl(task.id, task.name);
   console.log(`Timer started for: ${task.name} (#${task.id})`);
 }
 
-export async function teamworkTimerStop(
-  args: { task: string },
-  actions = timerStopActions,
-): Promise<void> {
-  const ref = actions.getTeamworkTaskReference(args.task);
-  const timers = await actions.loadLocalTimers();
+export async function teamworkTimerStop(args: { task: string }): Promise<void> {
+  const ref = getTeamworkTaskReference(args.task);
+  const timers = await loadLocalTimers();
   const match = findTimerByTaskId(timers, ref.id);
 
   if (!match) {
@@ -208,16 +122,13 @@ export async function teamworkTimerStop(
     return;
   }
 
-  await actions.stopLocalTimer();
+  await stopLocalTimer();
   console.log(`Timer stopped for: ${match.taskName} (#${match.taskId})`);
 }
 
-export async function teamworkTimerSubmit(
-  args: { task: string },
-  actions = timerSubmitActions,
-): Promise<void> {
-  const ref = actions.getTeamworkTaskReference(args.task);
-  const timers = await actions.loadLocalTimers();
+export async function teamworkTimerSubmit(args: { task: string }): Promise<void> {
+  const ref = getTeamworkTaskReference(args.task);
+  const timers = await loadLocalTimers();
   const match = findTimerByTaskId(timers, ref.id);
 
   if (!match) {
@@ -226,21 +137,16 @@ export async function teamworkTimerSubmit(
   }
 
   try {
-    const result = await submitLocalTimer(match, {
-      createTaskTimeEntry: actions.createTaskTimeEntry,
-    });
+    const result = await submitLocalTimer(match);
     console.log(`Timer submitted for: ${result.taskName} (#${result.taskId})`);
   } catch (error) {
     console.log(error instanceof Error ? error.message : "No timer found to submit.");
   }
 }
 
-export async function teamworkTimerDiscard(
-  args: { task: string },
-  actions = timerDiscardActions,
-): Promise<void> {
-  const ref = actions.getTeamworkTaskReference(args.task);
-  const timers = await actions.loadLocalTimers();
+export async function teamworkTimerDiscard(args: { task: string }): Promise<void> {
+  const ref = getTeamworkTaskReference(args.task);
+  const timers = await loadLocalTimers();
   const match = findTimerByTaskId(timers, ref.id);
 
   if (!match) {
@@ -256,14 +162,11 @@ export async function teamworkTimerDiscard(
     return;
   }
 
-  await actions.removeLocalTimer(match.id);
+  await removeLocalTimer(match.id);
   console.log(`Timer discarded for: ${match.taskName} (#${match.taskId})`);
 }
 
-export async function teamworkTimesheetOpen(
-  _args: Record<string, never> = {},
-  actions = timesheetOpenActions,
-): Promise<void> {
-  await actions.openUrlInBrowser(TEAMWORK_TIMESHEET_URL);
+export async function teamworkTimesheetOpen(): Promise<void> {
+  await openUrlInBrowser(TEAMWORK_TIMESHEET_URL);
   console.log(`Opened Teamwork timesheet: ${TEAMWORK_TIMESHEET_URL}`);
 }

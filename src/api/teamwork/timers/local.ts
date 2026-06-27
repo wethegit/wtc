@@ -1,5 +1,5 @@
 import { getCacheDir } from "../../cache/consts.ts";
-import type { TeamworkTaskTimeEntryInput } from "../timers.ts";
+import { createTaskTimeEntry } from "../timers.ts";
 
 const LOCAL_TIMERS_CACHE_FILE = "teamwork-local-timers.json";
 
@@ -131,22 +131,11 @@ export interface SubmitLocalTimerResult {
   elapsedMs: number;
 }
 
-/** External actions needed by {@link submitLocalTimer}. */
-export interface SubmitLocalTimerActions {
-  createTaskTimeEntry: (input: TeamworkTaskTimeEntryInput) => Promise<number>;
-}
-
 /**
  * Stops the timer if running, creates a Teamwork time entry, and removes the
  * local timer. Throws if the timer vanishes mid-stop.
- *
- * Caller is responsible for identifying the timer. Only the cross-module HTTP
- * call is injected via actions; local timer operations are called directly.
  */
-export async function submitLocalTimer(
-  timer: LocalTimerEntry,
-  actions: SubmitLocalTimerActions,
-): Promise<SubmitLocalTimerResult> {
+export async function submitLocalTimer(timer: LocalTimerEntry): Promise<SubmitLocalTimerResult> {
   const timerToSubmit = timer.status === "running" ? await stopLocalTimer() : timer;
   if (!timerToSubmit) {
     throw new Error("No timer found to submit.");
@@ -155,7 +144,7 @@ export async function submitLocalTimer(
   const elapsedMs = getLocalTimerElapsedMs(timerToSubmit, new Date());
   const totalMinutes = Math.max(1, Math.ceil(elapsedMs / 60_000));
 
-  await actions.createTaskTimeEntry({
+  await createTaskTimeEntry({
     taskId: timerToSubmit.taskId,
     date: timerToSubmit.startTime.slice(0, 10),
     hours: Math.floor(totalMinutes / 60),
