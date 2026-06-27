@@ -7,6 +7,7 @@ import {
   teamworkTaskMine,
   teamworkTaskOpen,
 } from "./teamwork.ts";
+import { teamworkTaskBranch, teamworkTaskPr } from "./task-workflow.ts";
 import {
   teamworkTimerDiscard,
   teamworkTimerList,
@@ -95,6 +96,67 @@ const taskMineCommand: CommandModule<{}, { json: boolean }> = {
   handler: (argv) => teamworkTaskMine({ json: argv.json ?? false }),
 };
 
+const taskBranchCommand: CommandModule<
+  {},
+  { task: string; name?: string; startTimer?: boolean; json?: boolean }
+> = {
+  command: "branch <task>",
+  describe: "Create a branch for a Teamwork task",
+  builder: (yargs) =>
+    yargs
+      .positional("task", {
+        type: "string",
+        describe: "Teamwork task ID or URL",
+      })
+      .option("name", {
+        type: "string",
+        describe: "Branch name (default: {handle}/tw{id})",
+      })
+      .option("start-timer", {
+        type: "boolean",
+        describe: "Start a timer for this task after creating the branch",
+        default: false,
+      })
+      .option("json", {
+        type: "boolean",
+        describe: "Print JSON output",
+        default: false,
+      }) as unknown as Argv<{ task: string; name?: string; startTimer?: boolean; json?: boolean }>,
+  handler: (argv) =>
+    teamworkTaskBranch({
+      task: argv.task ?? "",
+      name: argv.name,
+      startTimer: argv.startTimer ?? false,
+      json: argv.json ?? false,
+    }),
+};
+
+const taskPrCommand: CommandModule<{}, { task: string; target?: string; json?: boolean }> = {
+  command: "pr <task>",
+  describe: "Create a draft pull request for a Teamwork task",
+  builder: (yargs) =>
+    yargs
+      .positional("task", {
+        type: "string",
+        describe: "Teamwork task ID or URL",
+      })
+      .option("target", {
+        type: "string",
+        describe: "Target branch (default: repo default branch)",
+      })
+      .option("json", {
+        type: "boolean",
+        describe: "Print JSON output",
+        default: false,
+      }) as unknown as Argv<{ task: string; target?: string; json?: boolean }>,
+  handler: (argv) =>
+    teamworkTaskPr({
+      task: argv.task ?? "",
+      target: argv.target,
+      json: argv.json ?? false,
+    }),
+};
+
 const taskCommand: CommandModule = {
   command: "task",
   describe: "Manage Teamwork tasks",
@@ -102,7 +164,9 @@ const taskCommand: CommandModule = {
     yargs
       .command(taskOpenCommand)
       .command(taskMineCommand)
-      .demandCommand(1, "Specify a task subcommand: open, mine"),
+      .command(taskBranchCommand)
+      .command(taskPrCommand)
+      .demandCommand(1, "Specify a task subcommand: open, mine, branch, pr"),
   handler: () => {},
 };
 

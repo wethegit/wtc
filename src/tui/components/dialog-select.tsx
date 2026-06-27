@@ -145,7 +145,10 @@ export function DialogSelect<T>(props: {
         <text attributes={TextAttributes.BOLD} fg={tokens.text}>
           {props.title}
         </text>
-        <text fg={tokens.textDim} onMouseUp={() => dialog.clear()}>
+        <text
+          fg={tokens.textDim}
+          onMouseUp={() => (props.onCancel ? props.onCancel() : dialog.clear())}
+        >
           esc
         </text>
       </box>
@@ -203,7 +206,9 @@ export function DialogSelect<T>(props: {
         </For>
         {filtered().length === 0 && <text fg={tokens.textDim}>No matching commands</text>}
       </box>
-      <text fg={tokens.textDim}>↑↓ navigate · enter select · esc close</text>
+      <text fg={tokens.textDim}>
+        ↑↓ navigate · enter select · esc {props.onCancel ? "back" : "close"}
+      </text>
     </box>
   );
 }

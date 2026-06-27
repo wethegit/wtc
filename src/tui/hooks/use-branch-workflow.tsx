@@ -1,13 +1,7 @@
 import { getGitHubCurrentUser } from "../../api/github/user.ts";
-import { setTaskBranch } from "../../api/github/task-branches.ts";
+import { writeTaskBranch } from "../../api/github/workflows.ts";
 import { startLocalTimer } from "../../api/teamwork/timers/local.ts";
-import {
-  detectRepo,
-  parseGitHubRemoteUrl,
-  createBranch,
-  pushBranch,
-  branchExists,
-} from "../../utils/git.ts";
+import { detectRepo, parseGitHubRemoteUrl, branchExists } from "../../utils/git.ts";
 import { ConfirmDialog } from "../components/confirm-dialog.tsx";
 import { DialogInput } from "../components/dialog-input.tsx";
 import { LoadingDialog } from "../components/loading-dialog.tsx";
@@ -124,9 +118,11 @@ export function useBranchWorkflow(setMessage: (msg: string) => void) {
     creating = true;
 
     try {
-      await createBranch(branchName);
-      await pushBranch(branchName);
-      await setTaskBranch(`${repo.owner}/${repo.repo}`, task.id, branchName);
+      await writeTaskBranch({
+        taskId: task.id,
+        branchName,
+        repoKey: `${repo.owner}/${repo.repo}`,
+      });
 
       dialog.clear();
       setMessage(`Branch "${branchName}" created for task: ${task.name}`);

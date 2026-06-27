@@ -88,6 +88,8 @@ export function TeamworkPage(props: {
               { key: "^←/→", label: "tabs" },
               { key: "^O", label: "open" },
               { key: "^T", label: "timer" },
+              { key: "^B", label: "branch" },
+              { key: "^R", label: "pr" },
             ],
     );
   });
