@@ -33,11 +33,8 @@ interface DialogOptionSection<T> {
 
 /**
  * Filters dialog select options using the title, description, and category.
- *
- * This helper is intentionally pure so command palette filtering stays covered
- * by unit tests without rendering OpenTUI components.
  */
-export function filterDialogSelectOptions<T>(
+function filterDialogSelectOptions<T>(
   options: readonly DialogSelectOption<T>[],
   query: string,
 ): DialogSelectOption<T>[] {

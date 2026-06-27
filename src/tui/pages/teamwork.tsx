@@ -22,7 +22,7 @@ const TABS = [
 ] as const;
 
 /** Cycles to the next or previous Teamwork tab, wrapping around. */
-export function getNextTeamworkTab(current: TeamworkTab, direction: 1 | -1): TeamworkTab {
+function getNextTeamworkTab(current: TeamworkTab, direction: 1 | -1): TeamworkTab {
   const currentIndex = TABS.findIndex((tab) => tab.id === current);
   const nextIndex = (currentIndex + direction + TABS.length) % TABS.length;
 

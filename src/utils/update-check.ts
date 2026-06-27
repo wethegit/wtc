@@ -50,7 +50,7 @@ interface UpdateCache {
 }
 
 /** Result returned by the update checker. */
-export interface UpdateInfo {
+interface UpdateInfo {
   /** Version currently running. */
   currentVersion: string;
   /** Latest known release version. */

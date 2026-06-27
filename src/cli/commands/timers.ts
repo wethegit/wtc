@@ -73,7 +73,7 @@ function formatTimerEntry(timer: LocalTimerEntry, now: Date): string {
  *   Update README (#2) — 30m — stopped
  * ```
  */
-export function formatTimerListOutput(
+function formatTimerListOutput(
   timers: readonly LocalTimerEntry[],
   options: { json: boolean },
 ): string {
