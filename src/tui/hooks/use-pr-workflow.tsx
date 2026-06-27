@@ -4,7 +4,7 @@ import { getRepoBranchInfo, type RepoBranch } from "../../api/github/branches.ts
 import { loadProjectConfig } from "../../api/config/manager.ts";
 import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
 import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
-import { detectRepo, parseGitHubRemoteUrl } from "../../utils/git.ts";
+import { currentBranch, detectRepo, parseGitHubRemoteUrl } from "../../utils/git.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
 import { ConfirmDialog } from "../components/confirm-dialog.tsx";
 import { DialogInput } from "../components/dialog-input.tsx";
@@ -148,7 +148,8 @@ export function usePrWorkflow(setMessage: (msg: string) => void) {
     }
 
     const branchEntry = await getTaskBranch(`${repo.owner}/${repo.repo}`, task.id);
-    if (!branchEntry) {
+    const branchName = branchEntry?.branch ?? (await currentBranch());
+    if (!branchName || branchName === "HEAD") {
       dialog.replace(() => (
         <ConfirmDialog
           title="No Branch"
@@ -162,7 +163,7 @@ export function usePrWorkflow(setMessage: (msg: string) => void) {
 
     ctx = {
       task,
-      branchName: branchEntry.branch,
+      branchName,
       remoteUrl: repoUrl,
       repo,
       title: `feat: ${task.name}`,

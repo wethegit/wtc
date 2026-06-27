@@ -46,8 +46,8 @@ export function ProjectTab() {
   const flashOn = useFlashInterval();
   const { localTimers, refreshLocalTimers, toggleTimer, openSelectedTask } =
     useTaskTimer(setProjectMessage);
-  const { createBranchForTask } = useBranchWorkflow(setProjectMessage);
   const { createPrForTask } = usePrWorkflow(setProjectMessage);
+  const { createBranchForTask } = useBranchWorkflow(setProjectMessage, createPrForTask);
 
   createEffect(() => {
     const sel = selectedTask();
