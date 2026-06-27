@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.12
+
+### Patch Changes
+
+- [#53](https://github.com/wethegit/wtc/pull/53) [`09d3900`](https://github.com/wethegit/wtc/commit/09d39007f1430f3c571415d037d13511e8d464d7) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Small UX improvements to teamwork workflows
+
 ## 0.3.11
 
 ### Patch Changes
