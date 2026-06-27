@@ -7,7 +7,10 @@ import { DialogInput } from "../components/dialog-input.tsx";
 import { LoadingDialog } from "../components/loading-dialog.tsx";
 import { useDialog } from "../components/dialog.tsx";
 
-export function useBranchWorkflow(setMessage: (msg: string) => void) {
+export function useBranchWorkflow(
+  setMessage: (msg: string) => void,
+  onCreatePr?: (task: { id: number; name: string }) => void,
+) {
   const dialog = useDialog();
   let creating = false;
 
@@ -118,14 +121,46 @@ export function useBranchWorkflow(setMessage: (msg: string) => void) {
     creating = true;
 
     try {
+      if (await branchExists(branchName)) {
+        dialog.replace(() => (
+          <ConfirmDialog
+            title="Branch Already Exists"
+            message={`Branch "${branchName}" already exists.`}
+            confirmLabel="OK"
+            onConfirm={async () => {}}
+          />
+        ));
+        return;
+      }
+
       await writeTaskBranch({
         taskId: task.id,
         branchName,
         repoKey: `${repo.owner}/${repo.repo}`,
       });
 
-      dialog.clear();
-      setMessage(`Branch "${branchName}" created for task: ${task.name}`);
+      if (onCreatePr) {
+        dialog.replace(() => (
+          <ConfirmDialog
+            title="Branch Created"
+            message={`Branch "${branchName}" created for task: ${task.name}. Create draft PR now?`}
+            confirmLabel="Create PR"
+            cancelLabel="Later"
+            autoClose={false}
+            onConfirm={() => {
+              dialog.clear();
+              onCreatePr(task);
+            }}
+            onCancel={() => {
+              dialog.clear();
+              setMessage(`Branch "${branchName}" created for task: ${task.name}`);
+            }}
+          />
+        ));
+      } else {
+        dialog.clear();
+        setMessage(`Branch "${branchName}" created for task: ${task.name}`);
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Failed to create branch.");
     } finally {

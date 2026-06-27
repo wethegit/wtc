@@ -33,8 +33,8 @@ export function MyWorkTab() {
   const flashOn = useFlashInterval();
   const { localTimers, refreshLocalTimers, toggleTimer, openSelectedTask } =
     useTaskTimer(setMessage);
-  const { createBranchForTask } = useBranchWorkflow(setMessage);
   const { createPrForTask } = usePrWorkflow(setMessage);
+  const { createBranchForTask } = useBranchWorkflow(setMessage, createPrForTask);
 
   createEffect(() => {
     const sel = selectedTask();
