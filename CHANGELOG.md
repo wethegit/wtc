@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.11
+
+### Patch Changes
+
+- [#51](https://github.com/wethegit/wtc/pull/51) [`b22b19e`](https://github.com/wethegit/wtc/commit/b22b19e8e14646d7d4d7063faa93c56d19c4e6cf) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Adds Pr craetion and CLI commands
+
 ## 0.3.10
 
 ### Patch Changes
