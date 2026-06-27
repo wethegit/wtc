@@ -15,6 +15,7 @@ import { TaskList } from "../../components/teamwork/task-list.tsx";
 import { usePageScroll } from "../../components/layout/scroll-context.tsx";
 import { useFlashInterval } from "../../hooks/use-flash-interval.ts";
 import { useBranchWorkflow } from "../../hooks/use-branch-workflow.tsx";
+import { usePrWorkflow } from "../../hooks/use-pr-workflow.tsx";
 import { useTaskTimer } from "../../hooks/use-task-timer.tsx";
 import { tokens } from "../../tokens.ts";
 
@@ -46,6 +47,7 @@ export function ProjectTab() {
   const { localTimers, refreshLocalTimers, toggleTimer, openSelectedTask } =
     useTaskTimer(setProjectMessage);
   const { createBranchForTask } = useBranchWorkflow(setProjectMessage);
+  const { createPrForTask } = usePrWorkflow(setProjectMessage);
 
   createEffect(() => {
     const sel = selectedTask();
@@ -154,6 +156,12 @@ export function ProjectTab() {
         desc: "Create branch for selected task",
         group: "Teamwork",
         cmd: () => createBranchForTask(selectedTeamworkTask()),
+      },
+      {
+        key: "ctrl+r",
+        desc: "Create PR for selected task",
+        group: "Teamwork",
+        cmd: () => createPrForTask(selectedTeamworkTask()),
       },
     ],
   }));

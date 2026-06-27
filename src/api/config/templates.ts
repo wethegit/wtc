@@ -73,6 +73,10 @@ teamwork:
   # Leave empty until this repo is linked to Teamwork.
   projectId: ${config.teamwork.projectId ?? ""}
 
+  # Global Teamwork task ID or URL for code review tracking.
+  # Set via the PR creation flow; leave empty to skip.
+  reviewTaskId: ${config.teamwork.reviewTaskId ?? ""}
+
   # Project-level task lists to surface in the Teamwork Project tab.
 ${pinnedTaskLists}
 `;

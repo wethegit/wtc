@@ -43,9 +43,10 @@ export const ProjectConfigV1Schema = z.object({
   teamwork: z
     .object({
       projectId: z.number().int().positive().nullable().default(null),
+      reviewTaskId: z.number().int().positive().nullable().default(null),
       pinnedTaskLists: z.array(PinnedTaskListSchema).default([]),
     })
-    .default({ projectId: null, pinnedTaskLists: [] }),
+    .default({ projectId: null, reviewTaskId: null, pinnedTaskLists: [] }),
 });
 
 /** Active user config schema. Alias this to a newer schema when v2 exists. */

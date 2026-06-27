@@ -19,6 +19,7 @@ const resolvedConfig: ResolvedConfig = {
     project: { links: [] },
     teamwork: {
       projectId: 362632,
+      reviewTaskId: null,
       pinnedTaskLists: [{ name: "General Tasks", id: 1597639 }],
     },
   },
@@ -134,6 +135,7 @@ No pinned task lists configured.`,
         project: { links: [] },
         teamwork: {
           projectId: null,
+          reviewTaskId: null,
           pinnedTaskLists: [{ id: 1597639, name: "General Tasks" }],
         },
       },

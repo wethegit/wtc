@@ -10,7 +10,7 @@ describe("settings command", () => {
       project: {
         version: 1,
         project: { links: [] },
-        teamwork: { projectId: 12345, pinnedTaskLists: [] },
+        teamwork: { projectId: 12345, reviewTaskId: null, pinnedTaskLists: [] },
       },
       paths: {
         userConfigPath: "/home/user/.config/wtc/wtc.yaml",
@@ -35,6 +35,7 @@ Project config: /repo/.wtc.yaml
     },
     "teamwork": {
       "projectId": 12345,
+      "reviewTaskId": null,
       "pinnedTaskLists": []
     }
   }
