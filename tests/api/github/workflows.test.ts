@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
 // Mutable flags for mock behavior
 let branchExistsResult = false;
@@ -174,4 +174,8 @@ describe("writeTaskPr", () => {
 
     expect(savedPrUrl).not.toBeNull();
   });
+});
+
+afterAll(() => {
+  mock.restore();
 });
