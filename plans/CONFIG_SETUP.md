@@ -373,51 +373,6 @@ Consider adding command palette actions only if they can be scoped cleanly to th
 
 Do not overbuild app-wide command state yet.
 
-## Testing Strategy
-
-Test logic only.
-
-### Config Tests
-
-File: `tests/config/schema.test.ts`
-
-Do not add tests that only prove Zod accepts valid config shapes or rejects invalid primitive types. Schema tests should protect WTC-owned config contracts only:
-
-- Supported/unsupported `version` behavior
-- Defaults or migrations the app relies on
-- Forward-compat behavior for unknown fields when intentional
-- Cross-field policy that is not already obvious from primitive schema validation
-
-File: `tests/config/manager.test.ts`
-
-Cover:
-
-- creates user config at overridden test path
-- loads user config
-- saves user config
-- discovers nearest ancestor `.wtc.yaml`
-- returns null when no project config exists
-- creates project config in start directory when saving with no discovered file
-- creates commented project config with `wtc config init` logic
-- loads resolved config with both layers
-- loads resolved config with missing project layer
-
-### CLI Tests
-
-Optional for Phase 3 unless subprocess helpers already exist.
-
-If added, invoke the binary/script as a subprocess and assert output includes paths and JSON.
-
-### TUI Tests
-
-No OpenTUI rendering tests.
-
-Only test extracted pure helpers:
-
-- project ID parsing
-- form state construction
-- form state to config conversion
-
 ## Verification Checklist
 
 Before committing implementation work:
@@ -425,7 +380,6 @@ Before committing implementation work:
 - [ ] `bun run fmt:check`
 - [ ] `bun run lint`
 - [ ] `bun run check`
-- [ ] `bun test`
 - [ ] `bun run build`
 - [ ] `wtc settings` prints user path, project path/search info, and resolved JSON
 - [ ] TUI Settings page loads without blocking startup

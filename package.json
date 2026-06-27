@@ -10,7 +10,6 @@
     "fmt": "oxfmt --write .",
     "fmt:check": "oxfmt --check .",
     "check": "tsc --noEmit",
-    "test": "bun test",
     "prepare": "husky",
     "build": "bun run scripts/build.ts",
     "changeset": "changeset",

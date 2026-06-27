@@ -1,15 +1,7 @@
-import { clearCache as clearCacheFn } from "../../api/cache/manager.ts";
-
-interface CacheCleanActions {
-  clearCache: () => Promise<void>;
-}
-
-const cacheCleanActions: CacheCleanActions = {
-  clearCache: clearCacheFn,
-};
+import { clearCache } from "../../api/cache/manager.ts";
 
 /** Deletes the entire WTC cache directory. */
-export async function cacheClean(actions = cacheCleanActions): Promise<void> {
-  await actions.clearCache();
+export async function cacheClean(): Promise<void> {
+  await clearCache();
   console.log("Cache cleaned.");
 }

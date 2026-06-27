@@ -20,7 +20,6 @@ A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, 
 | CLI parser        | yargs 18.x                       | Patterns match OpenCode, robust subcommands  |
 | Linter            | oxlint                           | 700+ TS rules, Rust-native, fast             |
 | Formatter         | oxfmt                            | Pairs with oxlint, zero config               |
-| Test runner       | bun test + @opentui/core/testing | Built-in, no extra deps                      |
 | Pre-commit        | husky + lint-staged              | Runs oxlint + oxfmt on staged files          |
 | CI/CD             | GitHub Actions                   | Tight GitHub integration                     |
 | Release versions  | Changesets                       | Version PRs, changelog, automated tags       |
@@ -48,7 +47,7 @@ The API layer is the only layer that both CLI and TUI import from. Each director
 - Keep filenames, local paths, and one-module constants inside the module that uses them.
 - Avoid helper functions for one-use expressions; prefer inline local constants.
 - Manager modules should contain domain behavior, not generic wrappers around simple file reads/writes.
-- Do not export helpers only for tests unless they represent meaningful domain behavior.
+- Do not create abstractions where simpler inline code works.
 - Comments should explain why code exists or why a tradeoff was chosen, not restate obvious mechanics.
 - Add comments to TypeScript interfaces/types when they clarify domain meaning or intended usage.
 - Format-producing functions include a JSDoc `Example output:` block showing the expected output format.
@@ -79,7 +78,7 @@ See `MVP.md` for detailed deliverables.
 
 ### Phase 2 — TUI Refactor to Solid.js ✅
 
-See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, design tokens, dialog/status bar/command palette architecture, testing boundaries, and migration sequence.
+See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, design tokens, dialog/status bar/command palette architecture, and migration sequence.
 
 - Add `@opentui/solid` + `solid-js` + `@opentui/keymap` as dependencies
 - Configure TSX (`jsxImportSource`) and Solid build plugin; avoid top-level Bun preload so compiled binaries do not load dev-only modules at runtime
@@ -94,11 +93,11 @@ See `SOLID_TUI_REFACTOR.md` for the detailed implementation plan, UX direction, 
 - Add command palette (mandatory — `ctrl/cmd+p` overlay for quick navigation)
 - Add initial routes for GitHub and Settings, navigable through the command palette
 - Remove all `findDescendantById` patterns
-- Update test setup to cover logic only, not TUI rendering
+- Keep business logic separate from TUI rendering
 
 ### Phase 3 — Config Setup ✅
 
-See `CONFIG_SETUP.md` for the detailed implementation plan, config versioning model, CLI/TUI behavior, testing boundaries, and migration notes.
+See `CONFIG_SETUP.md` for the detailed implementation plan, config versioning model, CLI/TUI behavior, and migration notes.
 
 - Add user-level config at `~/.config/wtc/wtc.yaml`
 - Add nearest-ancestor project config discovery for `.wtc.yaml`
@@ -113,14 +112,14 @@ See `CONFIG_SETUP.md` for the detailed implementation plan, config versioning mo
 
 ### Phase 4 — Persistent TUI State & Cache ✅
 
-See `STATE_MANAGER.md` for the detailed implementation plan, schema, manager API, TUI integration, CLI command, and testing boundaries.
+See `STATE_MANAGER.md` for the detailed implementation plan, schema, manager API, TUI integration, and CLI command.
 
 - Add per-directory TUI state persistence (remember last route)
 - Cache directory at `~/.config/wtc/cache/` (deletable at will)
 - `wtc cache clean` CLI command to wipe all runtime data
 - Consolidate update-check cache into the shared cache directory
 - Solid `StateProvider` context for TUI components
-- Pure tests for schema and manager logic
+- Robust schema validation for state files
 
 ### Phase 5 — Teamwork Workflow
 

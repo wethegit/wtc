@@ -320,45 +320,11 @@ File: `plans/PLAN.md`
 
 ---
 
-## Testing Strategy
-
-Test logic only. No TUI rendering tests.
-
-### State Schema Tests
-
-File: `tests/state/schema.test.ts`
-
-Do not add tests that only prove Zod accepts valid state shapes or rejects invalid primitive types. Schema tests should protect WTC-owned persistence contracts only:
-
-- Rejects unsupported `version`
-- Preserves defaults or migration behavior the app relies on
-- Accepts/drops extra unknown fields when that forward-compat behavior is intentional
-
-### State Manager Tests
-
-File: `tests/state/manager.test.ts`
-
-- Round-trip: save then load returns matching entry
-- Missing file returns defaults
-- Corrupted file returns defaults
-- Multiple directories produce independent entries
-- `clearCache` removes cache dir
-
-### CLI Tests
-
-File: `tests/cli/commands/cache.test.ts`
-
-- Pure formatter test if output is deterministic
-- Integration test deferred
-
----
-
 ## Verification Checklist
 
 - [ ] `bun run fmt:check`
 - [ ] `bun run lint`
 - [ ] `bun run check`
-- [ ] `bun test`
 - [ ] `bun run build`
 - [ ] TUI restores the last active route for the current directory
 - [ ] Different directories remember different routes

@@ -1,13 +1,6 @@
 import { loadResolvedConfig, saveProjectConfig } from "../../api/config/manager.ts";
-import {
-  PROJECT_CONFIG_VERSION,
-  type ProjectConfig,
-  type ResolvedConfig,
-} from "../../api/config/schema.ts";
-import {
-  getPinnedTaskListTasks,
-  getTeamworkTaskListTasks,
-} from "../../api/teamwork/task-list-tasks.ts";
+import { PROJECT_CONFIG_VERSION, type ProjectConfig } from "../../api/config/schema.ts";
+import { getPinnedTaskListTasks } from "../../api/teamwork/task-list-tasks.ts";
 import type {
   TeamworkTask,
   PinnedTaskListFetchResult,
@@ -21,34 +14,6 @@ interface PinnedTaskListsResult {
   projectConfigPath: string | null;
   taskLists: PinnedTaskListFetchResult[];
 }
-
-interface TeamworkTaskListPinnedActions {
-  loadResolvedConfig: (startDir: string) => Promise<ResolvedConfig>;
-  getTeamworkTaskListTasks: (taskListId: number) => Promise<TeamworkTask[]>;
-}
-
-interface TeamworkTaskListConfigActions {
-  loadResolvedConfig: (startDir: string) => Promise<ResolvedConfig>;
-  saveProjectConfig: (config: ProjectConfig, startDir: string) => Promise<string>;
-}
-
-interface TeamworkTaskOpenActions {
-  openUrlInBrowser: (url: string) => Promise<void>;
-}
-
-const teamworkTaskListPinnedActions: TeamworkTaskListPinnedActions = {
-  loadResolvedConfig,
-  getTeamworkTaskListTasks,
-};
-
-const teamworkTaskListConfigActions: TeamworkTaskListConfigActions = {
-  loadResolvedConfig,
-  saveProjectConfig,
-};
-
-const teamworkTaskOpenActions: TeamworkTaskOpenActions = {
-  openUrlInBrowser,
-};
 
 /**
  * Formats a task's metadata fields into human-readable text lines for CLI output.
@@ -117,27 +82,26 @@ export function formatTeamworkTaskListPinnedOutput(
 }
 
 /** Prints pinned task lists and their tasks for the current project. */
-export async function teamworkTaskListPinned(
-  args: { json: boolean; startDir?: string },
-  actions = teamworkTaskListPinnedActions,
-): Promise<void> {
-  const config = await actions.loadResolvedConfig(args.startDir ?? process.cwd());
+export async function teamworkTaskListPinned(args: {
+  json: boolean;
+  startDir?: string;
+}): Promise<void> {
+  const config = await loadResolvedConfig(args.startDir ?? process.cwd());
   const taskLists = config.project?.teamwork.pinnedTaskLists ?? [];
   const result: PinnedTaskListsResult = {
     projectConfigPath: config.paths.projectConfigPath,
-    taskLists: await getPinnedTaskListTasks(taskLists, {
-      getTeamworkTaskListTasks: actions.getTeamworkTaskListTasks,
-    }),
+    taskLists: await getPinnedTaskListTasks(taskLists),
   };
 
   console.log(formatTeamworkTaskListPinnedOutput(result, { json: args.json }));
 }
 
 /** Pins a task list by ID in the nearest project config, or updates the display name if already pinned. */
-export async function teamworkTaskListPin(
-  args: { taskListId: number; name: string; startDir?: string },
-  actions = teamworkTaskListConfigActions,
-): Promise<void> {
+export async function teamworkTaskListPin(args: {
+  taskListId: number;
+  name: string;
+  startDir?: string;
+}): Promise<void> {
   if (!Number.isInteger(args.taskListId) || args.taskListId <= 0) {
     throw new Error("Teamwork task list ID must be a positive integer.");
   }
@@ -146,7 +110,7 @@ export async function teamworkTaskListPin(
   if (!name) throw new Error("Teamwork task list name cannot be empty.");
 
   const startDir = args.startDir ?? process.cwd();
-  const config = await actions.loadResolvedConfig(startDir);
+  const config = await loadResolvedConfig(startDir);
   const projectConfig: ProjectConfig = config.project ?? {
     version: PROJECT_CONFIG_VERSION,
     project: { links: [] },
@@ -162,21 +126,21 @@ export async function teamworkTaskListPin(
     projectConfig.teamwork.pinnedTaskLists.push({ id: args.taskListId, name });
   }
 
-  const path = await actions.saveProjectConfig(projectConfig, startDir);
+  const path = await saveProjectConfig(projectConfig, startDir);
   console.log(`Pinned Teamwork task list: ${name} (${args.taskListId}) in ${path}`);
 }
 
 /** Removes a pinned task list from the nearest project config by ID. */
-export async function teamworkTaskListUnpin(
-  args: { taskListId: number; startDir?: string },
-  actions = teamworkTaskListConfigActions,
-): Promise<void> {
+export async function teamworkTaskListUnpin(args: {
+  taskListId: number;
+  startDir?: string;
+}): Promise<void> {
   if (!Number.isInteger(args.taskListId) || args.taskListId <= 0) {
     throw new Error("Teamwork task list ID must be a positive integer.");
   }
 
   const startDir = args.startDir ?? process.cwd();
-  const config = await actions.loadResolvedConfig(startDir);
+  const config = await loadResolvedConfig(startDir);
   if (!config.project) throw new Error("Project config not found. Run `wtc config init` first.");
 
   const existing = config.project.teamwork.pinnedTaskLists.find(
@@ -188,31 +152,16 @@ export async function teamworkTaskListUnpin(
     (taskList) => taskList.id !== args.taskListId,
   );
 
-  const path = await actions.saveProjectConfig(config.project, startDir);
+  const path = await saveProjectConfig(config.project, startDir);
   console.log(`Unpinned Teamwork task list: ${existing.name} (${existing.id}) from ${path}`);
 }
 
 /** Opens a Teamwork task in the default browser from a task ID or URL. */
-export async function teamworkTaskOpen(
-  args: { task: string },
-  actions = teamworkTaskOpenActions,
-): Promise<void> {
+export async function teamworkTaskOpen(args: { task: string }): Promise<void> {
   const task = getTeamworkTaskReference(args.task);
-  await actions.openUrlInBrowser(task.url);
+  await openUrlInBrowser(task.url);
   console.log(`Opened Teamwork task: ${task.url}`);
 }
-
-interface TeamworkTaskMineActions {
-  getTeamworkCurrentUserId: () => Promise<number>;
-  getTeamworkMyTasksGrouped: (
-    userId: number,
-  ) => Promise<{ projectId: number; projectName: string; tasks: MyWorkTask[] }[]>;
-}
-
-const teamworkTaskMineActions: TeamworkTaskMineActions = {
-  getTeamworkCurrentUserId,
-  getTeamworkMyTasksGrouped,
-};
 
 /**
  * Formats a MyWorkTask's metadata fields into human-readable text lines for CLI output.
@@ -269,11 +218,8 @@ export function formatTeamworkTaskMineOutput(
 }
 
 /** Lists tasks assigned to the current user due within the next 7 days (including overdue). */
-export async function teamworkTaskMine(
-  args: { json: boolean },
-  actions = teamworkTaskMineActions,
-): Promise<void> {
-  const userId = await actions.getTeamworkCurrentUserId();
-  const groups = await actions.getTeamworkMyTasksGrouped(userId);
+export async function teamworkTaskMine(args: { json: boolean }): Promise<void> {
+  const userId = await getTeamworkCurrentUserId();
+  const groups = await getTeamworkMyTasksGrouped(userId);
   console.log(formatTeamworkTaskMineOutput(groups, { json: args.json }));
 }

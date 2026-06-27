@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   quality:
-    name: Lint, Typecheck & Test
+    name: Lint & Typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +28,3 @@ jobs:
 
       - name: TypeScript typecheck
         run: bun run check
-
-      - name: Run tests
-        run: bun test

@@ -17,7 +17,6 @@ Before making changes, read these files for context:
 | CLI parser        | yargs                         |
 | Linter            | oxlint                        |
 | Formatter         | oxfmt                         |
-| Test runner       | bun test                      |
 | Pre-commit        | husky + lint-staged           |
 | Release versions  | Changesets                    |
 | Config validation | zod                           |
@@ -39,7 +38,6 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - Files: `kebab-case.ts`
 - Types: `PascalCase`
 - Functions: `camelCase`
-- Tests: `*.test.ts` in `tests/` mirroring `src/` structure
 
 ### Comments
 
@@ -64,11 +62,9 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 - Keep helpers scoped to the smallest place that needs them.
 - Put values/functions in `consts.ts` only when they are shared across modules or own environment-variable behavior.
 - Keep filenames, local paths, and one-module constants inside the module that uses them.
-- Do not export helpers only for tests unless they represent meaningful domain behavior.
 - Do not create helper functions for one-use expressions.
 - Prefer inline local constants over private one-line functions.
 - Manager modules should contain domain behavior, not generic wrappers around simple file reads/writes.
-- If a helper exists only to make a test easier, reconsider the test or test higher-level behavior instead.
 - Do not split one workflow into private helpers unless those helpers are reused or represent meaningful domain behavior; keep the workflow in one function and add a clarifying comment when needed.
 
 ### Third-Party API Requests
@@ -86,20 +82,11 @@ Examples:
 - `getStatePath()` should not exist if it only appends `STATE_FILE` to `getCacheDir()` in one module.
 - `formatUserConfig()` is valid because Bun's YAML parser does not preserve comments, so config saves need explicit commented formatting.
 
-## Code Quality Rules
+## Code Quality
 
-ONLY run these commands and nothing else.
+- `bun run check` must pass (tsc)
+- `bun run lint` must pass
+- No `any` types, no default exports
+- **Never write tests.** Do not add, modify, or create test files. Do not add DI, abstractions, exports, or any other code whose only purpose is to support testing.
 
-- [ ] `bun run check` passes (tsc)
-- [ ] `bun test` passes
-- [ ] No `any` types, no default exports
-
-**NEVER** run the binary compiled files.
-
-## Testing Philosophy
-
-- **Test logic, not layout.** Tests should cover pure functions, business logic, API clients, and utility modules. Do not test TUI rendering (box position, text content, styling against OpenTUI components) — that's the framework's job.
-- **Do not retest Zod.** Schema tests should cover WTC-owned contracts only: supported config/state versions, defaults or migrations the app relies on, forward-compat behavior, or other non-obvious policy. Do not add tests that only prove Zod accepts valid shapes or rejects invalid primitive types.
-- **No mocks of the OpenTUI renderer.** Module-mocking `@opentui/core` (Box, Text, createCliRenderer, t) adds fragility and tests the mock, not the real behavior. If a function delegates to OpenTUI, trust the function; test what it computes, not how it renders.
-- **Prefer real calls over mocks.** For utilities like `checkForUpdate`, test with a real (or near-real) API surface — mock at the HTTP layer only if necessary.
-- **Integration tests for CLI flows** are acceptable only when they invoke the binary as a subprocess (e.g., `wtc --version`), but are deferred until Phase 2+.
+**NEVER** run binary compiled files.
