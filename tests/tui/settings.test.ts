@@ -21,6 +21,7 @@ describe("settings page helpers", () => {
       project: { links: [{ name: "Figma", url: "https://figma.com/file/abc" }] },
       teamwork: {
         projectId: 12345,
+        reviewTaskId: null,
         pinnedTaskLists: [{ name: "General Tasks", id: 1597639 }],
       },
     },
@@ -146,6 +147,7 @@ describe("settings page helpers", () => {
         project: { links: [{ name: "Docs", url: "https://docs.example.com" }] },
         teamwork: {
           projectId: 98765,
+          reviewTaskId: null,
           pinnedTaskLists: [{ name: "General Tasks", id: 1597639 }],
         },
       },
@@ -167,7 +169,7 @@ describe("settings page helpers", () => {
       project: {
         version: 1,
         project: { links: [] },
-        teamwork: { projectId: null, pinnedTaskLists: [] },
+        teamwork: { projectId: null, reviewTaskId: null, pinnedTaskLists: [] },
       },
     });
   });

@@ -1,7 +1,12 @@
 import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
-import { loadResolvedConfig, saveProjectConfig, saveUserConfig } from "../../api/config/manager.ts";
+import {
+  loadProjectConfig,
+  loadResolvedConfig,
+  saveProjectConfig,
+  saveUserConfig,
+} from "../../api/config/manager.ts";
 import type { ProjectConfig, ResolvedConfig, UserConfig } from "../../api/config/schema.ts";
 import { getGitHubAuthStatus, setGitHubApiToken } from "../../api/github/auth.ts";
 import type { GitHubAuthStatus } from "../../api/github/auth.ts";
@@ -100,6 +105,11 @@ export function SettingsPage() {
 
     try {
       const nextConfig = applySettingsFormState(form());
+      // Preserve project-level fields not surfaced in the settings form.
+      const existingProjectConfig = await loadProjectConfig(process.cwd());
+      if (existingProjectConfig?.teamwork.reviewTaskId) {
+        nextConfig.project.teamwork.reviewTaskId = existingProjectConfig.teamwork.reviewTaskId;
+      }
       const teamworkApiToken = form().user.teamworkApiToken.trim() || null;
       const githubApiToken = form().user.githubApiToken.trim() || null;
       await saveUserConfig(nextConfig.user);
@@ -298,8 +308,8 @@ export function SettingsPage() {
   onMount(() => {
     void reload();
     setHints([
-      { key: "ctrl+s", label: "save" },
-      { key: "ctrl+r", label: "reload" },
+      { key: "^S", label: "save" },
+      { key: "^R", label: "reload" },
     ]);
   });
 
@@ -553,7 +563,7 @@ export function validateSettingsForm(state: SettingsFormState): SettingsFormErro
   return errors;
 }
 
-/** Converts validated Settings form state into UserConfig and ProjectConfig objects, dropping blank dynamic rows. */
+/** Converts validated Settings form state into UserConfig and ProjectConfig objects, dropping blank dynamic rows. Non-form project fields (e.g. reviewTaskId) are set to null and must be preserved by the caller. */
 export function applySettingsFormState(state: SettingsFormState): {
   user: UserConfig;
   project: ProjectConfig;
@@ -574,6 +584,7 @@ export function applySettingsFormState(state: SettingsFormState): {
       },
       teamwork: {
         projectId: parseTeamworkProjectId(state.project.teamworkProjectId),
+        reviewTaskId: null,
         pinnedTaskLists: state.project.pinnedTaskLists.flatMap((taskList) => {
           const name = taskList.name.trim();
           const id = parsePinnedTaskListId(taskList.id);

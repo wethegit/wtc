@@ -70,23 +70,24 @@ export function TeamworkPage(props: {
     setHints(
       tab === "project"
         ? [
-            { key: "ctrl+←/→", label: "tabs" },
-            { key: "ctrl+o", label: "open" },
-            { key: "ctrl+t", label: "timer" },
-            { key: "ctrl+b", label: "branch" },
+            { key: "^←/→", label: "tabs" },
+            { key: "^O", label: "open" },
+            { key: "^T", label: "timer" },
+            { key: "^B", label: "branch" },
+            { key: "^R", label: "pr" },
           ]
         : tab === "timers"
           ? [
-              { key: "ctrl+←/→", label: "tabs" },
-              { key: "ctrl+t", label: "toggle" },
-              { key: "ctrl+s", label: "submit" },
-              { key: "ctrl+d", label: "discard" },
-              { key: "ctrl+o", label: "timesheet" },
+              { key: "^←/→", label: "tabs" },
+              { key: "^T", label: "toggle" },
+              { key: "^S", label: "submit" },
+              { key: "^D", label: "discard" },
+              { key: "^O", label: "timesheet" },
             ]
           : [
-              { key: "ctrl+←/→", label: "tabs" },
-              { key: "ctrl+o", label: "open" },
-              { key: "ctrl+t", label: "timer" },
+              { key: "^←/→", label: "tabs" },
+              { key: "^O", label: "open" },
+              { key: "^T", label: "timer" },
             ],
     );
   });

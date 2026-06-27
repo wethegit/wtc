@@ -150,7 +150,7 @@ export async function teamworkTaskListPin(
   const projectConfig: ProjectConfig = config.project ?? {
     version: PROJECT_CONFIG_VERSION,
     project: { links: [] },
-    teamwork: { projectId: null, pinnedTaskLists: [] },
+    teamwork: { projectId: null, reviewTaskId: null, pinnedTaskLists: [] },
   };
   const existing = projectConfig.teamwork.pinnedTaskLists.find(
     (taskList) => taskList.id === args.taskListId,
