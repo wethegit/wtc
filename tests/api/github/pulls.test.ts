@@ -10,27 +10,33 @@ mock.module("../../../src/api/github/auth.ts", () => ({
 }));
 
 let capturedPullArgs: Record<string, unknown> | null = null;
-let captureQueue: Promise<void> = Promise.resolve();
+const capturedPullArgsByHead = new Map<string, Record<string, unknown>>();
 
-mock.module("../../../src/api/github/client.ts", () => ({
-  getOctokit: async () => ({
-    rest: {
-      repos: {
-        get: async () => ({ data: { default_branch: "main" } }),
-      },
-      pulls: {
-        create: async (args: Record<string, unknown>) => {
-          capturedPullArgs = args;
-          return {
-            data: {
-              html_url: "https://github.com/owner/repo/pull/42",
-              number: 42,
+mock.module("@octokit/rest", () => ({
+  Octokit: class MockOctokit {
+    constructor() {
+      return {
+        rest: {
+          repos: {
+            get: async () => ({ data: { default_branch: "main" } }),
+          },
+          pulls: {
+            create: async (args: Record<string, unknown>) => {
+              capturedPullArgs = args;
+              const head = typeof args.head === "string" ? args.head : "";
+              if (head) capturedPullArgsByHead.set(head, args);
+              return {
+                data: {
+                  html_url: "https://github.com/owner/repo/pull/42",
+                  number: 42,
+                },
+              };
             },
-          };
+          },
         },
-      },
-    },
-  }),
+      };
+    }
+  },
 }));
 
 const { createDraftPullRequest } = await import("../../../src/api/github/pulls.ts");
@@ -45,22 +51,6 @@ const BASE_INPUT = {
 
 let testBranchCounter = 0;
 
-async function withCaptureLock<T>(operation: () => Promise<T>): Promise<T> {
-  const waitForPrevious = captureQueue;
-  let releaseCurrent!: () => void;
-  captureQueue = new Promise<void>((resolve) => {
-    releaseCurrent = resolve;
-  });
-
-  await waitForPrevious;
-
-  try {
-    return await operation();
-  } finally {
-    releaseCurrent();
-  }
-}
-
 async function createDraftPullRequestAndCaptureArgs(
   input: Partial<typeof BASE_INPUT & { baseBranch?: string; reviewTask?: { id: number; name: string } | null }>,
   projectDir: string,
@@ -68,22 +58,21 @@ async function createDraftPullRequestAndCaptureArgs(
   args: Record<string, unknown>;
   result: { url: string; number: number };
 }> {
-  return withCaptureLock(async () => {
-    testBranchCounter += 1;
-    const branchName = `user/tw123-${testBranchCounter}`;
-    capturedPullArgs = null;
+  testBranchCounter += 1;
+  const branchName = `user/tw123-${testBranchCounter}`;
+  capturedPullArgs = null;
 
-    const result = await createDraftPullRequest({
-      ...BASE_INPUT,
-      ...input,
-      branchName,
-      projectDir,
-    });
-
-    const args = capturedPullArgs;
-    if (!args) throw new Error("Failed to capture pull request args.");
-    return { args, result };
+  const result = await createDraftPullRequest({
+    ...BASE_INPUT,
+    ...input,
+    branchName,
+    projectDir,
   });
+
+  const args = capturedPullArgsByHead.get(branchName) ?? capturedPullArgs;
+  if (!args) throw new Error("Failed to capture pull request args.");
+  capturedPullArgsByHead.delete(branchName);
+  return { args, result };
 }
 
 describe("createDraftPullRequest", () => {
