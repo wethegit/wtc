@@ -9,7 +9,7 @@ import { useDialog } from "../components/dialog.tsx";
 
 export function useBranchWorkflow(
   setMessage: (msg: string) => void,
-  onCreatePr?: (task: { id: number; name: string }) => void,
+  onCreatePr?: (task: { id: number; name: string }) => void | Promise<void>,
 ) {
   const dialog = useDialog();
   let creating = false;
@@ -147,9 +147,9 @@ export function useBranchWorkflow(
             confirmLabel="Create PR"
             cancelLabel="Later"
             autoClose={false}
-            onConfirm={() => {
+            onConfirm={async () => {
               dialog.clear();
-              onCreatePr(task);
+              await onCreatePr(task);
             }}
             onCancel={() => {
               dialog.clear();
