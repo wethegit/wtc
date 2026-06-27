@@ -28,7 +28,6 @@ import type {
   SettingsFormState,
 } from "./settings/types.ts";
 import { UserConfigSection } from "./settings/user-config-section.tsx";
-
 const DEFAULT_EXPANDED_SECTIONS: SettingsExpandedSections = {
   user: true,
   project: true,
