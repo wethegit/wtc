@@ -1,22 +1,27 @@
+import { z } from "zod";
+
+import { logError } from "../../logs/manager.ts";
 import { getCacheDir } from "../../cache/consts.ts";
 import { createTaskTimeEntry } from "../timers.ts";
 
 const LOCAL_TIMERS_CACHE_FILE = "teamwork-local-timers.json";
 
-/** A locally-managed timer entry that has not been submitted to the Teamwork API yet. */
-export interface LocalTimerEntry {
-  id: string;
-  taskId: number;
-  taskName: string;
-  startTime: string;
-  endTime: string | null;
-  status: "running" | "stopped";
-}
+const LocalTimerEntrySchema = z.object({
+  id: z.string(),
+  taskId: z.number(),
+  taskName: z.string(),
+  startTime: z.string(),
+  endTime: z.string().nullable(),
+  status: z.enum(["running", "stopped"]),
+});
 
-interface LocalTimersFile {
-  version: 1;
-  timers: LocalTimerEntry[];
-}
+const LocalTimersFileSchema = z.object({
+  version: z.literal(1),
+  timers: z.array(LocalTimerEntrySchema),
+});
+
+/** A locally-managed timer entry that has not been submitted to the Teamwork API yet. */
+export type LocalTimerEntry = z.infer<typeof LocalTimerEntrySchema>;
 
 function getLocalTimersPath(): string {
   return `${getCacheDir()}/${LOCAL_TIMERS_CACHE_FILE}`;
@@ -25,10 +30,9 @@ function getLocalTimersPath(): string {
 /** Loads all local timers from the cache file. Returns an empty array if the file is missing or corrupt. */
 export async function loadLocalTimers(): Promise<LocalTimerEntry[]> {
   try {
-    const parsed = JSON.parse(await Bun.file(getLocalTimersPath()).text()) as LocalTimersFile;
-
-    if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.timers)) return [];
-
+    const parsed = LocalTimersFileSchema.parse(
+      JSON.parse(await Bun.file(getLocalTimersPath()).text()),
+    );
     return parsed.timers;
   } catch {
     return [];
@@ -36,8 +40,15 @@ export async function loadLocalTimers(): Promise<LocalTimerEntry[]> {
 }
 
 async function saveLocalTimers(timers: LocalTimerEntry[]): Promise<void> {
-  const file: LocalTimersFile = { version: 1, timers };
-  await Bun.write(getLocalTimersPath(), `${JSON.stringify(file, null, 2)}\n`);
+  const file = { version: 1, timers };
+  try {
+    await Bun.write(getLocalTimersPath(), `${JSON.stringify(file, null, 2)}\n`);
+  } catch (error) {
+    logError("teamwork", "localTimers.save.error", "Failed to save local timers", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }
 
 /** Generates a unique local timer ID. */
@@ -144,13 +155,21 @@ export async function submitLocalTimer(timer: LocalTimerEntry): Promise<SubmitLo
   const elapsedMs = getLocalTimerElapsedMs(timerToSubmit, new Date());
   const totalMinutes = Math.max(1, Math.ceil(elapsedMs / 60_000));
 
-  await createTaskTimeEntry({
-    taskId: timerToSubmit.taskId,
-    date: timerToSubmit.startTime.slice(0, 10),
-    hours: Math.floor(totalMinutes / 60),
-    minutes: totalMinutes % 60,
-    description: timerToSubmit.taskName,
-  });
+  try {
+    await createTaskTimeEntry({
+      taskId: timerToSubmit.taskId,
+      date: timerToSubmit.startTime.slice(0, 10),
+      hours: Math.floor(totalMinutes / 60),
+      minutes: totalMinutes % 60,
+      description: timerToSubmit.taskName,
+    });
+  } catch (error) {
+    logError("teamwork", "localTimers.submit.error", "Failed to submit time entry", {
+      taskId: timerToSubmit.taskId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 
   await removeLocalTimer(timerToSubmit.id);
   return { taskName: timerToSubmit.taskName, taskId: timerToSubmit.taskId, elapsedMs };

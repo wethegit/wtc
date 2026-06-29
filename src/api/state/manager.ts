@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 
+import { logError } from "../logs/manager.ts";
 import { getCacheDir } from "../cache/consts.ts";
 import { TuiStateFileSchema, type TuiStateEntry, type TuiStateFile } from "./schema.ts";
 
@@ -46,5 +47,11 @@ export async function saveTuiState(dir: string, partial: Partial<TuiStateEntry>)
   const existing = file.entries[key] ?? DEFAULT_ENTRY;
   file.entries[key] = { ...existing, ...partial, lastUpdated: new Date().toISOString() };
 
-  await Bun.write(path, `${JSON.stringify(file, null, 2)}\n`);
+  try {
+    await Bun.write(path, `${JSON.stringify(file, null, 2)}\n`);
+  } catch (error) {
+    logError("state", "state.save.error", "Failed to save TUI state", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 }

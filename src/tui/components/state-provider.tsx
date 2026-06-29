@@ -1,5 +1,6 @@
 import { createContext, createSignal, useContext, type ParentProps } from "solid-js";
 
+import { logError } from "../../api/logs/manager.ts";
 import { saveTuiState } from "../../api/state/manager.ts";
 import type { TuiStateEntry } from "../../api/state/schema.ts";
 
@@ -24,7 +25,11 @@ export function StateProvider(props: { dir: string; initialState: TuiStateEntry 
     updateState(partial: Partial<TuiStateEntry>) {
       const next = { ...state(), ...partial, lastUpdated: new Date().toISOString() };
       setState(next);
-      void saveTuiState(props.dir, partial);
+      saveTuiState(props.dir, partial).catch((error) => {
+        logError("tui", "tui.state.save.error", "Failed to persist TUI state", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
     },
   };
 

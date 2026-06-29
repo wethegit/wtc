@@ -1,12 +1,8 @@
+import { z } from "zod";
+
 import { GITHUB_REPO_OWNER } from "../../api/github/consts.ts";
 import { logError, logInfo, logWarn } from "../../api/logs/manager.ts";
-import {
-  applyGitHubRepoSetup,
-  createGitHubRepo,
-  createGitHubRepoFromTemplate,
-  getGitHubTemplateRepo,
-  type CreatedGitHubRepo,
-} from "../../api/github/repos.ts";
+import { createGitHubRepoWithSetup, getGitHubTemplateRepo } from "../../api/github/repos.ts";
 
 export type RepoVisibility = "private" | "public";
 
@@ -25,11 +21,9 @@ export async function repoCreate(args: {
     throw new Error("GitHub repository name cannot be empty.");
   }
 
+  const rulesPresetSchema = z.enum(["standard", "none"]);
   const templateName = args.template?.trim();
-  const description = args.description?.trim() || undefined;
-  const isPrivate = args.visibility === "private";
-  const rulesPreset = args.rulesPreset ?? "standard";
-  let repo: CreatedGitHubRepo;
+  const rulesPreset = rulesPresetSchema.parse(args.rulesPreset ?? "standard");
 
   logInfo("cli.repo", "repo.create.start", "Starting repo creation", {
     name,
@@ -38,58 +32,31 @@ export async function repoCreate(args: {
     rulesPreset,
   });
 
-  try {
-    if (templateName) {
-      const template = await getGitHubTemplateRepo(GITHUB_REPO_OWNER, templateName);
-      if (!template) {
-        logError("cli.repo", "repo.create.error", "Template not found", { templateName });
-        throw new Error(
-          `Template repository not found or not marked as a template under ${GITHUB_REPO_OWNER}: ${templateName}`,
-        );
-      }
-
-      repo = await createGitHubRepoFromTemplate({
-        templateOwner: GITHUB_REPO_OWNER,
-        templateRepo: template.name,
-        owner: GITHUB_REPO_OWNER,
-        name,
-        description,
-        private: isPrivate,
-      });
-    } else {
-      repo = await createGitHubRepo({
-        owner: GITHUB_REPO_OWNER,
-        name,
-        description,
-        private: isPrivate,
-      });
+  let templateOwner: string | undefined;
+  let templateRepo: string | undefined;
+  if (templateName) {
+    const template = await getGitHubTemplateRepo(GITHUB_REPO_OWNER, templateName);
+    if (!template) {
+      logError("cli.repo", "repo.create.error", "Template not found", { templateName });
+      throw new Error(
+        `Template repository not found or not marked as a template under ${GITHUB_REPO_OWNER}: ${templateName}`,
+      );
     }
-  } catch (error) {
-    logError("cli.repo", "repo.create.error", "Repo creation failed", {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    throw error;
+    templateOwner = GITHUB_REPO_OWNER;
+    templateRepo = template.name;
   }
+
+  const { repo, warnings } = await createGitHubRepoWithSetup({
+    owner: GITHUB_REPO_OWNER,
+    name,
+    description: args.description?.trim() || undefined,
+    private: args.visibility === "private",
+    templateOwner,
+    templateRepo,
+    rulesPreset,
+  });
 
   logInfo("cli.repo", "repo.create.success", "Repo created", { fullName: repo.fullName });
-
-  let setupResult: { warnings: string[] };
-  try {
-    setupResult = await applyGitHubRepoSetup({
-      owner: GITHUB_REPO_OWNER,
-      repo: repo.name,
-      rulesPreset: rulesPreset as "standard" | "none",
-    });
-  } catch (error) {
-    logWarn("cli.repo", "repo.setup.error", "Setup failed unexpectedly", {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    setupResult = {
-      warnings: [
-        `Repository setup failed: ${error instanceof Error ? error.message : String(error)}`,
-      ],
-    };
-  }
 
   if (args.json) {
     console.log(
@@ -99,7 +66,7 @@ export async function repoCreate(args: {
         url: repo.htmlUrl,
         cloneUrl: repo.cloneUrl,
         sshUrl: repo.sshUrl,
-        warnings: setupResult.warnings,
+        warnings,
       }),
     );
     return;
@@ -107,8 +74,8 @@ export async function repoCreate(args: {
 
   console.log(`Created GitHub repo: ${repo.htmlUrl}`);
 
-  if (setupResult.warnings.length) {
-    for (const warning of setupResult.warnings) {
+  if (warnings.length) {
+    for (const warning of warnings) {
       logWarn("cli.repo", "repo.setup.warning", warning);
       console.warn(`  Warning: ${warning}`);
     }

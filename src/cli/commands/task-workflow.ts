@@ -1,7 +1,7 @@
 import { getRepoBranchInfo } from "../../api/github/branches.ts";
 import { getTaskBranch } from "../../api/github/task-branches.ts";
 import { getGitHubCurrentUser } from "../../api/github/user.ts";
-import { logError, logInfo } from "../../api/logs/manager.ts";
+import { logError, logInfo, logWarn } from "../../api/logs/manager.ts";
 import { writeTaskBranch, writeTaskPr } from "../../api/github/workflows.ts";
 import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
 import { startLocalTimer } from "../../api/teamwork/timers/local.ts";
@@ -103,7 +103,15 @@ export async function teamworkTaskPr(args: {
     try {
       const info = await getRepoBranchInfo(repoUrl);
       baseBranch = info.defaultBranch;
-    } catch {
+    } catch (error) {
+      logWarn(
+        "cli.task",
+        "task.pr.branchInfo.error",
+        "Failed to fetch repo branch info, falling back to main",
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
       baseBranch = "main";
     }
   }
@@ -114,8 +122,11 @@ export async function teamworkTaskPr(args: {
   if (config?.teamwork.reviewTaskId) {
     try {
       reviewTask = await getTeamworkTaskById(config.teamwork.reviewTaskId);
-    } catch {
-      // Stale review task ID in config — ignore
+    } catch (error) {
+      logWarn("cli.task", "task.pr.reviewTask.error", "Stale review task ID in config, ignoring", {
+        reviewTaskId: config.teamwork.reviewTaskId,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

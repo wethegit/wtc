@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { logWarn } from "../logs/manager.ts";
 import { fetchTeamworkApiJson } from "./client.ts";
 import { getWorkflowStageNames } from "./workflow-stages.ts";
 
@@ -146,9 +147,17 @@ function parseTeamworkDueDate(dueDate: TeamworkDateValue | null | undefined): st
 
 /** Fetches tasks for a Teamwork task list and resolves workflow stage names, assignees, due dates, and priority. */
 export async function getTeamworkTaskListTasks(taskListId: number): Promise<TeamworkTask[]> {
-  const parsed = TeamworkTaskListTasksResponseSchema.parse(
-    await fetchTeamworkApiJson(`/tasklists/${taskListId}/tasks.json?include=users,assigneeUsers`),
-  );
+  let parsed: z.infer<typeof TeamworkTaskListTasksResponseSchema>;
+  try {
+    parsed = TeamworkTaskListTasksResponseSchema.parse(
+      await fetchTeamworkApiJson(`/tasklists/${taskListId}/tasks.json?include=users,assigneeUsers`),
+    );
+  } catch (error) {
+    logWarn("teamwork", "taskList.get.error", `Failed to fetch task list ${taskListId}`, {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 
   const workflowIds = [
     ...new Set(
@@ -162,9 +171,20 @@ export async function getTeamworkTaskListTasks(taskListId: number): Promise<Team
   ];
   const stageEntries = new Map<number, { name: string; color: string | null }>();
   for (const workflowId of workflowIds) {
-    const entries = await getWorkflowStageNames(Number(workflowId));
-    for (const [id, entry] of entries) {
-      stageEntries.set(id, entry);
+    try {
+      const entries = await getWorkflowStageNames(Number(workflowId));
+      for (const [id, entry] of entries) {
+        stageEntries.set(id, entry);
+      }
+    } catch (error) {
+      logWarn(
+        "teamwork",
+        "taskList.stageNames.error",
+        `Failed to fetch workflow stages for ${workflowId}`,
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
     }
   }
 

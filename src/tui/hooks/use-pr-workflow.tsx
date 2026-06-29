@@ -1,3 +1,4 @@
+import { logWarn } from "../../api/logs/manager.ts";
 import { getTaskBranch } from "../../api/github/task-branches.ts";
 import { writeTaskPr } from "../../api/github/workflows.ts";
 import { getRepoBranchInfo, type RepoBranch } from "../../api/github/branches.ts";
@@ -177,7 +178,9 @@ export function usePrWorkflow(setMessage: (msg: string) => void) {
       try {
         ctx.reviewTask = await getTeamworkTaskById(config.teamwork.reviewTaskId);
       } catch {
-        // Stale review task ID in config — ignore and continue
+        logWarn("tui.pr", "pr.workflow.reviewTask.stale", "Stale review task ID in config", {
+          reviewTaskId: config.teamwork.reviewTaskId,
+        });
       }
     }
 

@@ -1,3 +1,4 @@
+import { logError } from "../logs/manager.ts";
 import { createTeamworkAuthorizationHeader, getTeamworkApiToken } from "./auth.ts";
 import { TEAMWORK_API_BASE_URL } from "./consts.ts";
 
@@ -10,15 +11,22 @@ export async function fetchTeamworkApiJson(path: string, init: RequestInit = {})
   if (!headers.has("Accept")) headers.set("Accept", "application/json");
   headers.set("Authorization", createTeamworkAuthorizationHeader(token));
 
-  const response = await fetch(`${TEAMWORK_API_BASE_URL}${path}`, {
-    ...init,
-    headers,
-    signal: init.signal ?? AbortSignal.timeout(5000),
-  });
+  try {
+    const response = await fetch(`${TEAMWORK_API_BASE_URL}${path}`, {
+      ...init,
+      headers,
+      signal: init.signal ?? AbortSignal.timeout(5000),
+    });
 
-  if (!response.ok) {
-    throw new Error(`Teamwork API responded with ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Teamwork API responded with ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    logError("teamwork", "client.fetch.error", `Teamwork API call failed: ${path}`, {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
   }
-
-  return response.json();
 }
