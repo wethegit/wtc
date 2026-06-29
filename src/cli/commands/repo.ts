@@ -34,7 +34,11 @@ export async function repoCreate(args: {
 
   if (templateName) {
     const template = await getGitHubTemplateRepo(owner, templateName);
-    if (!template) throw new Error(`Template repository not found under ${owner}: ${templateName}`);
+    if (!template) {
+      throw new Error(
+        `Template repository not found or not marked as a template under ${owner}: ${templateName}`,
+      );
+    }
 
     repo = await createGitHubRepoFromTemplate({
       templateOwner: owner,
