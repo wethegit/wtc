@@ -88,7 +88,7 @@ export function GitHubPage() {
         dialog.replace(() => (
           <ConfirmDialog
             title="No Templates"
-            message={`No template repositories found under ${owner}.`}
+            message={`No template repositories found under ${owner}. Check that your GitHub token can access the template repositories.`}
             confirmLabel="OK"
             onConfirm={async () => {}}
           />
