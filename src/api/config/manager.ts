@@ -1,6 +1,7 @@
 import { YAML } from "bun";
 import { dirname, join, resolve } from "node:path";
 
+import { logInfo } from "../logs/manager.ts";
 import { getUserConfigDir } from "./consts.ts";
 import {
   PROJECT_CONFIG_VERSION,
@@ -81,6 +82,7 @@ async function loadUserConfig(): Promise<UserConfig> {
 /** Validates and saves the user-level config file. */
 export async function saveUserConfig(config: UserConfig): Promise<void> {
   await Bun.write(getUserConfigPath(), formatUserConfig(UserConfigSchema.parse(config)));
+  logInfo("config", "config.user.save", "User config saved", { path: getUserConfigPath() });
 }
 
 /** Loads the nearest project config, or null when no `.wtc.yaml` exists. */
@@ -99,6 +101,7 @@ export async function loadProjectConfig(startDir: string): Promise<ProjectConfig
 export async function saveProjectConfig(config: ProjectConfig, startDir: string): Promise<string> {
   const path = join(resolve(startDir), PROJECT_CONFIG_FILE);
   await Bun.write(path, formatProjectConfig(ProjectConfigSchema.parse(config)));
+  logInfo("config", "config.project.save", "Project config saved", { path });
   return path;
 }
 

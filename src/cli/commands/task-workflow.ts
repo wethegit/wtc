@@ -1,6 +1,7 @@
 import { getRepoBranchInfo } from "../../api/github/branches.ts";
 import { getTaskBranch } from "../../api/github/task-branches.ts";
 import { getGitHubCurrentUser } from "../../api/github/user.ts";
+import { logError, logInfo } from "../../api/logs/manager.ts";
 import { writeTaskBranch, writeTaskPr } from "../../api/github/workflows.ts";
 import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
 import { startLocalTimer } from "../../api/teamwork/timers/local.ts";
@@ -15,11 +16,17 @@ export async function teamworkTaskBranch(args: {
   startDir?: string;
 }): Promise<void> {
   const ref = getTeamworkTaskReference(args.task);
+  logInfo("cli.task", "task.branch.start", "Starting task branch", {
+    taskId: ref.id,
+    task: args.task,
+  });
+
   const taskData = await getTeamworkTaskById(ref.id);
 
   const repoUrl = await detectRepo(args.startDir ?? process.cwd());
   const repo = repoUrl ? parseGitHubRemoteUrl(repoUrl) : null;
   if (!repoUrl || !repo) {
+    logError("cli.task", "task.branch.error", "Not in a git repo with a GitHub remote");
     throw new Error("Not in a git repo with a GitHub remote.");
   }
 
@@ -36,6 +43,7 @@ export async function teamworkTaskBranch(args: {
     });
   } catch (error) {
     if (error instanceof Error && error.message.includes("already exists")) {
+      logInfo("cli.task", "task.branch.exists", "Branch already exists", { branch: branchName });
       console.log(
         args.json
           ? JSON.stringify({ taskId: taskData.id, branch: branchName, exists: true })
@@ -43,12 +51,20 @@ export async function teamworkTaskBranch(args: {
       );
       return;
     }
+    logError("cli.task", "task.branch.error", "Branch creation failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   }
 
   if (args.startTimer) {
     await startLocalTimer(taskData.id, taskData.name);
   }
+
+  logInfo("cli.task", "task.branch.success", "Branch created", {
+    taskId: taskData.id,
+    branch: branchName,
+  });
 
   console.log(
     args.json
@@ -64,11 +80,17 @@ export async function teamworkTaskPr(args: {
   startDir?: string;
 }): Promise<void> {
   const ref = getTeamworkTaskReference(args.task);
+  logInfo("cli.task", "task.pr.start", "Starting task PR", {
+    taskId: ref.id,
+    task: args.task,
+  });
+
   const taskData = await getTeamworkTaskById(ref.id);
 
   const repoUrl = await detectRepo(args.startDir ?? process.cwd());
   const repo = repoUrl ? parseGitHubRemoteUrl(repoUrl) : null;
   if (!repoUrl || !repo) {
+    logError("cli.task", "task.pr.error", "Not in a git repo with a GitHub remote");
     throw new Error("Not in a git repo with a GitHub remote.");
   }
 
@@ -97,27 +119,40 @@ export async function teamworkTaskPr(args: {
     }
   }
 
-  const result = await writeTaskPr({
-    owner: repo.owner,
-    repo: repo.repo,
-    branchName,
-    title,
-    task: taskData,
-    baseBranch: baseBranch || undefined,
-    reviewTask,
-    repoKey: `${repo.owner}/${repo.repo}`,
-    taskId: taskData.id,
-    projectDir: args.startDir,
-  });
+  try {
+    const result = await writeTaskPr({
+      owner: repo.owner,
+      repo: repo.repo,
+      branchName,
+      title,
+      task: taskData,
+      baseBranch: baseBranch || undefined,
+      reviewTask,
+      repoKey: `${repo.owner}/${repo.repo}`,
+      taskId: taskData.id,
+      projectDir: args.startDir,
+    });
 
-  console.log(
-    args.json
-      ? JSON.stringify({
-          taskId: taskData.id,
-          taskName: taskData.name,
-          prUrl: result.url,
-          prNumber: result.number,
-        })
-      : `Draft PR #${result.number} created: ${result.url}`,
-  );
+    logInfo("cli.task", "task.pr.success", "Draft PR created", {
+      taskId: taskData.id,
+      prNumber: result.number,
+      prUrl: result.url,
+    });
+
+    console.log(
+      args.json
+        ? JSON.stringify({
+            taskId: taskData.id,
+            taskName: taskData.name,
+            prUrl: result.url,
+            prNumber: result.number,
+          })
+        : `Draft PR #${result.number} created: ${result.url}`,
+    );
+  } catch (error) {
+    logError("cli.task", "task.pr.error", "PR creation failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }

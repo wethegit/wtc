@@ -13,6 +13,7 @@ import {
   type GitHubRepoRulesPreset,
   type GitHubTemplateRepo,
 } from "../../api/github/repos.ts";
+import { logInfo, logWarn, logError } from "../../api/logs/manager.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
 import { ActionButton } from "../components/forms/action-button.tsx";
 import { Card } from "../components/layout/card.tsx";
@@ -64,16 +65,22 @@ export function GitHubPage() {
 
   const startCreateRepo = async () => {
     if (githubAuthStatus() === "missing") {
+      logWarn("tui.github", "github.repo.auth.missing", "GitHub auth not configured");
       setMessage("GitHub auth not configured. Use Settings to add your API token.");
       return;
     }
 
+    logInfo("tui.github", "github.repo.flow.start", "Repo creation flow started");
     dialog.replace(() => <LoadingDialog message={`Loading ${GITHUB_REPO_OWNER} templates...`} />);
 
     try {
       const templates = await getGitHubTemplateRepos(GITHUB_REPO_OWNER);
+      logInfo("tui.github", "github.repo.templates.loaded", `Loaded ${templates.length} templates`);
       showTemplateStep(templates);
     } catch (error) {
+      logError("tui.github", "github.repo.templates.error", "Template load failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
       dialog.replace(() => (
         <ConfirmDialog
           title="Template Load Failed"
@@ -255,6 +262,13 @@ export function GitHubPage() {
     setIsCreating(true);
     dialog.replace(() => <LoadingDialog message={`Creating ${draft.name}...`} />);
 
+    logInfo("tui.github", "github.repo.create.start", "Creating repo", {
+      name: draft.name,
+      template: draft.template?.name ?? null,
+      private: draft.private,
+      rulesPreset: draft.rulesPreset,
+    });
+
     try {
       const input = {
         owner: GITHUB_REPO_OWNER,
@@ -269,12 +283,22 @@ export function GitHubPage() {
             templateRepo: draft.template.name,
           })
         : await createGitHubRepo(input);
+      logInfo("tui.github", "github.repo.create.success", "Repo created", {
+        fullName: repo.fullName,
+      });
       dialog.replace(() => <LoadingDialog message={`Configuring ${repo.fullName}...`} />);
       const setupResult = await applyGitHubRepoSetup({
         owner: GITHUB_REPO_OWNER,
         repo: repo.name,
         rulesPreset: draft.rulesPreset,
       });
+      if (setupResult.warnings.length) {
+        logWarn("tui.github", "github.repo.setup.warnings", "Setup warnings", {
+          warnings: setupResult.warnings,
+        });
+      } else {
+        logInfo("tui.github", "github.repo.setup.success", "Setup completed");
+      }
       setMessage(
         setupResult.warnings.length
           ? `Created GitHub repo with setup warnings: ${repo.fullName}`
@@ -282,6 +306,9 @@ export function GitHubPage() {
       );
       showSuccessDialog(repo, setupResult.warnings);
     } catch (error) {
+      logError("tui.github", "github.repo.create.error", "Repo creation failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
       dialog.replace(() => (
         <ConfirmDialog
           title="Repo Creation Failed"
