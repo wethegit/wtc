@@ -2,7 +2,7 @@ import { loadResolvedConfig } from "../../api/config/manager.ts";
 import {
   createGitHubRepo,
   createGitHubRepoFromTemplate,
-  getGitHubTemplateRepos,
+  getGitHubTemplateRepo,
   type CreatedGitHubRepo,
 } from "../../api/github/repos.ts";
 
@@ -21,7 +21,11 @@ export async function repoCreate(args: {
 
   const config = await loadResolvedConfig(args.startDir ?? process.cwd());
   const owner = config.user.github.repoOwner.trim();
-  if (!owner) throw new Error("Set github.repoOwner in Settings before creating repos.");
+  if (!owner) {
+    throw new Error(
+      `Set github.repoOwner in ${config.paths.userConfigPath} before creating repos.`,
+    );
+  }
 
   const templateName = args.template?.trim();
   const description = args.description?.trim() || undefined;
@@ -29,8 +33,7 @@ export async function repoCreate(args: {
   let repo: CreatedGitHubRepo;
 
   if (templateName) {
-    const templates = await getGitHubTemplateRepos(owner);
-    const template = templates.find((candidate) => candidate.name === templateName);
+    const template = await getGitHubTemplateRepo(owner, templateName);
     if (!template) throw new Error(`Template repository not found under ${owner}: ${templateName}`);
 
     repo = await createGitHubRepoFromTemplate({

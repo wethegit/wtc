@@ -52,6 +52,35 @@ export async function getGitHubTemplateRepos(owner: string): Promise<GitHubTempl
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+export async function getGitHubTemplateRepo(
+  owner: string,
+  repoName: string,
+): Promise<GitHubTemplateRepo | null> {
+  const octokit = await getOctokit();
+  try {
+    const { data } = await octokit.rest.repos.get({
+      owner,
+      repo: repoName,
+    });
+
+    if (data.is_template !== true) return null;
+
+    return {
+      owner: data.owner.login,
+      name: data.name,
+      fullName: data.full_name,
+      description: data.description,
+      htmlUrl: data.html_url,
+      private: data.private,
+    };
+  } catch (error: unknown) {
+    if (typeof error === "object" && error !== null && "status" in error && error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export async function createGitHubRepoFromTemplate(
   input: CreateGitHubRepoFromTemplateInput,
 ): Promise<CreatedGitHubRepo> {
