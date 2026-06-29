@@ -26,6 +26,7 @@ GitHub repo creation is split into focused subphase documents so `plans/PLAN.md`
 - Repo creation uses the code-owned company GitHub org constant `wethegit`.
 - Phase 6.1 creates repos only under `wethegit` and lists templates only from that same owner.
 - Template lists include only repositories with `is_template === true`.
+- Template discovery is cached for 24 hours because org templates rarely change; clearing the WTC cache forces a refresh.
 - Repo creation from templates uses `include_all_branches: false`.
 - Do not add CLI commands until Phase 6.2.
 - Do not add cloning until Phase 6.5.

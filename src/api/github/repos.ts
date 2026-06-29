@@ -1,7 +1,47 @@
+import { z } from "zod";
+
+import { getCacheDir } from "../cache/consts.ts";
 import { getOctokit } from "./client.ts";
 import { GITHUB_RULES_BYPASS_TEAM_SLUG } from "./consts.ts";
 import { GITHUB_REPO_RULESET_PRESETS, type GitHubRepoRulesPreset } from "./repo-rules.ts";
 export type { GitHubRepoRulesPreset } from "./repo-rules.ts";
+
+const TEMPLATE_REPOS_CACHE_FILE = "github-template-repos.json";
+const TEMPLATE_REPOS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+// Applied during blank repo creation and again after creation so template-based
+// repos converge on the same baseline settings.
+const BASE_REPO_SETTINGS = {
+  allow_squash_merge: true,
+  allow_merge_commit: true,
+  allow_rebase_merge: true,
+  delete_branch_on_merge: true,
+  has_projects: false,
+  has_wiki: false,
+  has_discussions: false,
+};
+
+const GitHubTemplateRepoSchema = z.object({
+  owner: z.string(),
+  name: z.string(),
+  fullName: z.string(),
+  description: z.string().nullable().optional(),
+  htmlUrl: z.string(),
+  private: z.boolean(),
+});
+
+const GitHubTemplateReposCacheFileSchema = z.object({
+  version: z.literal(1),
+  owners: z.record(
+    z.string(),
+    z.object({
+      cachedAt: z.number(),
+      repos: z.array(GitHubTemplateRepoSchema),
+    }),
+  ),
+});
+
+type GitHubTemplateReposCacheFile = z.infer<typeof GitHubTemplateReposCacheFileSchema>;
 
 /** Template repository shown in the TUI repo creation flow. */
 export interface GitHubTemplateRepo {
@@ -49,25 +89,53 @@ export interface CreatedGitHubRepo {
   sshUrl: string;
 }
 
+/** Gets template repositories for an owner, cached because org templates rarely change. */
 export async function getGitHubTemplateRepos(owner: string): Promise<GitHubTemplateRepo[]> {
-  const octokit = await getOctokit();
-  const repos = await octokit.paginate(octokit.rest.repos.listForOrg, {
-    org: owner,
-    type: "all",
-    per_page: 100,
-  });
+  let cache: GitHubTemplateReposCacheFile;
+  try {
+    cache = GitHubTemplateReposCacheFileSchema.parse(
+      JSON.parse(await Bun.file(`${getCacheDir()}/${TEMPLATE_REPOS_CACHE_FILE}`).text()),
+    );
+  } catch {
+    cache = { version: 1, owners: {} };
+  }
 
-  return repos
-    .filter((repo) => repo.is_template === true)
-    .map((repo) => ({
-      owner: repo.owner.login,
-      name: repo.name,
-      fullName: repo.full_name,
-      description: repo.description,
-      htmlUrl: repo.html_url,
-      private: repo.private,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const now = Date.now();
+  const cachedOwner = cache.owners[owner];
+  if (cachedOwner && now - cachedOwner.cachedAt < TEMPLATE_REPOS_CACHE_TTL_MS) {
+    return cachedOwner.repos;
+  }
+
+  const octokit = await getOctokit();
+  try {
+    const repos = await octokit.paginate(octokit.rest.repos.listForOrg, {
+      org: owner,
+      type: "all",
+      per_page: 100,
+    });
+
+    const templateRepos = repos
+      .filter((repo) => repo.is_template === true)
+      .map((repo) => ({
+        owner: repo.owner.login,
+        name: repo.name,
+        fullName: repo.full_name,
+        description: repo.description,
+        htmlUrl: repo.html_url,
+        private: repo.private,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    cache.owners[owner] = { cachedAt: now, repos: templateRepos };
+    await Bun.write(
+      `${getCacheDir()}/${TEMPLATE_REPOS_CACHE_FILE}`,
+      `${JSON.stringify(cache, null, 2)}\n`,
+    );
+    return templateRepos;
+  } catch (error) {
+    if (cachedOwner) return cachedOwner.repos;
+    throw error;
+  }
 }
 
 export async function getGitHubTemplateRepo(
@@ -132,13 +200,7 @@ export async function createGitHubRepo(input: CreateGitHubRepoInput): Promise<Cr
     private: input.private,
     auto_init: true,
     license_template: "mit",
-    allow_squash_merge: true,
-    allow_merge_commit: true,
-    allow_rebase_merge: true,
-    delete_branch_on_merge: true,
-    has_projects: false,
-    has_wiki: false,
-    has_discussions: false,
+    ...BASE_REPO_SETTINGS,
   });
 
   return {
@@ -182,13 +244,7 @@ async function updateGitHubRepoSettings(owner: string, repo: string): Promise<vo
   await octokit.rest.repos.update({
     owner,
     repo,
-    allow_squash_merge: true,
-    allow_merge_commit: true,
-    allow_rebase_merge: true,
-    delete_branch_on_merge: true,
-    has_projects: false,
-    has_wiki: false,
-    has_discussions: false,
+    ...BASE_REPO_SETTINGS,
   });
 }
 
