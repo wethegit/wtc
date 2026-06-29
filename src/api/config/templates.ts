@@ -11,6 +11,8 @@ import type { ProjectConfig, UserConfig } from "./schema.ts";
  * # WTC user-level configuration.
  * version: 1
  * workspaceName: "WTC"
+ * github:
+ *   repoOwner: "wethegit"
  * ```
  */
 export function formatUserConfig(config: UserConfig): string {
@@ -21,6 +23,10 @@ version: ${config.version}
 
 # Friendly workspace label shown in WTC.
 workspaceName: ${JSON.stringify(config.workspaceName)}
+
+github:
+  # Approved GitHub org used for repo templates and new repos.
+  repoOwner: ${JSON.stringify(config.github.repoOwner)}
 `;
 }
 
