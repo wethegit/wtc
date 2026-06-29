@@ -379,7 +379,14 @@ async function collectGitHubSetupWarnings(
     await run();
     return [];
   } catch (error) {
-    return [formatGitHubSetupWarning(owner, repo, label, error)];
+    const warning = formatGitHubSetupWarning(owner, repo, label, error);
+    logError("github", "repos.setup.warning", label, {
+      owner,
+      repo,
+      warning,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return [warning];
   }
 }
 
