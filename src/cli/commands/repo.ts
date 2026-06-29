@@ -1,4 +1,4 @@
-import { loadResolvedConfig } from "../../api/config/manager.ts";
+import { GITHUB_REPO_OWNER } from "../../api/github/consts.ts";
 import {
   createGitHubRepo,
   createGitHubRepoFromTemplate,
@@ -19,38 +19,30 @@ export async function repoCreate(args: {
   const name = args.name.trim();
   if (!name) throw new Error("GitHub repository name cannot be empty.");
 
-  const config = await loadResolvedConfig(args.startDir ?? process.cwd());
-  const owner = config.user.github.repoOwner.trim();
-  if (!owner) {
-    throw new Error(
-      `Set github.repoOwner in ${config.paths.userConfigPath} before creating repos.`,
-    );
-  }
-
   const templateName = args.template?.trim();
   const description = args.description?.trim() || undefined;
   const isPrivate = args.visibility === "private";
   let repo: CreatedGitHubRepo;
 
   if (templateName) {
-    const template = await getGitHubTemplateRepo(owner, templateName);
+    const template = await getGitHubTemplateRepo(GITHUB_REPO_OWNER, templateName);
     if (!template) {
       throw new Error(
-        `Template repository not found or not marked as a template under ${owner}: ${templateName}`,
+        `Template repository not found or not marked as a template under ${GITHUB_REPO_OWNER}: ${templateName}`,
       );
     }
 
     repo = await createGitHubRepoFromTemplate({
-      templateOwner: owner,
+      templateOwner: GITHUB_REPO_OWNER,
       templateRepo: template.name,
-      owner,
+      owner: GITHUB_REPO_OWNER,
       name,
       description,
       private: isPrivate,
     });
   } else {
     repo = await createGitHubRepo({
-      owner,
+      owner: GITHUB_REPO_OWNER,
       name,
       description,
       private: isPrivate,

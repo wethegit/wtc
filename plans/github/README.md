@@ -23,9 +23,8 @@ GitHub repo creation is split into focused subphase documents so `plans/PLAN.md`
 
 - GitHub token storage stays in OS secrets through `src/api/github/auth.ts`.
 - GitHub API access stays behind `src/api/github/client.ts` and Octokit.
-- Repo creation reads `github.repoOwner` from user config.
-- `github.repoOwner` starts blank; Settings should use `wethegit` as the placeholder/example.
-- Phase 6.1 creates repos only under `github.repoOwner` and lists templates only from that same owner.
+- Repo creation uses the code-owned company GitHub org constant `wethegit`.
+- Phase 6.1 creates repos only under `wethegit` and lists templates only from that same owner.
 - Template lists include only repositories with `is_template === true`.
 - Repo creation from templates uses `include_all_branches: false`.
 - Do not add CLI commands until Phase 6.2.
