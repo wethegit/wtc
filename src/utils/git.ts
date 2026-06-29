@@ -10,17 +10,8 @@ const SSH_PATTERN =
   /^(?:git@github\.com:|ssh:\/\/git@github\.com\/)([^/]+)\/([^/]+?)(?:\.git)?\/?$/;
 const HTTPS_PATTERN = /^https:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/;
 
-function extractSshMatch(url: string): GitHubRemote | null {
-  const match = url.match(SSH_PATTERN);
-  if (!match) return null;
-  const owner = match[1];
-  const repo = match[2];
-  if (!owner || !repo) return null;
-  return { owner, repo };
-}
-
-function extractHttpsMatch(url: string): GitHubRemote | null {
-  const match = url.match(HTTPS_PATTERN);
+function matchGitHubRemote(url: string, pattern: RegExp): GitHubRemote | null {
+  const match = url.match(pattern);
   if (!match) return null;
   const owner = match[1];
   const repo = match[2];
@@ -30,7 +21,7 @@ function extractHttpsMatch(url: string): GitHubRemote | null {
 
 export function parseGitHubRemoteUrl(url: string): GitHubRemote | null {
   const trimmed = url.trim();
-  return extractSshMatch(trimmed) ?? extractHttpsMatch(trimmed);
+  return matchGitHubRemote(trimmed, SSH_PATTERN) ?? matchGitHubRemote(trimmed, HTTPS_PATTERN);
 }
 
 export async function detectRepo(projectDir = process.cwd()): Promise<string | null> {

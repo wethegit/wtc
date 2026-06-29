@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 
-const pkg = (await Bun.file("./package.json").json()) as { version: string };
-const version = pkg.version;
+const pkg = await Bun.file("./package.json").json();
+const version = pkg && typeof pkg === "object" && "version" in pkg ? String(pkg.version) : "0.0.0";
 
 const platform = process.env.WTC_TARGET_PLATFORM ?? process.env.platform ?? process.platform;
 const arch = process.env.WTC_TARGET_ARCH ?? process.env.arch ?? process.arch;

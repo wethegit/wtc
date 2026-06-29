@@ -85,8 +85,8 @@ function DialogOverlay(props: ParentProps<{ onClose: () => void }>) {
  * until a dialog is actually open.
  */
 export function DialogProvider(props: ParentProps) {
-  const [store, setStore] = createStore({
-    stack: [] as DialogItem[],
+  const [store, setStore] = createStore<{ stack: DialogItem[] }>({
+    stack: [],
   });
 
   // Dialogs are stack based so future flows can open a confirmation dialog from

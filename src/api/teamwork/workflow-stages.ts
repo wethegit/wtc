@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { logError } from "../logs/manager.ts";
 import { getCacheDir } from "../cache/consts.ts";
 import { fetchTeamworkApiJson } from "./client.ts";
 
@@ -52,17 +53,36 @@ export async function getWorkflowStageNames(
   const cached = cache.workflows[key];
   if (cached && cache.version >= 2 && now - cached.cachedAt < WORKFLOW_STAGES_CACHE_TTL_MS) {
     if (cacheWasUpgraded) {
-      await Bun.write(
-        `${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`,
-        `${JSON.stringify(cache, null, 2)}\n`,
-      );
+      try {
+        await Bun.write(
+          `${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`,
+          `${JSON.stringify(cache, null, 2)}\n`,
+        );
+      } catch (error) {
+        logError("teamwork", "workflowStages.cacheWrite.error", "Failed to write upgraded cache", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
     return new Map(Object.entries(cached.stages).map(([id, entry]) => [Number(id), entry]));
   }
 
-  const parsed = WorkflowResponseSchema.parse(
-    await fetchTeamworkApiJson(`/workflows/${workflowId}.json?include=stages`),
-  );
+  let parsed: z.infer<typeof WorkflowResponseSchema>;
+  try {
+    parsed = WorkflowResponseSchema.parse(
+      await fetchTeamworkApiJson(`/workflows/${workflowId}.json?include=stages`),
+    );
+  } catch (error) {
+    logError(
+      "teamwork",
+      "workflowStages.fetch.error",
+      `Failed to fetch workflow stages for ${workflowId}`,
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
+    throw error;
+  }
 
   const stageData: Record<string, { name: string; color: string | null }> = {};
   const stages = new Map<number, { name: string; color: string | null }>();
@@ -76,10 +96,21 @@ export async function getWorkflowStageNames(
   }
 
   cache.workflows[key] = { stages: stageData, cachedAt: now };
-  await Bun.write(
-    `${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`,
-    `${JSON.stringify(cache, null, 2)}\n`,
-  );
+  try {
+    await Bun.write(
+      `${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`,
+      `${JSON.stringify(cache, null, 2)}\n`,
+    );
+  } catch (error) {
+    logError(
+      "teamwork",
+      "workflowStages.cacheWrite.error",
+      "Failed to persist workflow stages cache",
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
+  }
 
   return stages;
 }

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { logError } from "../logs/manager.ts";
 import { fetchTeamworkApiJson } from "./client.ts";
 
 const TeamworkTaskTimeEntryInputSchema = z.object({
@@ -21,25 +22,33 @@ export type TeamworkTaskTimeEntryInput = z.infer<typeof TeamworkTaskTimeEntryInp
 
 /** Creates a submitted Teamwork time entry for a task. */
 export async function createTaskTimeEntry(input: TeamworkTaskTimeEntryInput): Promise<number> {
-  const parsedInput = TeamworkTaskTimeEntryInputSchema.parse(input);
-  const parsed = TeamworkTaskTimeEntryResponseSchema.parse(
-    await fetchTeamworkApiJson(`/tasks/${parsedInput.taskId}/time.json`, {
-      method: "POST",
-      body: JSON.stringify({
-        timelog: {
-          taskId: parsedInput.taskId,
-          isUtc: true,
-          date: parsedInput.date,
-          hours: parsedInput.hours,
-          minutes: parsedInput.minutes,
-          description: parsedInput.description,
-        },
-        timelogOptions: {},
-        tags: [],
+  try {
+    const parsedInput = TeamworkTaskTimeEntryInputSchema.parse(input);
+    const parsed = TeamworkTaskTimeEntryResponseSchema.parse(
+      await fetchTeamworkApiJson(`/tasks/${parsedInput.taskId}/time.json`, {
+        method: "POST",
+        body: JSON.stringify({
+          timelog: {
+            taskId: parsedInput.taskId,
+            isUtc: true,
+            date: parsedInput.date,
+            hours: parsedInput.hours,
+            minutes: parsedInput.minutes,
+            description: parsedInput.description,
+          },
+          timelogOptions: {},
+          tags: [],
+        }),
+        headers: { "Content-Type": "application/json" },
       }),
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
+    );
 
-  return parsed.timelog.id;
+    return parsed.timelog.id;
+  } catch (error) {
+    logError("teamwork", "timers.create.error", "Failed to create time entry", {
+      taskId: input.taskId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }

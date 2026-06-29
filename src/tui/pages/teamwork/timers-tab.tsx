@@ -2,6 +2,7 @@ import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
 import {
+  formatTimerDuration,
   getLocalTimerElapsedMs,
   loadLocalTimers,
   removeLocalTimer,
@@ -213,7 +214,7 @@ export function TimersTab() {
   const timerMetadata = (timer: LocalTimerEntry): string[] => {
     const parts: string[] = [];
     const elapsedMs = getLocalTimerElapsedMs(timer, now());
-    parts.push(formatInlineDuration(elapsedMs));
+    parts.push(formatTimerDuration(elapsedMs));
     return parts;
   };
 
@@ -241,17 +242,4 @@ export function TimersTab() {
       </Card>
     </box>
   );
-}
-
-function formatInlineDuration(ms: number): string {
-  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}h ${minutes.toString().padStart(2, "0")}m ${seconds.toString().padStart(2, "0")}s`;
-  }
-
-  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
 }

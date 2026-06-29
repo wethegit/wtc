@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { APP_VERSION } from "../api/config/consts.ts";
 import { getCacheDir } from "../api/cache/consts.ts";
 
@@ -41,13 +43,17 @@ function compareVersions(left: string, right: string): number {
   return 0;
 }
 
+const UpdateCacheSchema = z.object({
+  latestVersion: z.string(),
+  checkedAt: z.number(),
+});
+
+const GitHubReleaseResponseSchema = z.object({
+  tag_name: z.string(),
+});
+
 /** Cached latest release lookup. */
-interface UpdateCache {
-  /** Latest version tag returned by GitHub. */
-  latestVersion: string;
-  /** Unix timestamp in milliseconds for when the lookup was cached. */
-  checkedAt: number;
-}
+type UpdateCache = z.infer<typeof UpdateCacheSchema>;
 
 /** Result returned by the update checker. */
 interface UpdateInfo {
@@ -63,8 +69,7 @@ interface UpdateInfo {
 async function readCache(): Promise<UpdateCache | null> {
   try {
     const { cachePath } = getCachePaths();
-    const raw = await Bun.file(cachePath).text();
-    return JSON.parse(raw) as UpdateCache;
+    return UpdateCacheSchema.parse(JSON.parse(await Bun.file(cachePath).text()));
   } catch {
     return null;
   }
@@ -88,7 +93,7 @@ async function fetchLatestVersion(): Promise<string> {
     throw new Error(`GitHub API responded with ${response.status}`);
   }
 
-  const data = (await response.json()) as { tag_name: string };
+  const data = GitHubReleaseResponseSchema.parse(await response.json());
   return data.tag_name;
 }
 

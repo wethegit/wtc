@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { logError } from "../logs/manager.ts";
 import { fetchTeamworkApiJson } from "./client.ts";
 import { TEAMWORK_BASE_URL } from "./consts.ts";
 
@@ -127,9 +128,18 @@ async function getTeamworkMyTasks(userId: number): Promise<MyWorkTask[]> {
     include: "tasklists,projects",
   });
 
-  const parsed = TeamworkMyTasksApiResponseSchema.parse(
-    await fetchTeamworkApiJson(`/tasks.json?${query}`),
-  );
+  let parsed: z.infer<typeof TeamworkMyTasksApiResponseSchema>;
+  try {
+    parsed = TeamworkMyTasksApiResponseSchema.parse(
+      await fetchTeamworkApiJson(`/tasks.json?${query}`),
+    );
+  } catch (error) {
+    logError("teamwork", "myTasks.get.error", "Failed to fetch my tasks", {
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 
   // Build tasklistId -> projectId mapping from included tasklists
   const tasklistToProject = new Map<number, number>();

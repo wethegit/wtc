@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getCacheDir } from "../cache/consts.ts";
+import { logError } from "../logs/manager.ts";
 import { getOctokit } from "./client.ts";
 import { GITHUB_RULES_BYPASS_TEAM_SLUG } from "./consts.ts";
 import { GITHUB_REPO_RULESET_PRESETS, type GitHubRepoRulesPreset } from "./repo-rules.ts";
@@ -80,6 +81,22 @@ export interface GitHubRepoSetupResult {
   warnings: string[];
 }
 
+/**
+ * Combined input for creating a repo (template or blank) and applying post-create
+ * setup in a single call. Both TUI and CLI use this to avoid duplicating the
+ * create+setup workflow.
+ */
+export interface CreateGitHubRepoWithSetupInput extends CreateGitHubRepoInput {
+  templateOwner?: string;
+  templateRepo?: string;
+  rulesPreset: GitHubRepoRulesPreset;
+}
+
+export interface CreateGitHubRepoWithSetupResult {
+  repo: CreatedGitHubRepo;
+  warnings: string[];
+}
+
 /** GitHub repository created by WTC. */
 export interface CreatedGitHubRepo {
   name: string;
@@ -106,8 +123,8 @@ export async function getGitHubTemplateRepos(owner: string): Promise<GitHubTempl
     return cachedOwner.repos;
   }
 
-  const octokit = await getOctokit();
   try {
+    const octokit = await getOctokit();
     const repos = await octokit.paginate(octokit.rest.repos.listForOrg, {
       org: owner,
       type: "all",
@@ -146,8 +163,8 @@ export async function getGitHubTemplateRepo(
   owner: string,
   repoName: string,
 ): Promise<GitHubTemplateRepo | null> {
-  const octokit = await getOctokit();
   try {
+    const octokit = await getOctokit();
     const { data } = await octokit.rest.repos.get({
       owner,
       repo: repoName,
@@ -174,46 +191,107 @@ export async function getGitHubTemplateRepo(
 export async function createGitHubRepoFromTemplate(
   input: CreateGitHubRepoFromTemplateInput,
 ): Promise<CreatedGitHubRepo> {
-  const octokit = await getOctokit();
-  const { data } = await octokit.rest.repos.createUsingTemplate({
-    template_owner: input.templateOwner,
-    template_repo: input.templateRepo,
-    owner: input.owner,
-    name: input.name,
-    description: input.description || undefined,
-    private: input.private,
-    include_all_branches: false,
-  });
+  try {
+    const octokit = await getOctokit();
+    const { data } = await octokit.rest.repos.createUsingTemplate({
+      template_owner: input.templateOwner,
+      template_repo: input.templateRepo,
+      owner: input.owner,
+      name: input.name,
+      description: input.description || undefined,
+      private: input.private,
+      include_all_branches: false,
+    });
 
-  return {
-    name: data.name,
-    fullName: data.full_name,
-    htmlUrl: data.html_url,
-    cloneUrl: data.clone_url,
-    sshUrl: data.ssh_url,
-  };
+    return {
+      name: data.name,
+      fullName: data.full_name,
+      htmlUrl: data.html_url,
+      cloneUrl: data.clone_url,
+      sshUrl: data.ssh_url,
+    };
+  } catch (error) {
+    logError("github", "repos.createFromTemplate.error", "Template repo creation failed", {
+      owner: input.owner,
+      name: input.name,
+      template: `${input.templateOwner}/${input.templateRepo}`,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }
 
 /** Creates a blank org repo initialized with an MIT license. */
 export async function createGitHubRepo(input: CreateGitHubRepoInput): Promise<CreatedGitHubRepo> {
-  const octokit = await getOctokit();
-  const { data } = await octokit.rest.repos.createInOrg({
-    org: input.owner,
-    name: input.name,
-    description: input.description || undefined,
-    private: input.private,
-    auto_init: true,
-    license_template: "mit",
-    ...BASE_REPO_SETTINGS,
-  });
+  try {
+    const octokit = await getOctokit();
+    const { data } = await octokit.rest.repos.createInOrg({
+      org: input.owner,
+      name: input.name,
+      description: input.description || undefined,
+      private: input.private,
+      auto_init: true,
+      license_template: "mit",
+      ...BASE_REPO_SETTINGS,
+    });
 
-  return {
-    name: data.name,
-    fullName: data.full_name,
-    htmlUrl: data.html_url,
-    cloneUrl: data.clone_url,
-    sshUrl: data.ssh_url,
-  };
+    return {
+      name: data.name,
+      fullName: data.full_name,
+      htmlUrl: data.html_url,
+      cloneUrl: data.clone_url,
+      sshUrl: data.ssh_url,
+    };
+  } catch (error) {
+    logError("github", "repos.createRepo.error", "Repo creation failed", {
+      owner: input.owner,
+      name: input.name,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
+}
+
+/**
+ * Creates a repo (template or blank) and applies post-create setup in one step.
+ *
+ * Unexpected setup errors are caught and returned as warnings so callers always
+ * receive the created repo even when non-critical configuration fails.
+ */
+export async function createGitHubRepoWithSetup(
+  input: CreateGitHubRepoWithSetupInput,
+): Promise<CreateGitHubRepoWithSetupResult> {
+  const repo = await (input.templateOwner && input.templateRepo
+    ? createGitHubRepoFromTemplate({
+        templateOwner: input.templateOwner,
+        templateRepo: input.templateRepo,
+        owner: input.owner,
+        name: input.name,
+        description: input.description,
+        private: input.private,
+      })
+    : createGitHubRepo({
+        owner: input.owner,
+        name: input.name,
+        description: input.description,
+        private: input.private,
+      }));
+
+  let warnings: string[];
+  try {
+    const setupResult = await applyGitHubRepoSetup({
+      owner: input.owner,
+      repo: repo.name,
+      rulesPreset: input.rulesPreset,
+    });
+    warnings = setupResult.warnings;
+  } catch (error) {
+    warnings = [
+      `Repository setup failed: ${error instanceof Error ? error.message : String(error)}`,
+    ];
+  }
+
+  return { repo, warnings };
 }
 
 /**
@@ -262,7 +340,6 @@ async function applyGitHubRepoRulesetSetup(
   repo: string,
   preset: Exclude<GitHubRepoRulesPreset, "none">,
 ): Promise<string[]> {
-  const octokit = await getOctokit();
   let bypassTeamId: number | null = null;
 
   const teamWarnings = await collectGitHubSetupWarnings(
@@ -270,6 +347,7 @@ async function applyGitHubRepoRulesetSetup(
     repo,
     "Repository rules bypass team lookup",
     async () => {
+      const octokit = await getOctokit();
       const { data: team } = await octokit.rest.teams.getByName({
         org: owner,
         team_slug: GITHUB_RULES_BYPASS_TEAM_SLUG,
@@ -284,6 +362,7 @@ async function applyGitHubRepoRulesetSetup(
   }
 
   return collectGitHubSetupWarnings(owner, repo, "Repository ruleset creation", async () => {
+    const octokit = await getOctokit();
     await octokit.rest.repos.createRepoRuleset(
       GITHUB_REPO_RULESET_PRESETS[preset]({ owner, repo, bypassTeamId: resolvedBypassTeamId }),
     );

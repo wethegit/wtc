@@ -5,9 +5,7 @@ import { useBindings } from "@opentui/keymap/solid";
 import { getGitHubAuthStatus, type GitHubAuthStatus } from "../../api/github/auth.ts";
 import { GITHUB_REPO_OWNER } from "../../api/github/consts.ts";
 import {
-  applyGitHubRepoSetup,
-  createGitHubRepo,
-  createGitHubRepoFromTemplate,
+  createGitHubRepoWithSetup,
   getGitHubTemplateRepos,
   type CreatedGitHubRepo,
   type GitHubRepoRulesPreset,
@@ -270,41 +268,32 @@ export function GitHubPage() {
     });
 
     try {
-      const input = {
+      const { repo, warnings } = await createGitHubRepoWithSetup({
         owner: GITHUB_REPO_OWNER,
         name: draft.name,
         description: draft.description.trim() || undefined,
         private: draft.private,
-      };
-      const repo = draft.template
-        ? await createGitHubRepoFromTemplate({
-            ...input,
-            templateOwner: GITHUB_REPO_OWNER,
-            templateRepo: draft.template.name,
-          })
-        : await createGitHubRepo(input);
+        templateOwner: draft.template ? GITHUB_REPO_OWNER : undefined,
+        templateRepo: draft.template?.name,
+        rulesPreset: draft.rulesPreset,
+      });
+
       logInfo("tui.github", "github.repo.create.success", "Repo created", {
         fullName: repo.fullName,
       });
-      dialog.replace(() => <LoadingDialog message={`Configuring ${repo.fullName}...`} />);
-      const setupResult = await applyGitHubRepoSetup({
-        owner: GITHUB_REPO_OWNER,
-        repo: repo.name,
-        rulesPreset: draft.rulesPreset,
-      });
-      if (setupResult.warnings.length) {
-        logWarn("tui.github", "github.repo.setup.warnings", "Setup warnings", {
-          warnings: setupResult.warnings,
-        });
+
+      if (warnings.length) {
+        logWarn("tui.github", "github.repo.setup.warnings", "Setup warnings", { warnings });
       } else {
         logInfo("tui.github", "github.repo.setup.success", "Setup completed");
       }
+
       setMessage(
-        setupResult.warnings.length
+        warnings.length
           ? `Created GitHub repo with setup warnings: ${repo.fullName}`
           : `Created GitHub repo: ${repo.fullName}`,
       );
-      showSuccessDialog(repo, setupResult.warnings);
+      showSuccessDialog(repo, warnings);
     } catch (error) {
       logError("tui.github", "github.repo.create.error", "Repo creation failed", {
         error: error instanceof Error ? error.message : String(error),

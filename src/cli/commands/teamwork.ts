@@ -1,10 +1,7 @@
 import { loadResolvedConfig, saveProjectConfig } from "../../api/config/manager.ts";
 import { PROJECT_CONFIG_VERSION, type ProjectConfig } from "../../api/config/schema.ts";
 import { getPinnedTaskListTasks } from "../../api/teamwork/task-list-tasks.ts";
-import type {
-  TeamworkTask,
-  PinnedTaskListFetchResult,
-} from "../../api/teamwork/task-list-tasks.ts";
+import type { PinnedTaskListFetchResult } from "../../api/teamwork/task-list-tasks.ts";
 import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
 import { getTeamworkCurrentUserId } from "../../api/teamwork/user.ts";
@@ -13,23 +10,6 @@ import { getTeamworkMyTasksGrouped, type MyWorkTask } from "../../api/teamwork/m
 interface PinnedTaskListsResult {
   projectConfigPath: string | null;
   taskLists: PinnedTaskListFetchResult[];
-}
-
-/**
- * Formats a task's metadata fields into human-readable text lines for CLI output.
- *
- * Example output: `["assignee: Marlon Bain", "due: 2026-06-24", "board: To Do", "priority: high"]`
- */
-function formatTeamworkTaskMetadata(task: TeamworkTask): string[] {
-  const metadata: string[] = [];
-
-  if (task.assignees.length === 1) metadata.push(`assignee: ${task.assignees[0]}`);
-  if (task.assignees.length > 1) metadata.push(`assignees: ${task.assignees.join(", ")}`);
-  if (task.dueDate) metadata.push(`due: ${task.dueDate}`);
-  if (task.boardColumn) metadata.push(`board: ${task.boardColumn.name}`);
-  if (task.priority) metadata.push(`priority: ${task.priority}`);
-
-  return metadata;
 }
 
 /**
@@ -73,7 +53,12 @@ function formatTeamworkTaskListPinnedOutput(
 
     for (const task of taskList.tasks) {
       lines.push(`  - ${task.name}${task.status ? ` [${task.status}]` : ""}`);
-      const metadata = formatTeamworkTaskMetadata(task);
+      const metadata: string[] = [];
+      if (task.assignees.length === 1) metadata.push(`assignee: ${task.assignees[0]}`);
+      if (task.assignees.length > 1) metadata.push(`assignees: ${task.assignees.join(", ")}`);
+      if (task.dueDate) metadata.push(`due: ${task.dueDate}`);
+      if (task.boardColumn) metadata.push(`board: ${task.boardColumn.name}`);
+      if (task.priority) metadata.push(`priority: ${task.priority}`);
       if (metadata.length) lines.push(`    ${metadata.join(" | ")}`);
     }
   }
@@ -164,22 +149,6 @@ export async function teamworkTaskOpen(args: { task: string }): Promise<void> {
 }
 
 /**
- * Formats a MyWorkTask's metadata fields into human-readable text lines for CLI output.
- *
- * Example output: `["assignee: Marlon Marcello", "due: 2026-06-24", "priority: high"]`
- */
-function formatMyWorkTaskMetadata(task: MyWorkTask): string[] {
-  const metadata: string[] = [];
-
-  if (task.assignees.length === 1) metadata.push(`assignee: ${task.assignees[0]}`);
-  if (task.assignees.length > 1) metadata.push(`assignees: ${task.assignees.join(", ")}`);
-  if (task.dueDate) metadata.push(`due: ${task.dueDate}`);
-  if (task.priority) metadata.push(`priority: ${task.priority}`);
-
-  return metadata;
-}
-
-/**
  * Formats my tasks output for CLI display.
  *
  * Example output:
@@ -209,7 +178,11 @@ function formatTeamworkTaskMineOutput(
 
     for (const task of group.tasks) {
       lines.push(`  - ${task.name}${task.status ? ` [${task.status}]` : ""}`);
-      const metadata = formatMyWorkTaskMetadata(task);
+      const metadata: string[] = [];
+      if (task.assignees.length === 1) metadata.push(`assignee: ${task.assignees[0]}`);
+      if (task.assignees.length > 1) metadata.push(`assignees: ${task.assignees.join(", ")}`);
+      if (task.dueDate) metadata.push(`due: ${task.dueDate}`);
+      if (task.priority) metadata.push(`priority: ${task.priority}`);
       if (metadata.length) lines.push(`    ${metadata.join(" | ")}`);
     }
   }
