@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.15
+
+### Patch Changes
+
+- [#59](https://github.com/wethegit/wtc/pull/59) [`b0921e3`](https://github.com/wethegit/wtc/commit/b0921e3846e139599aa5eabcf4f5bcaea3c8708e) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Adds branch rule protection and refactors owner setting to const.
+
 ## 0.3.14
 
 ### Patch Changes
