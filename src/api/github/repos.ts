@@ -127,10 +127,14 @@ export async function getGitHubTemplateRepos(owner: string): Promise<GitHubTempl
       .sort((a, b) => a.name.localeCompare(b.name));
 
     cache.owners[owner] = { cachedAt: now, repos: templateRepos };
-    await Bun.write(
-      `${getCacheDir()}/${TEMPLATE_REPOS_CACHE_FILE}`,
-      `${JSON.stringify(cache, null, 2)}\n`,
-    );
+    try {
+      await Bun.write(
+        `${getCacheDir()}/${TEMPLATE_REPOS_CACHE_FILE}`,
+        `${JSON.stringify(cache, null, 2)}\n`,
+      );
+    } catch {
+      // Best-effort cache write; serve fresh results even when caching fails.
+    }
     return templateRepos;
   } catch (error) {
     if (cachedOwner) return cachedOwner.repos;
