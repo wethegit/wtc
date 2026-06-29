@@ -40,11 +40,18 @@ async function getProjectConfigPath(startDir: string): Promise<string | null> {
   }
 }
 
-/** Ensures the user config file exists with Phase 3 defaults. */
+/** Ensures the user config file exists with current defaults. */
 async function initUserConfig(): Promise<void> {
   const path = getUserConfigPath();
   if (!(await Bun.file(path).exists())) {
-    await Bun.write(path, formatUserConfig({ version: USER_CONFIG_VERSION, workspaceName: "" }));
+    await Bun.write(
+      path,
+      formatUserConfig({
+        version: USER_CONFIG_VERSION,
+        workspaceName: "",
+        github: { repoOwner: "" },
+      }),
+    );
   }
 }
 

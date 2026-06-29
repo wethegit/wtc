@@ -15,6 +15,7 @@ export interface SettingsFormState {
   /** User-level settings and user-owned secrets. */
   user: {
     workspaceName: string;
+    githubRepoOwner: string;
     teamworkApiToken: string;
     githubApiToken: string;
   };
@@ -33,7 +34,12 @@ export type SettingsFormErrors = Record<string, string>;
 export type SettingsFocusTarget =
   | {
       type: "field";
-      name: "workspaceName" | "teamworkApiToken" | "githubApiToken" | "teamworkProjectId";
+      name:
+        | "workspaceName"
+        | "githubRepoOwner"
+        | "teamworkApiToken"
+        | "githubApiToken"
+        | "teamworkProjectId";
     }
   | { type: "projectLink"; index: number; field: "name" | "url" }
   | { type: "pinnedTaskList"; index: number; field: "name" | "id" }

@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** Phase 5 Teamwork (5.1 ✅, 5.2 ✅, 5.3 ✅, 5.4 ✅; 5.5 in progress)
+- **Status:** Phase 6 GitHub Repo Creation (6.1 planned)
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js
@@ -141,7 +141,7 @@ Assigned Teamwork tasks for the current user with selection and basic task actio
 
 Timer overview, task timer indicators, start/pause/delete actions, timesheet access, and timer conflict confirmations.
 
-#### Phase 5.5 — [Branch and PR Workflow](teamwork/5.5-branch-and-pr-workflow.md) 🔨
+#### Phase 5.5 — [Branch and PR Workflow](teamwork/5.5-branch-and-pr-workflow.md) ✅
 
 Create branches and draft PRs from Teamwork tasks with timer prompts and useful PR body links. Split into sub-phases:
 
@@ -153,18 +153,27 @@ Create branches and draft PRs from Teamwork tasks with timer prompts and useful 
 
 ### Phase 6 — GitHub Repo Creation
 
-#### Phase 6.1 - GitHub Repo Creation
+GitHub repo creation work is split into detailed subphase plans under [`plans/github/`](github/README.md).
 
-- Integration of the Github SDK/API
-- `wtc repo create` command + TUI form
-- Fetch org templates via GitHub API
-- Create repo from template (source files only; settings like branch protection are NOT copied)
+#### Phase 6.1 — [TUI Repo Creation From Template](github/6.1-tui-repo-creation-from-template.md)
 
-#### Phase 6.2 - Advanced Repo Setup
+Create a GitHub repo from an approved organization template through the TUI. Adds `github.repoOwner` to user config and the Settings page. No CLI, branch protection, Teamwork linking, or local clone yet.
 
-- Set up branch protection via GitHub API after creation
-- Optionally clone locally
-- Link repo to Teamwork project (writes `.wtc.yaml`)
+#### Phase 6.2 — [CLI Repo Creation](github/6.2-cli-repo-creation.md)
+
+Add the CLI equivalent of Phase 6.1.
+
+#### Phase 6.3 — [Repo Rules](github/6.3-repo-rules.md)
+
+Add branch protection, PR rules, and repository settings to the creation flow.
+
+#### Phase 6.4 — [Teamwork Project Linking](github/6.4-teamwork-project-linking.md)
+
+Link created GitHub repos into WTC project config and update CLI parity if Phase 6.3 introduces CLI-relevant options.
+
+#### Phase 6.5 — [Local Clone And Final Features](github/6.5-local-clone-and-final-features.md)
+
+Add optional local clone and final repo creation workflow conveniences.
 
 ### Phase 7 — AWS Amplify Hosting
 

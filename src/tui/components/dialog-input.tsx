@@ -12,6 +12,7 @@ export interface DialogInputProps {
   initialValue: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  allowEmpty?: boolean;
   /** Called when the user cancels instead of calling dialog.clear(). */
   onCancel?: () => void;
   onConfirm: (value: string) => void;
@@ -47,7 +48,7 @@ export function DialogInput(props: DialogInputProps) {
         group: "Dialog",
         cmd: () => {
           const trimmed = value().trim();
-          if (!trimmed) return;
+          if (!trimmed && !props.allowEmpty) return;
           props.onConfirm(trimmed);
         },
       },
