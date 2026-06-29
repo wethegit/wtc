@@ -2,4 +2,4 @@
 "wtc": patch
 ---
 
-Adds github repo creation
+Adds GitHub repo creation

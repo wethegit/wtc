@@ -15,7 +15,12 @@ export interface CreateGitHubRepoFromTemplateInput extends CreateGitHubRepoInput
   templateRepo: string;
 }
 
-export interface CreateGitHubRepoInput extends Omit<GitHubTemplateRepo, "htmlUrl" | "fullName"> {}
+export interface CreateGitHubRepoInput {
+  owner: string;
+  name: string;
+  description?: string;
+  private: boolean;
+}
 
 /** GitHub repository created by WTC from a template. */
 export interface CreatedGitHubRepo {

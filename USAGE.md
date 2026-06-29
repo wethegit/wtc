@@ -38,7 +38,7 @@ Alternatively you can also use the TUI by:
 
 ### GitHub Personal Access Token
 
-Required for branch creation and draft PR workflows.
+Required for repo creation, branch creation, and draft PR workflows.
 
 GitHub recommends fine-grained PATs over classic tokens. You need a token with write-level permissions for Contents (create branches, push) and Pull requests.
 
@@ -55,7 +55,7 @@ GitHub recommends fine-grained PATs over classic tokens. You need a token with w
 4. Under **Permissions** select:
    - **Contents** (Read and Write) — needed to create branches and push
    - **Pull requests** (Read and Write) — needed to create draft PRs
-   - For administrators only - **Administration** (write) - needed to create new repos
+   - **Administration** (write) — needed to create new repos
 5. Click **Generate token**.
 6. **Copy the token immediately** — you will not be able to see it again.
 
