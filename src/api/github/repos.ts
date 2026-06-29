@@ -133,7 +133,7 @@ export async function getGitHubTemplateRepos(owner: string): Promise<GitHubTempl
         `${JSON.stringify(cache, null, 2)}\n`,
       );
     } catch {
-      // Best-effort cache write; serve fresh results even when caching fails.
+      // Cache persistence is optional here because fresh template data is already loaded.
     }
     return templateRepos;
   } catch (error) {
