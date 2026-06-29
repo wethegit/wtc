@@ -256,6 +256,9 @@ function formatGitHubSetupWarning(
   const message = error instanceof Error ? error.message : "setup failed";
   const status = getGitHubErrorStatus(error);
   if (status === 404 || message.includes("Resource not accessible by personal access token")) {
+    if (status === 404 && label === "Repository rules bypass team lookup") {
+      return `${label}: Unable to resolve the bypass team ${owner}/${GITHUB_RULES_BYPASS_TEAM_SLUG}. Ensure the team exists and the token has organization/team read access.`;
+    }
     const vulnerabilityHint =
       label === "Vulnerability alerts" ? " Dependabot alerts read/write is also required." : "";
     const teamHint = label.includes("bypass team")
