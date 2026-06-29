@@ -5,6 +5,7 @@ import { useBindings } from "@opentui/keymap/solid";
 import { loadResolvedConfig } from "../../api/config/manager.ts";
 import { getGitHubAuthStatus, type GitHubAuthStatus } from "../../api/github/auth.ts";
 import {
+  createGitHubRepo,
   createGitHubRepoFromTemplate,
   getGitHubTemplateRepos,
   type CreatedGitHubRepo,
@@ -24,7 +25,7 @@ import { useStatusBar } from "../components/status-bar.tsx";
 import { tokens } from "../tokens.ts";
 
 interface RepoCreationDraft {
-  template: GitHubTemplateRepo;
+  template: GitHubTemplateRepo | null;
   name: string;
   description: string;
   private: boolean;
@@ -115,16 +116,25 @@ export function GitHubPage() {
   };
 
   const showTemplateStep = (templates: GitHubTemplateRepo[]) => {
-    const options: DialogSelectOption<GitHubTemplateRepo>[] = templates.map((template) => ({
-      title: template.name,
-      description: template.description ?? template.fullName,
-      value: template,
-      category: "Templates",
-      onSelect: () => showNameStep(template),
-    }));
+    const options: DialogSelectOption<GitHubTemplateRepo | null>[] = [
+      {
+        title: "none",
+        description: "Create a truly empty repository",
+        value: null,
+        category: "Blank",
+        onSelect: () => showNameStep(null),
+      },
+      ...templates.map((template) => ({
+        title: template.name,
+        description: template.description ?? template.fullName,
+        value: template,
+        category: "Templates",
+        onSelect: () => showNameStep(template),
+      })),
+    ];
 
     dialog.replace(() => (
-      <DialogSelect<GitHubTemplateRepo>
+      <DialogSelect<GitHubTemplateRepo | null>
         title="Select Template"
         options={options}
         onCancel={() => {
@@ -135,7 +145,7 @@ export function GitHubPage() {
     ));
   };
 
-  const showNameStep = (template: GitHubTemplateRepo) => {
+  const showNameStep = (template: GitHubTemplateRepo | null) => {
     dialog.replace(() => (
       <DialogInput
         title="Repository Name"
@@ -198,10 +208,11 @@ export function GitHubPage() {
   const showConfirmStep = (draft: RepoCreationDraft) => {
     const owner = repoOwner();
     const description = draft.description ? `\nDescription: ${draft.description}` : "";
+    const source = draft.template ? `from ${draft.template.fullName}` : "as a blank repo";
     dialog.replace(() => (
       <ConfirmDialog
         title="Create Repository"
-        message={`Create ${owner}/${draft.name} from ${draft.template.fullName} as ${draft.private ? "private" : "public"}?${description}`}
+        message={`Create ${owner}/${draft.name} ${source} as ${draft.private ? "private" : "public"}?${description}`}
         confirmLabel="Create"
         cancelLabel="Back"
         autoClose={false}
@@ -238,14 +249,19 @@ export function GitHubPage() {
 
     try {
       const owner = repoOwner();
-      const repo = await createGitHubRepoFromTemplate({
-        templateOwner: owner,
-        templateRepo: draft.template.name,
+      const input = {
         owner,
         name: draft.name,
         description: draft.description.trim() || undefined,
         private: draft.private,
-      });
+      };
+      const repo = draft.template
+        ? await createGitHubRepoFromTemplate({
+            ...input,
+            templateOwner: owner,
+            templateRepo: draft.template.name,
+          })
+        : await createGitHubRepo(input);
       setMessage(`Created GitHub repo: ${repo.fullName}`);
       showSuccessDialog(repo);
     } catch (error) {

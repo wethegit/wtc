@@ -19,6 +19,13 @@ export interface CreateGitHubRepoFromTemplateInput {
   private: boolean;
 }
 
+export interface CreateGitHubRepoInput {
+  owner: string;
+  name: string;
+  description?: string;
+  private: boolean;
+}
+
 /** GitHub repository created by WTC from a template. */
 export interface CreatedGitHubRepo {
   name: string;
@@ -61,6 +68,25 @@ export async function createGitHubRepoFromTemplate(
     description: input.description,
     private: input.private,
     include_all_branches: false,
+  });
+
+  return {
+    name: data.name,
+    fullName: data.full_name,
+    htmlUrl: data.html_url,
+    cloneUrl: data.clone_url,
+    sshUrl: data.ssh_url,
+  };
+}
+
+export async function createGitHubRepo(input: CreateGitHubRepoInput): Promise<CreatedGitHubRepo> {
+  const octokit = await getOctokit();
+  const { data } = await octokit.rest.repos.createInOrg({
+    org: input.owner,
+    name: input.name,
+    description: input.description,
+    private: input.private,
+    auto_init: false,
   });
 
   return {
