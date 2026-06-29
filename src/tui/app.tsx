@@ -4,11 +4,13 @@ import { registerModBindings } from "@opentui/keymap/addons";
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider, useBindings, useKeymap } from "@opentui/keymap/solid";
 
+import { logInfo } from "../api/logs/manager.ts";
 import { checkForUpdate } from "../utils/update-check.ts";
 import { loadTuiState } from "../api/state/manager.ts";
 import type { Route, TuiStateEntry } from "../api/state/schema.ts";
 import { TEAMWORK_TIMESHEET_URL } from "../api/teamwork/consts.ts";
 import { openUrlInBrowser } from "../utils/browser.ts";
+import { getLogPath } from "../api/logs/manager.ts";
 
 import { DialogProvider, useDialog } from "./components/dialog.tsx";
 import { UpdateDialog } from "./components/update-dialog.tsx";
@@ -48,11 +50,16 @@ function Home() {
       newRoute.tab ?? (newRoute.page && newRoute.page !== current.page ? "index" : current.tab);
     const nextRoute = { page, tab };
 
+    if (page !== current.page) {
+      logInfo("tui", "tui.navigate", `Navigated to ${page}`, { page, tab });
+    }
+
     setRoute(nextRoute);
     tuiState.updateState({ lastRoute: nextRoute });
   };
 
   const quit = () => {
+    logInfo("tui", "tui.quit", "TUI quit");
     renderer.destroy();
     process.exit(0);
   };
@@ -132,6 +139,16 @@ function Home() {
           dialog.clear();
         },
       },
+      {
+        name: "logs.open",
+        title: "Open Log File",
+        desc: "Open the WTC log file in the system browser",
+        category: "System",
+        run: () => {
+          dialog.clear();
+          void openUrlInBrowser(getLogPath());
+        },
+      },
     ].map((command) => ({
       namespace: "palette",
       ...command,
@@ -190,6 +207,11 @@ function Home() {
   });
 
   onMount(() => {
+    logInfo("tui", "tui.route.initial", `Initial route: ${route().page}`, {
+      page: route().page,
+      tab: route().tab,
+    });
+
     // The update check is non-blocking. If a newer release exists, it enters the
     // same dialog stack used by app actions so modal behavior stays consistent.
     checkForUpdate().then((info) => {
@@ -252,6 +274,8 @@ function App(props: { dir: string; initialState: TuiStateEntry }) {
 export async function runTUI(): Promise<void> {
   const dir = process.cwd();
   const initialState = await loadTuiState(dir);
+
+  logInfo("tui", "tui.start", "TUI started", { dir });
 
   await render(() => <App dir={dir} initialState={initialState} />, {
     exitOnCtrlC: false,

@@ -11,6 +11,7 @@ const repoCreateCommand: CommandModule<
     visibility: RepoVisibility;
     description?: string;
     json?: boolean;
+    rulesPreset?: string;
   }
 > = {
   command: "create <name>",
@@ -34,6 +35,11 @@ const repoCreateCommand: CommandModule<
         type: "string",
         describe: "Optional repository description",
       })
+      .option("rules-preset", {
+        choices: ["standard", "none"] as const,
+        describe: "Repository rules preset (standard or none)",
+        default: "standard" as const,
+      })
       .option("json", {
         type: "boolean",
         describe: "Print JSON output",
@@ -44,6 +50,7 @@ const repoCreateCommand: CommandModule<
       visibility: RepoVisibility;
       description?: string;
       json?: boolean;
+      rulesPreset?: string;
     }>,
   handler: (argv) =>
     repoCreate({
@@ -52,6 +59,7 @@ const repoCreateCommand: CommandModule<
       visibility: argv.visibility ?? "private",
       description: argv.description,
       json: argv.json ?? false,
+      rulesPreset: argv.rulesPreset ?? "standard",
     }),
 };
 
