@@ -157,7 +157,7 @@ GitHub repo creation work is split into detailed subphase plans under [`plans/gi
 
 #### Phase 6.1 — [TUI Repo Creation From Template](github/6.1-tui-repo-creation-from-template.md)
 
-Create a GitHub repo from an approved organization template through the TUI. Adds `github.repoOwner` to user config and the Settings page. No CLI, branch protection, Teamwork linking, or local clone yet.
+Create a GitHub repo under the company org from an approved organization template through the TUI. No CLI, branch protection, Teamwork linking, or local clone yet.
 
 #### Phase 6.2 — [CLI Repo Creation](github/6.2-cli-repo-creation.md)
 

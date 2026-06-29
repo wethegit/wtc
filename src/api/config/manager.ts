@@ -49,7 +49,6 @@ async function initUserConfig(): Promise<void> {
       formatUserConfig({
         version: USER_CONFIG_VERSION,
         workspaceName: "",
-        github: { repoOwner: "" },
       }),
     );
   }

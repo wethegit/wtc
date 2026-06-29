@@ -2,13 +2,15 @@ import { createSignal, onCleanup, onMount } from "solid-js";
 import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 
-import { loadResolvedConfig } from "../../api/config/manager.ts";
 import { getGitHubAuthStatus, type GitHubAuthStatus } from "../../api/github/auth.ts";
+import { GITHUB_REPO_OWNER } from "../../api/github/consts.ts";
 import {
+  applyGitHubRepoSetup,
   createGitHubRepo,
   createGitHubRepoFromTemplate,
   getGitHubTemplateRepos,
   type CreatedGitHubRepo,
+  type GitHubRepoRulesPreset,
   type GitHubTemplateRepo,
 } from "../../api/github/repos.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
@@ -29,6 +31,7 @@ interface RepoCreationDraft {
   name: string;
   description: string;
   private: boolean;
+  rulesPreset: GitHubRepoRulesPreset;
 }
 
 /** GitHub route for creating repositories from approved organization templates. */
@@ -36,7 +39,6 @@ export function GitHubPage() {
   const dialog = useDialog();
   const { setHints } = useStatusBar();
   const [githubAuthStatus, setGitHubAuthStatus] = createSignal<GitHubAuthStatus>("missing");
-  const [repoOwner, setRepoOwner] = createSignal("");
   const [message, setMessage] = createSignal("Loading GitHub context...");
   const [isCreating, setIsCreating] = createSignal(false);
 
@@ -46,57 +48,30 @@ export function GitHubPage() {
     setMessage("Loading GitHub context...");
 
     try {
-      const [config, authStatus] = await Promise.all([
-        loadResolvedConfig(process.cwd()),
-        getGitHubAuthStatus(),
-      ]);
-      const owner = config.user.github.repoOwner.trim();
+      const authStatus = await getGitHubAuthStatus();
 
       setGitHubAuthStatus(authStatus);
-      setRepoOwner(owner);
       if (authStatus === "missing") {
         setMessage("GitHub auth not configured. Use Settings to add your API token.");
         return;
       }
 
-      if (!owner) {
-        setMessage("Set github.repoOwner in Settings before creating repos.");
-        return;
-      }
-
-      setMessage(`Ready to create repos under ${owner}.`);
+      setMessage(`Ready to create repos under ${GITHUB_REPO_OWNER}.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Failed to load GitHub context.");
     }
   };
 
   const startCreateRepo = async () => {
-    const owner = repoOwner();
     if (githubAuthStatus() === "missing") {
       setMessage("GitHub auth not configured. Use Settings to add your API token.");
       return;
     }
-    if (!owner) {
-      setMessage("Set github.repoOwner in Settings before creating repos.");
-      return;
-    }
 
-    dialog.replace(() => <LoadingDialog message={`Loading ${owner} templates...`} />);
+    dialog.replace(() => <LoadingDialog message={`Loading ${GITHUB_REPO_OWNER} templates...`} />);
 
     try {
-      const templates = await getGitHubTemplateRepos(owner);
-      if (!templates.length) {
-        dialog.replace(() => (
-          <ConfirmDialog
-            title="No Templates"
-            message={`No template repositories found under ${owner}. Check that your GitHub token can access the template repositories.`}
-            confirmLabel="OK"
-            onConfirm={async () => {}}
-          />
-        ));
-        return;
-      }
-
+      const templates = await getGitHubTemplateRepos(GITHUB_REPO_OWNER);
       showTemplateStep(templates);
     } catch (error) {
       dialog.replace(() => (
@@ -119,7 +94,7 @@ export function GitHubPage() {
     const options: DialogSelectOption<GitHubTemplateRepo | null>[] = [
       {
         title: "none",
-        description: "Create a truly empty repository",
+        description: "Create a blank repository with an MIT license",
         value: null,
         category: "Blank",
         onSelect: () => showNameStep(null),
@@ -153,7 +128,13 @@ export function GitHubPage() {
         initialValue=""
         confirmLabel="Next"
         onConfirm={(name) =>
-          showDescriptionInput({ template, name, description: "", private: true })
+          showDescriptionInput({
+            template,
+            name,
+            description: "",
+            private: true,
+            rulesPreset: "standard",
+          })
         }
         onCancel={() => {
           dialog.clear();
@@ -185,14 +166,14 @@ export function GitHubPage() {
         description: "Only organization members with access can view it",
         value: true,
         category: "Visibility",
-        onSelect: () => showConfirmStep({ ...draft, private: true }),
+        onSelect: () => showRulesStep({ ...draft, private: true }),
       },
       {
         title: "public",
         description: "Anyone can view it",
         value: false,
         category: "Visibility",
-        onSelect: () => showConfirmStep({ ...draft, private: false }),
+        onSelect: () => showRulesStep({ ...draft, private: false }),
       },
     ];
 
@@ -205,28 +186,55 @@ export function GitHubPage() {
     ));
   };
 
-  const showConfirmStep = (draft: RepoCreationDraft) => {
-    const owner = repoOwner();
-    const description = draft.description ? `\nDescription: ${draft.description}` : "";
-    const source = draft.template ? `from ${draft.template.fullName}` : "as a blank repo";
+  const showRulesStep = (draft: RepoCreationDraft) => {
+    const options: DialogSelectOption<GitHubRepoRulesPreset>[] = [
+      {
+        title: "standard",
+        description: "WTC repo settings, vulnerability alerts, and protected branch rules",
+        value: "standard",
+        category: "Repo Rules",
+        onSelect: () => showConfirmStep({ ...draft, rulesPreset: "standard" }),
+      },
+      {
+        title: "none",
+        description: "Create the repo without protected branch rules",
+        value: "none",
+        category: "Repo Rules",
+        onSelect: () => showConfirmStep({ ...draft, rulesPreset: "none" }),
+      },
+    ];
+
     dialog.replace(() => (
-      <ConfirmDialog
-        title="Create Repository"
-        message={`Create ${owner}/${draft.name} ${source} as ${draft.private ? "private" : "public"}?${description}`}
-        confirmLabel="Create"
-        cancelLabel="Back"
-        autoClose={false}
-        onConfirm={() => createRepo(draft)}
+      <DialogSelect<GitHubRepoRulesPreset>
+        title="Repository Rules"
+        options={options}
         onCancel={() => showVisibilityStep(draft)}
       />
     ));
   };
 
-  const showSuccessDialog = (repo: CreatedGitHubRepo) => {
+  const showConfirmStep = (draft: RepoCreationDraft) => {
+    const description = draft.description ? `\nDescription: ${draft.description}` : "";
+    const source = draft.template ? `from ${draft.template.fullName}` : "as a blank repo";
+    dialog.replace(() => (
+      <ConfirmDialog
+        title="Create Repository"
+        message={`Create ${GITHUB_REPO_OWNER}/${draft.name} ${source} as ${draft.private ? "private" : "public"}?\nRules: ${draft.rulesPreset}${description}`}
+        confirmLabel="Create"
+        cancelLabel="Back"
+        autoClose={false}
+        onConfirm={() => createRepo(draft)}
+        onCancel={() => showRulesStep(draft)}
+      />
+    ));
+  };
+
+  const showSuccessDialog = (repo: CreatedGitHubRepo, warnings: string[]) => {
+    const warningMessage = warnings.length ? `\n\nSetup warnings:\n${warnings.join("\n")}` : "";
     dialog.replace(() => (
       <ConfirmDialog
         title="Repository Created"
-        message={`${repo.fullName}\n${repo.htmlUrl}`}
+        message={`${repo.fullName}\n${repo.htmlUrl}${warningMessage}`}
         confirmLabel="Open"
         cancelLabel="Close"
         onConfirm={async () => {
@@ -248,9 +256,8 @@ export function GitHubPage() {
     dialog.replace(() => <LoadingDialog message={`Creating ${draft.name}...`} />);
 
     try {
-      const owner = repoOwner();
       const input = {
-        owner,
+        owner: GITHUB_REPO_OWNER,
         name: draft.name,
         description: draft.description.trim() || undefined,
         private: draft.private,
@@ -258,12 +265,22 @@ export function GitHubPage() {
       const repo = draft.template
         ? await createGitHubRepoFromTemplate({
             ...input,
-            templateOwner: owner,
+            templateOwner: GITHUB_REPO_OWNER,
             templateRepo: draft.template.name,
           })
         : await createGitHubRepo(input);
-      setMessage(`Created GitHub repo: ${repo.fullName}`);
-      showSuccessDialog(repo);
+      dialog.replace(() => <LoadingDialog message={`Configuring ${repo.fullName}...`} />);
+      const setupResult = await applyGitHubRepoSetup({
+        owner: GITHUB_REPO_OWNER,
+        repo: repo.name,
+        rulesPreset: draft.rulesPreset,
+      });
+      setMessage(
+        setupResult.warnings.length
+          ? `Created GitHub repo with setup warnings: ${repo.fullName}`
+          : `Created GitHub repo: ${repo.fullName}`,
+      );
+      showSuccessDialog(repo, setupResult.warnings);
     } catch (error) {
       dialog.replace(() => (
         <ConfirmDialog
@@ -314,12 +331,12 @@ export function GitHubPage() {
       message={<text fg={tokens.textDim}>{message()}</text>}
     >
       <box flexDirection="column" gap={1}>
-        <Card title="Repo Creation" status={repoOwner() || "no repo owner"}>
+        <Card title="Repo Creation" status={GITHUB_REPO_OWNER}>
           <text attributes={TextAttributes.BOLD} fg={tokens.accent}>
             Create from template
           </text>
           <text fg={tokens.textDim}>
-            Templates and new repos use the configured github.repoOwner.
+            Templates and new repos are created under {GITHUB_REPO_OWNER}.
           </text>
           <ActionButton
             name="create-github-repo"

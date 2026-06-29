@@ -15,11 +15,6 @@ export const PROJECT_CONFIG_VERSION = 1;
 export const UserConfigV1Schema = z.object({
   version: z.literal(USER_CONFIG_VERSION),
   workspaceName: z.string().default(""),
-  github: z
-    .object({
-      repoOwner: z.string().default(""),
-    })
-    .default({ repoOwner: "" }),
 });
 
 /**

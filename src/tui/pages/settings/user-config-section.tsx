@@ -15,7 +15,6 @@ export function UserConfigSection(props: {
   isFocused: (target: SettingsFocusTarget) => boolean;
   onToggle: () => void;
   onWorkspaceNameInput: (value: string) => void;
-  onGitHubRepoOwnerInput: (value: string) => void;
   onTeamworkApiTokenInput: (value: string) => void;
   onGitHubApiTokenInput: (value: string) => void;
 }) {
@@ -35,16 +34,6 @@ export function UserConfigSection(props: {
           description="User-level placeholder while broader settings are designed."
           focused={props.isFocused({ type: "field", name: "workspaceName" })}
           onInput={props.onWorkspaceNameInput}
-        />
-
-        <TextField
-          name="githubRepoOwner"
-          label="github.repoOwner"
-          value={props.form.user.githubRepoOwner}
-          placeholder="wethegit"
-          description="Approved GitHub org used for repo templates and new repos."
-          focused={props.isFocused({ type: "field", name: "githubRepoOwner" })}
-          onInput={props.onGitHubRepoOwnerInput}
         />
 
         <box

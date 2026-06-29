@@ -38,9 +38,9 @@ Alternatively you can also use the TUI by:
 
 ### GitHub Personal Access Token
 
-Required for repo creation, branch creation, and draft PR workflows.
+Required for repo creation, repo setup, branch creation, and draft PR workflows.
 
-GitHub recommends fine-grained PATs over classic tokens. You need a token with write-level permissions for Contents (create branches, push) and Pull requests.
+GitHub recommends fine-grained PATs over classic tokens. Repo creation and setup need broader access than branch/PR workflows because WTC configures new repositories immediately after GitHub creates them.
 
 #### How to get your token
 
@@ -50,14 +50,17 @@ GitHub recommends fine-grained PATs over classic tokens. You need a token with w
 3. Fill in the fields:
    - **Token name** — `wtc-cli`
    - **Expiration** — choose a duration (90 days recommended)
-   - **Resource owner** — your account or the relevant organization
-   - **Repository access** — **Only select repositories** (preferred) or **All repositories**
+   - **Resource owner** — `wethegit`
+   - **Repository access** — **All repositories** for repo creation/setup. Selected-repository tokens can create a repo but usually cannot configure the newly created repo afterward.
 4. Under **Permissions** select:
    - **Contents** (Read and Write) — needed to create branches and push
    - **Pull requests** (Read and Write) — needed to create draft PRs
-   - **Administration** (write) — needed to create new repos
-5. Click **Generate token**.
-6. **Copy the token immediately** — you will not be able to see it again.
+   - **Administration** (Read and Write) — needed to create and configure repos, including repo settings and rulesets
+   - **Dependabot alerts** (Read and Write) — needed to enable vulnerability alerts
+5. Under **Organization permissions** select:
+   - **Member** (Read only) - needed to create branch rules and to resolve the `senior-reviewers` team for repo ruleset bypasses.
+6. Click **Generate token**.
+7. **Copy the token immediately** — you will not be able to see it again.
 
 #### How to store it
 

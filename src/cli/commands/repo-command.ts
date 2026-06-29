@@ -1,5 +1,6 @@
 import type { Argv, CommandModule } from "yargs";
 
+import { GITHUB_REPO_OWNER } from "../../api/github/consts.ts";
 import { repoCreate, type RepoVisibility } from "./repo.ts";
 
 const repoCreateCommand: CommandModule<
@@ -22,7 +23,7 @@ const repoCreateCommand: CommandModule<
       })
       .option("template", {
         type: "string",
-        describe: "Template repo name under github.repoOwner. Omit for a blank repo.",
+        describe: `Template repo name under ${GITHUB_REPO_OWNER}. Omit for a blank repo.`,
       })
       .option("visibility", {
         choices: ["private", "public"] as const,

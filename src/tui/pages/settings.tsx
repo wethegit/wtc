@@ -43,7 +43,7 @@ export function SettingsPage() {
   const [resolved, setResolved] = createSignal<ResolvedConfig | null>(null);
   const [savedForm, setSavedForm] = createSignal<SettingsFormState | null>(null);
   const [form, setForm] = createSignal<SettingsFormState>({
-    user: { workspaceName: "", githubRepoOwner: "", teamworkApiToken: "", githubApiToken: "" },
+    user: { workspaceName: "", teamworkApiToken: "", githubApiToken: "" },
     project: { teamworkProjectId: "", links: [], pinnedTaskLists: [] },
   });
   const [expandedSections, setExpandedSections] =
@@ -331,12 +331,6 @@ export function SettingsPage() {
                 user: { ...current.user, workspaceName },
               }));
             }}
-            onGitHubRepoOwnerInput={(githubRepoOwner) => {
-              setForm((current) => ({
-                ...current,
-                user: { ...current.user, githubRepoOwner },
-              }));
-            }}
             onTeamworkApiTokenInput={(teamworkApiToken) => {
               setForm((current) => ({
                 ...current,
@@ -434,7 +428,6 @@ function buildSettingsFormState(config: ResolvedConfig): SettingsFormState {
   return {
     user: {
       workspaceName: config.user.workspaceName,
-      githubRepoOwner: config.user.github.repoOwner,
       teamworkApiToken: "",
       githubApiToken: "",
     },
@@ -468,7 +461,6 @@ function getSettingsFocusOrder(
 
   if (expanded.user) {
     order.push({ type: "field", name: "workspaceName" });
-    order.push({ type: "field", name: "githubRepoOwner" });
     order.push({ type: "field", name: "teamworkApiToken" });
     order.push({ type: "field", name: "githubApiToken" });
   }
@@ -565,7 +557,6 @@ function applySettingsFormState(state: SettingsFormState): {
     user: {
       version: 1,
       workspaceName: state.user.workspaceName,
-      github: { repoOwner: state.user.githubRepoOwner.trim() },
     },
     project: {
       version: 1,

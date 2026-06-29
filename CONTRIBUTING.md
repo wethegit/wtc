@@ -49,6 +49,16 @@ The API layer is the only layer that both CLI and TUI import from. Each subdirec
 - [`src/cli/README.md`](src/cli/README.md) — CLI handler patterns
 - [`src/tui/README.md`](src/tui/README.md) — TUI component conventions
 
+## GitHub Repo Creation Rules
+
+Repo creation is intentionally company-owned. The GitHub organization constants live in `src/api/github/consts.ts`, while ruleset presets live in `src/api/github/repo-rules.ts`:
+
+- `GITHUB_REPO_OWNER` controls where templates are loaded from and where new repos are created.
+- `GITHUB_RULES_BYPASS_TEAM_SLUG` controls the team that can bypass protected-branch rules.
+- `GITHUB_REPO_RULESET_PRESETS` maps selectable preset names, such as `standard`, to the GitHub `createRepoRuleset` request payload builder.
+
+To update the standard branch rules, edit `GITHUB_REPO_RULESET_PRESETS.standard` in `repo-rules.ts`. To add a new ruleset option, add another entry to `GITHUB_REPO_RULESET_PRESETS`, then expose that preset wherever repo creation lets users choose rules. Keep Octokit request details in `src/api/github/`, not in CLI or TUI files.
+
 ## Building Binaries
 
 Build a standalone binary for your current platform:
