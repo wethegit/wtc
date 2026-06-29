@@ -177,9 +177,10 @@ export function usePrWorkflow(setMessage: (msg: string) => void) {
     if (config?.teamwork.reviewTaskId) {
       try {
         ctx.reviewTask = await getTeamworkTaskById(config.teamwork.reviewTaskId);
-      } catch {
+      } catch (error) {
         logWarn("tui.pr", "pr.workflow.reviewTask.stale", "Stale review task ID in config", {
           reviewTaskId: config.teamwork.reviewTaskId,
+          error: error instanceof Error ? error.message : String(error),
         });
       }
     }

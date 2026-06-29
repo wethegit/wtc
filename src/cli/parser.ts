@@ -14,7 +14,11 @@ import { upgradeCommand } from "./commands/upgrade-command.ts";
 
 export async function runCli(): Promise<void> {
   const args = hideBin(Bun.argv);
-  logInfo("cli", "cli.start", "CLI started", { args: args.join(" ") });
+  const command = args
+    .filter((arg) => !arg.startsWith("-"))
+    .slice(0, 2)
+    .join(" ");
+  logInfo("cli", "cli.start", "CLI started", { command: command || "wtc" });
 
   const parser = yargs(args)
     .scriptName("wtc")
