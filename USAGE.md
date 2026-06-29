@@ -58,7 +58,7 @@ GitHub recommends fine-grained PATs over classic tokens. Repo creation and setup
    - **Administration** (Read and Write) — needed to create and configure repos, including repo settings and rulesets
    - **Dependabot alerts** (Read and Write) — needed to enable vulnerability alerts
 5. Under **Organization permissions** select:
-   - **Member** (Read only) - needed to create branch rules and to resolve the `senior-reviewers` team for repo ruleset bypasses.
+   - **Member** (Read only) — needed to create branch rules and to resolve the `senior-reviewers` team for repo ruleset bypasses.
 6. Click **Generate token**.
 7. **Copy the token immediately** — you will not be able to see it again.
 
