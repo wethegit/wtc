@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.13
+
+### Patch Changes
+
+- [#55](https://github.com/wethegit/wtc/pull/55) [`7381dff`](https://github.com/wethegit/wtc/commit/7381dff1e77c196b657c6ea3d7e5747ed772bddc) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Adds GitHub repo creation
+
 ## 0.3.12
 
 ### Patch Changes
