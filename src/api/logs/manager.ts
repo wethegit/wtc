@@ -42,7 +42,7 @@ async function writeLog(
     await mkdir(getCacheDir(), { recursive: true });
     await appendFile(path, `${JSON.stringify(entry)}\n`, "utf8");
   } catch {
-    // Ignore logging write failures to avoid breaking app flows.
+    console.error("Failed to write log entry.");
   }
 }
 

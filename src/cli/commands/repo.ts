@@ -4,6 +4,8 @@ import { GITHUB_REPO_OWNER } from "../../api/github/consts.ts";
 import { logError, logInfo, logWarn } from "../../api/logs/manager.ts";
 import { createGitHubRepoWithSetup, getGitHubTemplateRepo } from "../../api/github/repos.ts";
 
+const rulesPresetSchema = z.enum(["standard", "none"]);
+
 export type RepoVisibility = "private" | "public";
 
 export async function repoCreate(args: {
@@ -21,7 +23,6 @@ export async function repoCreate(args: {
     throw new Error("GitHub repository name cannot be empty.");
   }
 
-  const rulesPresetSchema = z.enum(["standard", "none"]);
   const templateName = args.template?.trim();
   const rulesPreset = rulesPresetSchema.parse(args.rulesPreset ?? "standard");
 
