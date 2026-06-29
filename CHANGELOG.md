@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.14
+
+### Patch Changes
+
+- [#57](https://github.com/wethegit/wtc/pull/57) [`4e69f8e`](https://github.com/wethegit/wtc/commit/4e69f8e9750d8c5414a726d845a7678563e82cb6) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Adds ability to create repos from the CLI
+
 ## 0.3.13
 
 ### Patch Changes
