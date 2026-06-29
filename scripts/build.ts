@@ -1,7 +1,30 @@
 import { mkdir } from "node:fs/promises";
 
-const pkg = await Bun.file("./package.json").json();
-const version = pkg && typeof pkg === "object" && "version" in pkg ? String(pkg.version) : "0.0.0";
+type PackageJsonWithVersion = { version: string };
+
+function isPackageJsonWithVersion(value: unknown): value is PackageJsonWithVersion {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "version" in value &&
+    typeof value.version === "string" &&
+    value.version.length > 0
+  );
+}
+
+let pkg: unknown;
+let parseFailed = false;
+try {
+  pkg = await Bun.file("./package.json").json();
+} catch {
+  parseFailed = true;
+}
+
+const version = parseFailed ? "0.0.0" : isPackageJsonWithVersion(pkg) ? pkg.version : "";
+if (!parseFailed && !version) {
+  console.error("Invalid package.json: expected a non-empty string version field.");
+  process.exit(1);
+}
 
 const platform = process.env.WTC_TARGET_PLATFORM ?? process.env.platform ?? process.platform;
 const arch = process.env.WTC_TARGET_ARCH ?? process.env.arch ?? process.arch;

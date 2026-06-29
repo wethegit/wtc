@@ -53,5 +53,6 @@ export async function saveTuiState(dir: string, partial: Partial<TuiStateEntry>)
     logError("state", "state.save.error", "Failed to save TUI state", {
       error: error instanceof Error ? error.message : String(error),
     });
+    throw error;
   }
 }
