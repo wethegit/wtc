@@ -5,26 +5,17 @@ export interface GitHubTemplateRepo {
   owner: string;
   name: string;
   fullName: string;
-  description: string | null;
+  description?: string | null;
   htmlUrl: string;
   private: boolean;
 }
 
-export interface CreateGitHubRepoFromTemplateInput {
+export interface CreateGitHubRepoFromTemplateInput extends CreateGitHubRepoInput {
   templateOwner: string;
   templateRepo: string;
-  owner: string;
-  name: string;
-  description?: string;
-  private: boolean;
 }
 
-export interface CreateGitHubRepoInput {
-  owner: string;
-  name: string;
-  description?: string;
-  private: boolean;
-}
+export interface CreateGitHubRepoInput extends Omit<GitHubTemplateRepo, "htmlUrl" | "fullName"> {}
 
 /** GitHub repository created by WTC from a template. */
 export interface CreatedGitHubRepo {
@@ -65,7 +56,7 @@ export async function createGitHubRepoFromTemplate(
     template_repo: input.templateRepo,
     owner: input.owner,
     name: input.name,
-    description: input.description,
+    description: input.description || undefined,
     private: input.private,
     include_all_branches: false,
   });
@@ -84,7 +75,7 @@ export async function createGitHubRepo(input: CreateGitHubRepoInput): Promise<Cr
   const { data } = await octokit.rest.repos.createInOrg({
     org: input.owner,
     name: input.name,
-    description: input.description,
+    description: input.description || undefined,
     private: input.private,
     auto_init: false,
   });
