@@ -141,6 +141,7 @@ export function TimersTab() {
   };
 
   useBindings(() => ({
+    enabled: !dialog.active(),
     bindings: [
       {
         key: "down",

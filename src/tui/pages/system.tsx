@@ -1,4 +1,5 @@
-import { createSignal, For, onMount, Show } from "solid-js";
+import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
+import { useBindings } from "@opentui/keymap/solid";
 
 import {
   clearCache,
@@ -8,11 +9,22 @@ import {
 } from "../../api/cache/manager.ts";
 import { clearLogFile, getLogPath, logInfo } from "../../api/logs/manager.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
+import { ActionButton } from "../components/forms/action-button.tsx";
 import { Card } from "../components/layout/card.tsx";
 import { Page } from "../components/layout/page.tsx";
 import { ConfirmDialog } from "../components/confirm-dialog.tsx";
 import { useDialog } from "../components/dialog.tsx";
+import { useStatusBar } from "../components/status-bar.tsx";
 import { tokens } from "../tokens.ts";
+
+type SystemFocusTarget =
+  | { type: "button"; name: "open-log" }
+  | { type: "button"; name: "clear-log" }
+  | { type: "file-action"; name: string; action: "open" }
+  | { type: "file-action"; name: string; action: "delete" }
+  | { type: "button"; name: "clear-all-cache" };
+
+const FIRST_FOCUS: SystemFocusTarget = { type: "button", name: "open-log" };
 
 function formatSize(bytes: number): string {
   if (bytes === 0) return "";
@@ -32,12 +44,46 @@ function categoryColor(category: "cache" | "state" | "log") {
   }
 }
 
+function isSystemFocusTarget(a: SystemFocusTarget, b: SystemFocusTarget): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function getSystemFocusOrder(files: CacheFileInfo[]): SystemFocusTarget[] {
+  const order: SystemFocusTarget[] = [
+    { type: "button", name: "open-log" },
+    { type: "button", name: "clear-log" },
+  ];
+  for (const file of files) {
+    if (!file.exists) continue;
+    order.push({ type: "file-action", name: file.descriptor.name, action: "open" });
+    order.push({ type: "file-action", name: file.descriptor.name, action: "delete" });
+  }
+  order.push({ type: "button", name: "clear-all-cache" });
+  return order;
+}
+
+function getNextSystemFocus(
+  current: SystemFocusTarget,
+  files: CacheFileInfo[],
+  direction: 1 | -1,
+): SystemFocusTarget {
+  const order = getSystemFocusOrder(files);
+  if (!order.length) return FIRST_FOCUS;
+  const currentIndex = order.findIndex((t) => isSystemFocusTarget(t, current));
+  const fallbackIndex = direction === 1 ? 0 : order.length - 1;
+  const nextIndex =
+    currentIndex === -1 ? fallbackIndex : (currentIndex + direction + order.length) % order.length;
+  return order[nextIndex] ?? FIRST_FOCUS;
+}
+
 /** System route for managing logs and cache files. */
 export function SystemPage() {
   const dialog = useDialog();
+  const { setHints } = useStatusBar();
   const [message, setMessage] = createSignal("Loading...");
   const [logSize, setLogSize] = createSignal(0);
   const [cacheFiles, setCacheFiles] = createSignal<CacheFileInfo[]>([]);
+  const [focusedTarget, setFocusedTarget] = createSignal<SystemFocusTarget>(FIRST_FOCUS);
 
   const refreshLogInfo = async () => {
     try {
@@ -139,9 +185,85 @@ export function SystemPage() {
     ));
   };
 
+  const pressFocused = () => {
+    const target = focusedTarget();
+
+    if (target.type === "button") {
+      if (target.name === "open-log") {
+        openLog();
+      } else if (target.name === "clear-log") {
+        clearLog();
+      } else if (target.name === "clear-all-cache") {
+        clearAllCache();
+      }
+      return;
+    }
+
+    if (target.type === "file-action") {
+      const file = cacheFiles().find((f) => f.descriptor.name === target.name);
+      if (!file) return;
+      if (target.action === "open") {
+        openCacheFile(file);
+      } else if (target.action === "delete") {
+        deleteCacheFileAction(file);
+      }
+    }
+  };
+
+  useBindings(() => ({
+    enabled: !dialog.active(),
+    bindings: [
+      {
+        key: "tab",
+        desc: "Next action",
+        group: "System",
+        cmd: () => {
+          setFocusedTarget((target) => getNextSystemFocus(target, cacheFiles(), 1));
+        },
+      },
+      {
+        key: "shift+tab",
+        desc: "Previous action",
+        group: "System",
+        cmd: () => {
+          setFocusedTarget((target) => getNextSystemFocus(target, cacheFiles(), -1));
+        },
+      },
+      {
+        key: "down",
+        desc: "Next action",
+        group: "System",
+        cmd: () => {
+          setFocusedTarget((target) => getNextSystemFocus(target, cacheFiles(), 1));
+        },
+      },
+      {
+        key: "up",
+        desc: "Previous action",
+        group: "System",
+        cmd: () => {
+          setFocusedTarget((target) => getNextSystemFocus(target, cacheFiles(), -1));
+        },
+      },
+      {
+        key: "return",
+        desc: "Execute focused action",
+        group: "System",
+        cmd: pressFocused,
+      },
+    ],
+  }));
+
   onMount(() => {
     void loadData();
+    setHints([
+      { key: "↵", label: "execute" },
+      { key: "⇥", label: "next" },
+      { key: "⇧⇥", label: "prev" },
+    ]);
   });
+
+  onCleanup(() => setHints([]));
 
   return (
     <Page title="System" message={<text fg={tokens.textDim}>{message()}</text>}>
@@ -151,12 +273,19 @@ export function SystemPage() {
           <text fg={tokens.textDim}>Size: {formatSize(logSize())}</text>
         </Show>
         <box flexDirection="row" gap={1} paddingTop={1}>
-          <box paddingX={2} backgroundColor={tokens.accent} onMouseUp={openLog}>
-            <text fg={tokens.textInverse}>open log</text>
-          </box>
-          <box paddingX={2} backgroundColor={tokens.surfaceOverlay} onMouseUp={clearLog}>
-            <text fg={tokens.text}>clear</text>
-          </box>
+          <ActionButton
+            name="open-log"
+            label="open log"
+            variant="primary"
+            focused={isSystemFocusTarget(focusedTarget(), { type: "button", name: "open-log" })}
+            onPress={openLog}
+          />
+          <ActionButton
+            name="clear-log"
+            label="clear"
+            focused={isSystemFocusTarget(focusedTarget(), { type: "button", name: "clear-log" })}
+            onPress={clearLog}
+          />
         </box>
       </Card>
 
@@ -183,29 +312,42 @@ export function SystemPage() {
               </box>
               <Show when={info.exists}>
                 <box flexDirection="row" alignItems="center" gap={1}>
-                  <box
-                    paddingX={2}
-                    backgroundColor={tokens.surfaceOverlay}
-                    onMouseUp={() => openCacheFile(info)}
-                  >
-                    <text fg={tokens.text}>open</text>
-                  </box>
-                  <box
-                    paddingX={2}
-                    backgroundColor={tokens.surfaceOverlay}
-                    onMouseUp={() => deleteCacheFileAction(info)}
-                  >
-                    <text fg={tokens.text}>delete</text>
-                  </box>
+                  <ActionButton
+                    name={`open-${info.descriptor.name}`}
+                    label="open"
+                    focused={isSystemFocusTarget(focusedTarget(), {
+                      type: "file-action",
+                      name: info.descriptor.name,
+                      action: "open",
+                    })}
+                    onPress={() => openCacheFile(info)}
+                  />
+                  <ActionButton
+                    name={`delete-${info.descriptor.name}`}
+                    label="delete"
+                    focused={isSystemFocusTarget(focusedTarget(), {
+                      type: "file-action",
+                      name: info.descriptor.name,
+                      action: "delete",
+                    })}
+                    onPress={() => deleteCacheFileAction(info)}
+                  />
                 </box>
               </Show>
             </box>
           )}
         </For>
         <box flexDirection="row" gap={1} paddingTop={1}>
-          <box paddingX={2} backgroundColor={tokens.accent} onMouseUp={clearAllCache}>
-            <text fg={tokens.textInverse}>clear all cache</text>
-          </box>
+          <ActionButton
+            name="clear-all-cache"
+            label="clear all cache"
+            variant="primary"
+            focused={isSystemFocusTarget(focusedTarget(), {
+              type: "button",
+              name: "clear-all-cache",
+            })}
+            onPress={clearAllCache}
+          />
         </box>
       </Card>
     </Page>

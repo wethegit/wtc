@@ -14,6 +14,7 @@ import { getTeamworkAuthStatus, setTeamworkApiToken } from "../../api/teamwork/a
 import type { TeamworkAuthStatus } from "../../api/teamwork/auth.ts";
 import { ActionButton } from "../components/forms/action-button.tsx";
 import { Page } from "../components/layout/page.tsx";
+import { useDialog } from "../components/dialog.tsx";
 import { useStatusBar } from "../components/status-bar.tsx";
 import { tokens } from "../tokens.ts";
 import { PinnedTaskListsSection } from "./settings/pinned-task-lists-section.tsx";
@@ -39,6 +40,7 @@ const FIRST_FOCUS: SettingsFocusTarget = { type: "field", name: "workspaceName" 
 
 /** Settings route for viewing and editing WTC config files. */
 export function SettingsPage() {
+  const dialog = useDialog();
   const { setHints } = useStatusBar();
   const [resolved, setResolved] = createSignal<ResolvedConfig | null>(null);
   const [savedForm, setSavedForm] = createSignal<SettingsFormState | null>(null);
@@ -231,6 +233,7 @@ export function SettingsPage() {
   };
 
   useBindings(() => ({
+    enabled: !dialog.active(),
     bindings: [
       {
         key: "tab",

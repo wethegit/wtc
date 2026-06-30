@@ -1,8 +1,10 @@
+import { createSignal, Show } from "solid-js";
 import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/solid";
 
 import { tokens } from "../tokens.ts";
 
+import { ActionButton } from "./forms/action-button.tsx";
 import { useDialog } from "./dialog.tsx";
 
 /** Props for a simple confirmation dialog. */
@@ -18,9 +20,14 @@ export interface ConfirmDialogProps {
   onConfirm: () => void | Promise<void>;
 }
 
+type ConfirmFocusTarget = "confirm" | "cancel";
+
 /** Small reusable confirmation modal for destructive or workflow-switching actions. */
 export function ConfirmDialog(props: ConfirmDialogProps) {
   const dialog = useDialog();
+  const [focused, setFocused] = createSignal<ConfirmFocusTarget>("confirm");
+
+  const hasCancel = !!props.onCancel;
 
   const confirm = async () => {
     try {
@@ -32,24 +39,67 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
     }
   };
 
+  const pressFocused = () => {
+    if (focused() === "confirm") {
+      void confirm();
+    } else {
+      if (props.onCancel) {
+        props.onCancel();
+      } else {
+        dialog.clear();
+      }
+    }
+  };
+
   useBindings(() => ({
+    enabled: dialog.active(),
     bindings: [
       {
         key: "return",
         desc: props.confirmLabel ?? "Confirm",
         group: "Dialog",
-        cmd: () => {
-          void confirm();
-        },
+        cmd: pressFocused,
       },
-      ...(props.onCancel
+      ...(hasCancel
         ? [
             {
               key: "escape",
-              desc: "Cancel",
+              desc: props.cancelLabel ?? "Cancel",
               group: "Dialog",
               cmd: () => {
                 props.onCancel?.();
+              },
+            },
+            {
+              key: "tab",
+              desc: "Next button",
+              group: "Dialog",
+              cmd: () => {
+                setFocused((prev) => (prev === "confirm" ? "cancel" : "confirm"));
+              },
+            },
+            {
+              key: "shift+tab",
+              desc: "Previous button",
+              group: "Dialog",
+              cmd: () => {
+                setFocused((prev) => (prev === "confirm" ? "cancel" : "confirm"));
+              },
+            },
+            {
+              key: "right",
+              desc: "Next button",
+              group: "Dialog",
+              cmd: () => {
+                setFocused((prev) => (prev === "confirm" ? "cancel" : "confirm"));
+              },
+            },
+            {
+              key: "left",
+              desc: "Previous button",
+              group: "Dialog",
+              cmd: () => {
+                setFocused((prev) => (prev === "confirm" ? "cancel" : "confirm"));
               },
             },
           ]
@@ -70,22 +120,25 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
       </box>
       <text fg={tokens.textDim}>{props.message}</text>
       <box flexDirection="row" justifyContent="flex-end" gap={1} paddingTop={1}>
-        <box
-          paddingX={2}
-          backgroundColor={tokens.surfaceOverlay}
-          onMouseUp={() => (props.onCancel ? props.onCancel() : dialog.clear())}
-        >
-          <text fg={tokens.text}>{props.cancelLabel ?? "cancel"}</text>
-        </box>
-        <box
-          paddingX={2}
-          backgroundColor={tokens.accent}
-          onMouseUp={() => {
+        <Show when={hasCancel}>
+          <ActionButton
+            name="cancel"
+            label={props.cancelLabel ?? "cancel"}
+            focused={focused() === "cancel"}
+            onPress={() => {
+              props.onCancel?.();
+            }}
+          />
+        </Show>
+        <ActionButton
+          name="confirm"
+          label={props.confirmLabel ?? "confirm"}
+          variant="primary"
+          focused={focused() === "confirm"}
+          onPress={() => {
             void confirm();
           }}
-        >
-          <text fg={tokens.textInverse}>{props.confirmLabel ?? "confirm"}</text>
-        </box>
+        />
       </box>
     </box>
   );
