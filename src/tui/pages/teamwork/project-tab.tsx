@@ -88,11 +88,6 @@ export function ProjectTab() {
         return;
       }
 
-      if (!projectId) {
-        setProjectMessage("Set teamwork.projectId in Settings to load Teamwork metadata.");
-        return;
-      }
-
       if (authStatus === "missing") {
         setProjectMessage(
           "Teamwork auth not configured. Use Settings or `wtc config auth set` to add your API token.",
@@ -100,8 +95,25 @@ export function ProjectTab() {
         return;
       }
 
-      const metadata = await getTeamworkProjectMetadata(projectId);
-      setProjectMetadata(metadata);
+      const messages: string[] = [];
+
+      if (projectId) {
+        try {
+          const metadata = await getTeamworkProjectMetadata(projectId);
+          setProjectMetadata(metadata);
+          messages.push(
+            metadata.source === "cache"
+              ? "Using cached Teamwork project metadata."
+              : "Fetched Teamwork project metadata.",
+          );
+        } catch (error) {
+          messages.push(
+            `Failed to load project metadata: ${error instanceof Error ? error.message : "Unknown error"}.`,
+          );
+        }
+      } else {
+        messages.push("No project ID set.");
+      }
 
       const results = await getPinnedTaskListTasks(config.project.teamwork.pinnedTaskLists);
       const nextPinnedTaskLists: PinnedTaskListState[] = results.map((r) => ({
@@ -113,11 +125,7 @@ export function ProjectTab() {
 
       setPinnedTaskLists(nextPinnedTaskLists);
       setSelectedTask(getNextPinnedTaskSelection(nextPinnedTaskLists, selectedTask(), 1));
-      setProjectMessage(
-        metadata.source === "cache"
-          ? "Using cached Teamwork project metadata."
-          : "Fetched Teamwork project metadata.",
-      );
+      setProjectMessage(messages.join(" "));
     } catch (error) {
       setProjectMessage(error instanceof Error ? error.message : "Failed to load project context.");
     }
