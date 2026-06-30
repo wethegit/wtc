@@ -10,7 +10,6 @@ import { loadTuiState } from "../api/state/manager.ts";
 import type { Route, TuiStateEntry } from "../api/state/schema.ts";
 import { TEAMWORK_TIMESHEET_URL } from "../api/teamwork/consts.ts";
 import { openUrlInBrowser } from "../utils/browser.ts";
-import { getLogPath } from "../api/logs/manager.ts";
 
 import { DialogProvider, useDialog } from "./components/dialog.tsx";
 import { UpdateDialog } from "./components/update-dialog.tsx";
@@ -148,16 +147,6 @@ function Home() {
         run: () => {
           navigate({ page: "system" });
           dialog.clear();
-        },
-      },
-      {
-        name: "logs.open",
-        title: "Open Log File",
-        desc: "Open the WTC log file in the system browser",
-        category: "System",
-        run: () => {
-          dialog.clear();
-          void openUrlInBrowser(getLogPath());
         },
       },
     ].map((command) => ({

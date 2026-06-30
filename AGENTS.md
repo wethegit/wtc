@@ -78,9 +78,22 @@ Examples:
 
 - `getCacheDir()` belongs in `src/api/cache/consts.ts` because it is shared and owns `WTC_CACHE_DIR`.
 - `getUserConfigDir()` belongs in `src/api/config/consts.ts` because it owns `WTC_CONFIG_DIR`.
-- `STATE_FILE = "tui-state.json"` belongs in `src/api/state/manager.ts` because only the state manager uses it.
+- Cache filenames like `"tui-state.json"` belong in `src/api/cache/consts.ts` under the `CACHE` object, not in the domain module.
 - `getStatePath()` should not exist if it only appends `STATE_FILE` to `getCacheDir()` in one module.
 - `formatUserConfig()` is valid because Bun's YAML parser does not preserve comments, so config saves need explicit commented formatting.
+
+### Error Handling & Logging
+
+- Use the structured logger for all noteworthy events (scope `domain.flow.action`)
+- API layer owns logging: network/file I/O wrapped in try/catch with `logError` + rethrow/fallback
+- TUI/CLI callers catch only for user-facing messages, do not re-log what the API logged
+- Fire-and-forget async calls must have a `.catch()` handler
+- Do not log secrets
+
+### Cache I/O
+
+- All cache filenames live in `src/api/cache/consts.ts` under the `CACHE` object
+- All file I/O uses primitives from `src/api/cache/manager.ts`, never `Bun.file()` or `Bun.write()` directly
 
 ## Code Quality
 
