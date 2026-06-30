@@ -314,6 +314,7 @@ export function GitHubPage() {
   };
 
   useBindings(() => ({
+    enabled: !dialog.active(),
     bindings: [
       {
         key: "ctrl+n",

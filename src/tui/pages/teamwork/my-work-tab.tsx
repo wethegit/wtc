@@ -8,6 +8,7 @@ import {
   type MyWorkTask,
   type ProjectTaskGroup,
 } from "../../../api/teamwork/my-tasks.ts";
+import { useDialog } from "../../components/dialog.tsx";
 import { Card } from "../../components/layout/card.tsx";
 import { TaskList } from "../../components/teamwork/task-list.tsx";
 import { usePageScroll } from "../../components/layout/scroll-context.tsx";
@@ -24,6 +25,7 @@ interface MyWorkSelection {
 
 /** My Work tab showing tasks assigned to the current user, grouped by project. */
 export function MyWorkTab() {
+  const dialog = useDialog();
   const [_teamworkAuthStatus, setTeamworkAuthStatus] = createSignal<TeamworkAuthStatus>("missing");
   const [currentUser, setCurrentUser] = createSignal<TeamworkCurrentUser | null>(null);
   const [projectGroups, setProjectGroups] = createSignal<ProjectTaskGroup[]>([]);
@@ -88,6 +90,7 @@ export function MyWorkTab() {
   };
 
   useBindings(() => ({
+    enabled: !dialog.active(),
     bindings: [
       {
         key: "down",

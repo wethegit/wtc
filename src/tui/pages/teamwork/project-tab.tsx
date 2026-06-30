@@ -10,6 +10,7 @@ import {
 } from "../../../api/teamwork/project-metadata.ts";
 import { getPinnedTaskListTasks } from "../../../api/teamwork/task-list-tasks.ts";
 import type { TeamworkTask } from "../../../api/teamwork/task-list-tasks.ts";
+import { useDialog } from "../../components/dialog.tsx";
 import { Card } from "../../components/layout/card.tsx";
 import { TaskList } from "../../components/teamwork/task-list.tsx";
 import { usePageScroll } from "../../components/layout/scroll-context.tsx";
@@ -34,6 +35,7 @@ export interface PinnedTaskSelection {
 
 /** Teamwork project tab showing project metadata, links, and pinned task lists with keyboard navigation. */
 export function ProjectTab() {
+  const dialog = useDialog();
   const [resolved, setResolved] = createSignal<ResolvedConfig | null>(null);
   const [_teamworkAuthStatus, setTeamworkAuthStatus] = createSignal<TeamworkAuthStatus>("missing");
   const [projectMetadata, setProjectMetadata] = createSignal<TeamworkProjectMetadataResult | null>(
@@ -122,6 +124,7 @@ export function ProjectTab() {
   };
 
   useBindings(() => ({
+    enabled: !dialog.active(),
     bindings: [
       {
         key: "down",
