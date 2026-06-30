@@ -7,7 +7,7 @@ import {
   type CacheFileInfo,
   listCacheFiles,
 } from "../../api/cache/manager.ts";
-import { clearLogFile, getLogPath, logInfo } from "../../api/logs/manager.ts";
+import { clearLogFile, getLogPath, logInfo, openLogFile } from "../../api/logs/manager.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
 import { ActionButton } from "../components/forms/action-button.tsx";
 import { Card } from "../components/layout/card.tsx";
@@ -27,7 +27,7 @@ type SystemFocusTarget =
 const FIRST_FOCUS: SystemFocusTarget = { type: "button", name: "open-log" };
 
 function formatSize(bytes: number): string {
-  if (bytes === 0) return "";
+  if (bytes === 0) return "0 B";
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -107,7 +107,7 @@ export function SystemPage() {
   };
 
   const openLog = () => {
-    openUrlInBrowser(getLogPath())
+    openLogFile()
       .then(() => {
         setMessage("Log file opened.");
       })
