@@ -12,6 +12,21 @@ interface PinnedTaskListsResult {
   taskLists: PinnedTaskListFetchResult[];
 }
 
+function formatTaskMetadata(task: {
+  assignees: string[];
+  dueDate?: string | null;
+  priority?: string | null;
+  boardColumn?: { name: string } | null;
+}): string | null {
+  const metadata: string[] = [];
+  if (task.assignees.length === 1) metadata.push(`assignee: ${task.assignees[0]}`);
+  if (task.assignees.length > 1) metadata.push(`assignees: ${task.assignees.join(", ")}`);
+  if (task.dueDate) metadata.push(`due: ${task.dueDate}`);
+  if (task.boardColumn) metadata.push(`board: ${task.boardColumn.name}`);
+  if (task.priority) metadata.push(`priority: ${task.priority}`);
+  return metadata.length ? metadata.join(" | ") : null;
+}
+
 /**
  * Formats pinned task list output for CLI display.
  *
@@ -53,13 +68,8 @@ function formatTeamworkTaskListPinnedOutput(
 
     for (const task of taskList.tasks) {
       lines.push(`  - ${task.name}${task.status ? ` [${task.status}]` : ""}`);
-      const metadata: string[] = [];
-      if (task.assignees.length === 1) metadata.push(`assignee: ${task.assignees[0]}`);
-      if (task.assignees.length > 1) metadata.push(`assignees: ${task.assignees.join(", ")}`);
-      if (task.dueDate) metadata.push(`due: ${task.dueDate}`);
-      if (task.boardColumn) metadata.push(`board: ${task.boardColumn.name}`);
-      if (task.priority) metadata.push(`priority: ${task.priority}`);
-      if (metadata.length) lines.push(`    ${metadata.join(" | ")}`);
+      const metadata = formatTaskMetadata(task);
+      if (metadata) lines.push(`    ${metadata}`);
     }
   }
 
@@ -178,12 +188,8 @@ function formatTeamworkTaskMineOutput(
 
     for (const task of group.tasks) {
       lines.push(`  - ${task.name}${task.status ? ` [${task.status}]` : ""}`);
-      const metadata: string[] = [];
-      if (task.assignees.length === 1) metadata.push(`assignee: ${task.assignees[0]}`);
-      if (task.assignees.length > 1) metadata.push(`assignees: ${task.assignees.join(", ")}`);
-      if (task.dueDate) metadata.push(`due: ${task.dueDate}`);
-      if (task.priority) metadata.push(`priority: ${task.priority}`);
-      if (metadata.length) lines.push(`    ${metadata.join(" | ")}`);
+      const metadata = formatTaskMetadata(task);
+      if (metadata) lines.push(`    ${metadata}`);
     }
   }
 

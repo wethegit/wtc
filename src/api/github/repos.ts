@@ -282,6 +282,11 @@ export async function createGitHubRepoWithSetup(
     });
     warnings = setupResult.warnings;
   } catch (error) {
+    logError("github", "repos.createRepoWithSetup.setup.error", "Repository setup failed", {
+      owner: input.owner,
+      repo: repo.name,
+      error: error instanceof Error ? error.message : String(error),
+    });
     warnings = [
       `Repository setup failed: ${error instanceof Error ? error.message : String(error)}`,
     ];
