@@ -1,7 +1,7 @@
 import { appendFile, mkdir } from "node:fs/promises";
+import { join } from "node:path";
 
 import { openUrlInBrowser } from "../../utils/browser.ts";
-import { getCachePath } from "../cache/manager.ts";
 import { CACHE, getCacheDir } from "../cache/consts.ts";
 
 type LogLevel = "info" | "warn" | "error";
@@ -17,7 +17,7 @@ interface LogEntry {
 }
 
 export function getLogPath(): string {
-  return getCachePath(CACHE.log);
+  return join(getCacheDir(), CACHE.log);
 }
 
 async function writeLog(
@@ -40,8 +40,8 @@ async function writeLog(
   try {
     await mkdir(getCacheDir(), { recursive: true });
     await appendFile(path, `${JSON.stringify(entry)}\n`, "utf8");
-  } catch {
-    console.error("Failed to write log entry.");
+  } catch (error) {
+    console.error("Failed to write log entry.", error);
   }
 }
 

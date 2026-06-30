@@ -13,15 +13,15 @@ function isPackageJsonWithVersion(value: unknown): value is PackageJsonWithVersi
 }
 
 let pkg: unknown;
-let parseFailed = false;
 try {
   pkg = await Bun.file("./package.json").json();
-} catch {
-  parseFailed = true;
+} catch (error) {
+  console.error("Failed to read package.json", error);
+  process.exit(1);
 }
 
-const version = parseFailed ? "0.0.0" : isPackageJsonWithVersion(pkg) ? pkg.version : "";
-if (!parseFailed && !version) {
+const version = isPackageJsonWithVersion(pkg) ? pkg.version : "";
+if (!version) {
   console.error("Invalid package.json: expected a non-empty string version field.");
   process.exit(1);
 }
