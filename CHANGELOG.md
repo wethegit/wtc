@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.16
+
+### Patch Changes
+
+- [#61](https://github.com/wethegit/wtc/pull/61) [`54811d2`](https://github.com/wethegit/wtc/commit/54811d261d7afe3938f6218a8b87a8bf481be7d0) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Adds logging and better error handling
+
 ## 0.3.15
 
 ### Patch Changes
