@@ -257,6 +257,10 @@ export async function createGitHubRepo(input: CreateGitHubRepoInput): Promise<Cr
 export async function createGitHubRepoWithSetup(
   input: CreateGitHubRepoWithSetupInput,
 ): Promise<CreateGitHubRepoWithSetupResult> {
+  if ((input.templateOwner && !input.templateRepo) || (!input.templateOwner && input.templateRepo)) {
+    throw new Error("Both templateOwner and templateRepo must be provided together.");
+  }
+
   const repo = await (input.templateOwner && input.templateRepo
     ? createGitHubRepoFromTemplate({
         templateOwner: input.templateOwner,
