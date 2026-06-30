@@ -1,10 +1,9 @@
 import { z } from "zod";
 
 import { logError } from "../../logs/manager.ts";
-import { getCacheDir } from "../../cache/consts.ts";
+import { readCacheFile, writeCacheFile } from "../../cache/manager.ts";
+import { CACHE } from "../../cache/consts.ts";
 import { createTaskTimeEntry } from "../timers.ts";
-
-const LOCAL_TIMERS_CACHE_FILE = "teamwork-local-timers.json";
 
 const LocalTimerEntrySchema = z.object({
   id: z.string(),
@@ -23,16 +22,11 @@ const LocalTimersFileSchema = z.object({
 /** A locally-managed timer entry that has not been submitted to the Teamwork API yet. */
 export type LocalTimerEntry = z.infer<typeof LocalTimerEntrySchema>;
 
-function getLocalTimersPath(): string {
-  return `${getCacheDir()}/${LOCAL_TIMERS_CACHE_FILE}`;
-}
-
 /** Loads all local timers from the cache file. Returns an empty array if the file is missing or corrupt. */
 export async function loadLocalTimers(): Promise<LocalTimerEntry[]> {
   try {
-    const parsed = LocalTimersFileSchema.parse(
-      JSON.parse(await Bun.file(getLocalTimersPath()).text()),
-    );
+    const raw = await readCacheFile(CACHE.localTimers);
+    const parsed = LocalTimersFileSchema.parse(JSON.parse(raw ?? "{}"));
     return parsed.timers;
   } catch {
     return [];
@@ -42,7 +36,7 @@ export async function loadLocalTimers(): Promise<LocalTimerEntry[]> {
 async function saveLocalTimers(timers: LocalTimerEntry[]): Promise<void> {
   const file = { version: 1, timers };
   try {
-    await Bun.write(getLocalTimersPath(), `${JSON.stringify(file, null, 2)}\n`);
+    await writeCacheFile(CACHE.localTimers, `${JSON.stringify(file, null, 2)}\n`);
   } catch (error) {
     logError("teamwork", "localTimers.save.error", "Failed to save local timers", {
       error: error instanceof Error ? error.message : String(error),

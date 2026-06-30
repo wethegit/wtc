@@ -1,17 +1,12 @@
-import { mkdir } from "node:fs/promises";
 import { z } from "zod";
 
 import { APP_VERSION } from "../api/config/consts.ts";
-import { getCacheDir } from "../api/cache/consts.ts";
+import { readCacheFile, writeCacheFile } from "../api/cache/manager.ts";
+import { CACHE } from "../api/cache/consts.ts";
 
 /** How long a successful GitHub release lookup remains fresh. */
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const REPO = "wethegit/wtc";
-
-/** Returns the update cache path. */
-function getCachePath(): string {
-  return `${getCacheDir()}/update-check.json`;
-}
 
 /** Normalizes release tags so `v1.2.3` and `1.2.3` compare equally. */
 function normalizeVersion(version: string): string {
@@ -68,7 +63,8 @@ interface UpdateInfo {
 /** Reads the cached release lookup, returning null when missing or invalid. */
 async function readCache(): Promise<UpdateCache | null> {
   try {
-    return UpdateCacheSchema.parse(JSON.parse(await Bun.file(getCachePath()).text()));
+    const raw = await readCacheFile(CACHE.updateCheck);
+    return raw ? UpdateCacheSchema.parse(JSON.parse(raw)) : null;
   } catch {
     return null;
   }
@@ -76,9 +72,7 @@ async function readCache(): Promise<UpdateCache | null> {
 
 /** Writes the latest successful release lookup to the local cache. */
 async function writeCache(cache: UpdateCache): Promise<void> {
-  const path = getCachePath();
-  await mkdir(getCacheDir(), { recursive: true });
-  await Bun.write(path, JSON.stringify(cache));
+  await writeCacheFile(CACHE.updateCheck, JSON.stringify(cache));
 }
 
 /** Fetches the latest GitHub release tag for the WTC repository. */

@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 import { logError } from "../logs/manager.ts";
-import { getCacheDir } from "../cache/consts.ts";
+import { readCacheFile, writeCacheFile } from "../cache/manager.ts";
+import { CACHE } from "../cache/consts.ts";
 import { fetchTeamworkApiJson } from "./client.ts";
 
-const WORKFLOW_STAGES_CACHE_FILE = "teamwork-workflow-stages.json";
 const WORKFLOW_STAGES_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 const StageSchema = z.object({
@@ -41,7 +41,8 @@ export async function getWorkflowStageNames(
   let cacheWasUpgraded = false;
 
   try {
-    cache = JSON.parse(await Bun.file(`${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`).text());
+    const raw = await readCacheFile(CACHE.workflowStages);
+    cache = JSON.parse(raw ?? "{}");
   } catch {
     cache = { version: 2, workflows: {} };
   }
@@ -54,10 +55,7 @@ export async function getWorkflowStageNames(
   if (cached && cache.version >= 2 && now - cached.cachedAt < WORKFLOW_STAGES_CACHE_TTL_MS) {
     if (cacheWasUpgraded) {
       try {
-        await Bun.write(
-          `${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`,
-          `${JSON.stringify(cache, null, 2)}\n`,
-        );
+        await writeCacheFile(CACHE.workflowStages, `${JSON.stringify(cache, null, 2)}\n`);
       } catch (error) {
         logError("teamwork", "workflowStages.cacheWrite.error", "Failed to write upgraded cache", {
           error: error instanceof Error ? error.message : String(error),
@@ -97,10 +95,7 @@ export async function getWorkflowStageNames(
 
   cache.workflows[key] = { stages: stageData, cachedAt: now };
   try {
-    await Bun.write(
-      `${getCacheDir()}/${WORKFLOW_STAGES_CACHE_FILE}`,
-      `${JSON.stringify(cache, null, 2)}\n`,
-    );
+    await writeCacheFile(CACHE.workflowStages, `${JSON.stringify(cache, null, 2)}\n`);
   } catch (error) {
     logError(
       "teamwork",

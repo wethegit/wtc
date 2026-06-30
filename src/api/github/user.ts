@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { getCacheDir } from "../cache/consts.ts";
+import { readCacheFile, writeCacheFile } from "../cache/manager.ts";
+import { CACHE } from "../cache/consts.ts";
 
 import { getOctokit } from "./client.ts";
 
-const USER_CACHE_FILE = "github-user.json";
 const USER_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 const GitHubUserApiSchema = z.object({
@@ -38,9 +38,8 @@ export async function getGitHubCurrentUser(): Promise<GitHubCurrentUser> {
   let cache: GitHubUserCacheFile;
 
   try {
-    cache = GitHubUserCacheFileSchema.parse(
-      JSON.parse(await Bun.file(`${getCacheDir()}/${USER_CACHE_FILE}`).text()),
-    );
+    const raw = await readCacheFile(CACHE.githubUser);
+    cache = GitHubUserCacheFileSchema.parse(JSON.parse(raw ?? "{}"));
   } catch {
     cache = { version: 1, user: null };
   }
@@ -65,7 +64,7 @@ export async function getGitHubCurrentUser(): Promise<GitHubCurrentUser> {
     };
 
     cache.user = { ...user, cachedAt: now };
-    await Bun.write(`${getCacheDir()}/${USER_CACHE_FILE}`, `${JSON.stringify(cache, null, 2)}\n`);
+    await writeCacheFile(CACHE.githubUser, `${JSON.stringify(cache, null, 2)}\n`);
     return user;
   } catch (error) {
     if (cache.user) {
