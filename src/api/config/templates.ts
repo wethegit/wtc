@@ -63,7 +63,7 @@ export function formatProjectConfig(config: ProjectConfig): string {
           (taskList) => `    - name: ${JSON.stringify(taskList.name)}\n      id: ${taskList.id}\n`,
         )
         .join("")}`
-    : `  pinnedTaskLists: []\n  # - name: General Tasks\n  #   id: 1597639\n`;
+    : `  pinnedTaskLists: []\n  # id can be a task list, or a task with subtasks\n  # - name: General Tasks\n  #   id: 1597639\n`;
 
   return `# WTC project-level configuration.
 
