@@ -145,20 +145,12 @@ function parseTeamworkDueDate(dueDate: TeamworkDateValue | null | undefined): st
   return trimmed;
 }
 
-/** Fetches tasks for a Teamwork task list and resolves workflow stage names, assignees, due dates, and priority. */
-export async function getTeamworkTaskListTasks(taskListId: number): Promise<TeamworkTask[]> {
-  let parsed: z.infer<typeof TeamworkTaskListTasksResponseSchema>;
-  try {
-    parsed = TeamworkTaskListTasksResponseSchema.parse(
-      await fetchTeamworkApiJson(`/tasklists/${taskListId}/tasks.json?include=users,assigneeUsers`),
-    );
-  } catch (error) {
-    logWarn("teamwork", "taskList.get.error", `Failed to fetch task list ${taskListId}`, {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    throw error;
-  }
+type TeamworkTaskListTasksResponse = z.infer<typeof TeamworkTaskListTasksResponseSchema>;
 
+/** Normalizes a Teamwork tasks response, resolving workflow stage names, assignees, due dates, and priority. */
+async function normalizeTeamworkTasks(
+  parsed: TeamworkTaskListTasksResponse,
+): Promise<TeamworkTask[]> {
   const workflowIds = [
     ...new Set(
       parsed.tasks.flatMap(
@@ -225,6 +217,71 @@ export async function getTeamworkTaskListTasks(taskListId: number): Promise<Team
   return tasks;
 }
 
+/** Fetches tasks for a Teamwork task list and resolves workflow stage names, assignees, due dates, and priority. */
+export async function getTeamworkTaskListTasks(taskListId: number): Promise<TeamworkTask[]> {
+  let parsed: TeamworkTaskListTasksResponse;
+  try {
+    parsed = TeamworkTaskListTasksResponseSchema.parse(
+      await fetchTeamworkApiJson(`/tasklists/${taskListId}/tasks.json?include=users,assigneeUsers`),
+    );
+  } catch (error) {
+    logWarn("teamwork", "taskList.get.error", `Failed to fetch task list ${taskListId}`, {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
+  return normalizeTeamworkTasks(parsed);
+}
+
+/** Fetches the subtasks of a single Teamwork task, normalized the same way as task-list tasks. */
+export async function getTeamworkSubtasks(taskId: number): Promise<TeamworkTask[]> {
+  let parsed: TeamworkTaskListTasksResponse;
+  try {
+    parsed = TeamworkTaskListTasksResponseSchema.parse(
+      await fetchTeamworkApiJson(`/tasks/${taskId}/subtasks.json?include=users,assigneeUsers`),
+    );
+  } catch (error) {
+    logWarn("teamwork", "task.subtasks.error", `Failed to fetch subtasks for task ${taskId}`, {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
+  return normalizeTeamworkTasks(parsed);
+}
+
+/**
+ * Fetches tasks for a pinned ID that may be either a task list or a single task with subtasks.
+ *
+ * Tries the task-list endpoint first. When the ID is actually a task, that endpoint returns no
+ * tasks (or 404s), so we fall back to the task's subtasks. A genuinely empty task list still
+ * resolves to an empty array rather than surfacing the subtask lookup failure.
+ */
+export async function getTeamworkTaskListOrSubtasks(id: number): Promise<TeamworkTask[]> {
+  let taskListTasks: TeamworkTask[];
+  try {
+    taskListTasks = await getTeamworkTaskListTasks(id);
+  } catch (taskListError) {
+    try {
+      const subtasks = await getTeamworkSubtasks(id);
+      if (subtasks.length > 0) return subtasks;
+    } catch {
+      // Ignore the subtask failure and surface the original task-list error.
+    }
+    throw taskListError;
+  }
+
+  if (taskListTasks.length > 0) return taskListTasks;
+
+  try {
+    const subtasks = await getTeamworkSubtasks(id);
+    if (subtasks.length > 0) return subtasks;
+  } catch {
+    // The ID is a genuinely empty task list, not a task with subtasks.
+  }
+
+  return taskListTasks;
+}
+
 /** A pinned task list with its fetched tasks (or an error message). */
 export interface PinnedTaskListFetchResult {
   id: number;
@@ -247,7 +304,7 @@ export async function getPinnedTaskListTasks(
       results.push({
         id: taskList.id,
         name: taskList.name,
-        tasks: await getTeamworkTaskListTasks(taskList.id),
+        tasks: await getTeamworkTaskListOrSubtasks(taskList.id),
         error: null,
       });
     } catch (error) {
