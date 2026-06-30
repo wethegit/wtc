@@ -175,6 +175,40 @@ Maintainers create releases by merging the Changesets version PR. Tag creation, 
 - Types: `PascalCase`
 - Functions: `camelCase`
 
+### Error Handling & Logging
+
+The structured logger (`logInfo` / `logWarn` / `logError`) lives in `src/api/logs/manager.ts`. Logs are written as NDJSON to `~/.config/wtc/cache/wtc.log`. Event names follow `domain.flow.action` (e.g. `cli.repo.create.start`, `teamwork.client.fetch.error`).
+
+**Rules:**
+
+- Network calls and file I/O must be wrapped in try/catch — log the error with `logError`, then rethrow or return a fallback. Never silently swallow errors.
+- Fire-and-forget async calls in the TUI must have a `.catch()` handler that logs the error.
+- Empty catch blocks are acceptable only when the fallback is obvious and logging would add noise (e.g. cache-read fallback to defaults). Otherwise, log even in fallback paths.
+- The API layer owns error logging. TUI/CLI callers should catch only to show user-facing messages — they should not re-log what the API already logged.
+- Do not log secrets: no API tokens, no raw auth headers, no full environment dumps.
+
+### Cache I/O
+
+All cache filenames are centralized in `src/api/cache/consts.ts` under the `CACHE` object:
+
+```ts
+CACHE.templateRepos; // "github-template-repos.json"
+CACHE.githubUser; // "github-user.json"
+CACHE.taskBranches; // "task-branches.json"
+// ... see consts.ts for the full list
+```
+
+All file I/O uses primitives from `src/api/cache/manager.ts`:
+
+- `readCacheFile(name)` — reads as text, returns `string | null` if missing. Never throws; failures are logged and return `null`.
+- `writeCacheFile(name, data)` — creates cache dir if needed, writes file. Logs and rethrows on failure.
+- `deleteCacheFile(name)` — removes a single file. Logs and rethrows on failure.
+- `listCacheFiles()` — returns `CacheFileInfo[]` for every known descriptor in `CACHE_DESCRIPTORS`.
+
+Domain modules import `CACHE` from `cache/consts.ts` and the needed function from `cache/manager.ts`. They never call `Bun.file()` or `Bun.write()` directly against cache paths.
+
+The `CACHE_DESCRIPTORS` array in `consts.ts` is the single source of truth for the System TUI page — each entry has a description, category (`"cache" | "state" | "log"`), and optional TTL display.
+
 ## Pull Requests
 
 1. Create a branch from `main`

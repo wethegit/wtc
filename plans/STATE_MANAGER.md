@@ -25,7 +25,7 @@ Create a lightweight, deletable runtime data layer:
 - Duplicate usage of `homedir()` from `node:os` in the state consts rather than exporting from config — each module stays self-contained.
 - Write is explicit (on route change), not debounced per keystroke.
 - `wtc cache clean` removes the entire `cache/` directory including TUI state.
-- Use Bun-native file APIs directly (`Bun.file().json()`, `Bun.write()`) — no shared wrappers from `manager.ts`.
+- Use centralized cache I/O primitives (`readCacheFile`, `writeCacheFile`) from `src/api/cache/manager.ts` — all domain modules import them instead of calling `Bun.file()` / `Bun.write()` directly.
 - The update-check cache moves from `~/.cache/wtc/` into the shared cache dir.
 
 ---
@@ -146,7 +146,7 @@ The `z.record(...)` pattern makes future fields (scroll position, collapsed sect
 
 File: `src/api/state/manager.ts`
 
-All functions use Bun-native APIs directly (`Bun.file().json()`, `Bun.write()`, `Bun.file().exists()`). No shared wrappers.
+All functions use centralized cache I/O primitives (`readCacheFile`, `writeCacheFile`) from `src/api/cache/manager.ts`.
 
 ```ts
 import { getCacheDir } from "./consts.ts";

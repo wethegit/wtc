@@ -1,5 +1,4 @@
-import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
-import { useBindings } from "@opentui/keymap/solid";
+import { createSignal, For, onMount, Show } from "solid-js";
 
 import {
   clearCache,
@@ -9,12 +8,10 @@ import {
 } from "../../api/cache/manager.ts";
 import { clearLogFile, getLogPath, logInfo } from "../../api/logs/manager.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
-import { ActionButton } from "../components/forms/action-button.tsx";
 import { Card } from "../components/layout/card.tsx";
 import { Page } from "../components/layout/page.tsx";
 import { ConfirmDialog } from "../components/confirm-dialog.tsx";
 import { useDialog } from "../components/dialog.tsx";
-import { useStatusBar } from "../components/status-bar.tsx";
 import { tokens } from "../tokens.ts";
 
 function formatSize(bytes: number): string {
@@ -38,22 +35,20 @@ function categoryColor(category: "cache" | "state" | "log") {
 /** System route for managing logs and cache files. */
 export function SystemPage() {
   const dialog = useDialog();
-  const { setHints } = useStatusBar();
   const [message, setMessage] = createSignal("Loading...");
   const [logSize, setLogSize] = createSignal(0);
   const [cacheFiles, setCacheFiles] = createSignal<CacheFileInfo[]>([]);
 
   const refreshLogInfo = async () => {
-    const logPath = getLogPath();
     try {
-      const fileStat = await Bun.file(logPath).stat();
+      const fileStat = await Bun.file(getLogPath()).stat();
       setLogSize(fileStat.size);
     } catch {
       setLogSize(0);
     }
   };
 
-  const reload = async () => {
+  const loadData = async () => {
     setMessage("Loading system info...");
     try {
       const files = await listCacheFiles();
@@ -66,8 +61,13 @@ export function SystemPage() {
   };
 
   const openLog = () => {
-    void openUrlInBrowser(getLogPath());
-    setMessage("Log file opened.");
+    openUrlInBrowser(getLogPath())
+      .then(() => {
+        setMessage("Log file opened.");
+      })
+      .catch((error) => {
+        setMessage(error instanceof Error ? error.message : "Failed to open log file.");
+      });
   };
 
   const clearLog = () => {
@@ -78,9 +78,13 @@ export function SystemPage() {
         message="Delete all log entries? This cannot be undone."
         confirmLabel="Clear"
         onConfirm={async () => {
-          await clearLogFile();
-          await refreshLogInfo();
-          setMessage("Log file cleared.");
+          try {
+            await clearLogFile();
+            await refreshLogInfo();
+            setMessage("Log file cleared.");
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Failed to clear log.");
+          }
         }}
       />
     ));
@@ -88,8 +92,13 @@ export function SystemPage() {
 
   const openCacheFile = (info: CacheFileInfo) => {
     if (!info.exists) return;
-    void openUrlInBrowser(info.path);
-    setMessage(`Opened: ${info.descriptor.name}`);
+    openUrlInBrowser(info.path)
+      .then(() => {
+        setMessage(`Opened: ${info.descriptor.name}`);
+      })
+      .catch((error) => {
+        setMessage(error instanceof Error ? error.message : "Failed to open cache file.");
+      });
   };
 
   const deleteCacheFileAction = (info: CacheFileInfo) => {
@@ -99,9 +108,13 @@ export function SystemPage() {
         message={`Delete ${info.descriptor.name}?\n${info.descriptor.description}\n\nThis cannot be undone.`}
         confirmLabel="Delete"
         onConfirm={async () => {
-          await deleteCacheFile(info.descriptor.name);
-          await reload();
-          setMessage(`Deleted: ${info.descriptor.name}`);
+          try {
+            await deleteCacheFile(info.descriptor.name);
+            await loadData();
+            setMessage(`Deleted: ${info.descriptor.name}`);
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Failed to delete cache file.");
+          }
         }}
       />
     ));
@@ -114,40 +127,21 @@ export function SystemPage() {
         message="Delete every cache file? This cannot be undone."
         confirmLabel="Clear All"
         onConfirm={async () => {
-          await clearCache();
-          await reload();
-          setMessage("All cache cleared.");
+          try {
+            await clearCache();
+            await loadData();
+            setMessage("All cache cleared.");
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Failed to clear cache.");
+          }
         }}
       />
     ));
   };
 
-  useBindings(() => ({
-    bindings: [
-      {
-        key: "ctrl+r",
-        desc: "Reload system info",
-        group: "System",
-        cmd: reload,
-      },
-      {
-        key: "o",
-        desc: "Open log file",
-        group: "System",
-        cmd: openLog,
-      },
-    ],
-  }));
-
   onMount(() => {
-    void reload();
-    setHints([
-      { key: "O", label: "open log" },
-      { key: "^R", label: "reload" },
-    ]);
+    void loadData();
   });
-
-  onCleanup(() => setHints([]));
 
   return (
     <Page title="System" message={<text fg={tokens.textDim}>{message()}</text>}>
@@ -157,8 +151,12 @@ export function SystemPage() {
           <text fg={tokens.textDim}>Size: {formatSize(logSize())}</text>
         </Show>
         <box flexDirection="row" gap={1} paddingTop={1}>
-          <ActionButton name="open-log" label="open log" variant="primary" onPress={openLog} />
-          <ActionButton name="clear-log" label="clear" onPress={clearLog} />
+          <box paddingX={2} backgroundColor={tokens.accent} onMouseUp={openLog}>
+            <text fg={tokens.textInverse}>open log</text>
+          </box>
+          <box paddingX={2} backgroundColor={tokens.surfaceOverlay} onMouseUp={clearLog}>
+            <text fg={tokens.text}>clear</text>
+          </box>
         </box>
       </Card>
 
@@ -183,32 +181,31 @@ export function SystemPage() {
                   <text fg={tokens.textDim}>Size: {formatSize(info.sizeBytes)}</text>
                 </Show>
               </box>
-              <box flexDirection="row" alignItems="center" gap={1}>
-                <Show when={info.exists}>
-                  <ActionButton
-                    name={`open-${info.descriptor.name}`}
-                    label="open"
-                    onPress={() => openCacheFile(info)}
-                  />
-                </Show>
-                <Show when={info.exists}>
-                  <ActionButton
-                    name={`delete-${info.descriptor.name}`}
-                    label="delete"
-                    onPress={() => deleteCacheFileAction(info)}
-                  />
-                </Show>
-              </box>
+              <Show when={info.exists}>
+                <box flexDirection="row" alignItems="center" gap={1}>
+                  <box
+                    paddingX={2}
+                    backgroundColor={tokens.surfaceOverlay}
+                    onMouseUp={() => openCacheFile(info)}
+                  >
+                    <text fg={tokens.text}>open</text>
+                  </box>
+                  <box
+                    paddingX={2}
+                    backgroundColor={tokens.surfaceOverlay}
+                    onMouseUp={() => deleteCacheFileAction(info)}
+                  >
+                    <text fg={tokens.text}>delete</text>
+                  </box>
+                </box>
+              </Show>
             </box>
           )}
         </For>
         <box flexDirection="row" gap={1} paddingTop={1}>
-          <ActionButton
-            name="clear-all-cache"
-            label="clear all cache"
-            variant="primary"
-            onPress={clearAllCache}
-          />
+          <box paddingX={2} backgroundColor={tokens.accent} onMouseUp={clearAllCache}>
+            <text fg={tokens.textInverse}>clear all cache</text>
+          </box>
         </box>
       </Card>
     </Page>
