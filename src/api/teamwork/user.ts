@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-import { getCacheDir } from "../cache/consts.ts";
+import { readCacheFile, writeCacheFile } from "../cache/manager.ts";
+import { CACHE } from "../cache/consts.ts";
 
 import { fetchTeamworkApiJson } from "./client.ts";
 import { TEAMWORK_BASE_URL } from "./consts.ts";
 
-const USER_CACHE_FILE = "teamwork-user.json";
 const USER_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 const TeamworkPersonApiSchema = z.object({
@@ -56,9 +56,8 @@ export async function getTeamworkCurrentUser(): Promise<TeamworkCurrentUser> {
   let cache: TeamworkUserCacheFile;
 
   try {
-    cache = TeamworkUserCacheFileSchema.parse(
-      JSON.parse(await Bun.file(`${getCacheDir()}/${USER_CACHE_FILE}`).text()),
-    );
+    const raw = await readCacheFile(CACHE.teamworkUser);
+    cache = TeamworkUserCacheFileSchema.parse(JSON.parse(raw ?? "{}"));
   } catch {
     cache = { version: 1, user: null };
   }
@@ -95,7 +94,7 @@ export async function getTeamworkCurrentUser(): Promise<TeamworkCurrentUser> {
       avatarUrl: user.avatarUrl ?? undefined,
       cachedAt: now,
     };
-    await Bun.write(`${getCacheDir()}/${USER_CACHE_FILE}`, `${JSON.stringify(cache, null, 2)}\n`);
+    await writeCacheFile(CACHE.teamworkUser, `${JSON.stringify(cache, null, 2)}\n`);
     return user;
   } catch (error) {
     if (cache.user) {

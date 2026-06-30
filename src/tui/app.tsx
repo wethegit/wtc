@@ -18,6 +18,7 @@ import { COMMAND_PALETTE_COMMAND, CommandPaletteDialog } from "./components/comm
 import { Dashboard } from "./pages/dashboard.tsx";
 import { GitHubPage } from "./pages/github.tsx";
 import { SettingsPage } from "./pages/settings.tsx";
+import { SystemPage } from "./pages/system.tsx";
 import { TeamworkPage } from "./pages/teamwork.tsx";
 import { StateProvider, useTuiState } from "./components/state-provider.tsx";
 import { StatusBarProvider } from "./components/status-bar.tsx";
@@ -140,6 +141,16 @@ function Home() {
         },
       },
       {
+        name: "system.open",
+        title: "Open System",
+        desc: "Manage logs and cache",
+        category: "System",
+        run: () => {
+          navigate({ page: "system" });
+          dialog.clear();
+        },
+      },
+      {
         name: "logs.open",
         title: "Open Log File",
         desc: "Open the WTC log file in the system browser",
@@ -236,6 +247,9 @@ function Home() {
           </Match>
           <Match when={route().page === "settings"}>
             <SettingsPage />
+          </Match>
+          <Match when={route().page === "system"}>
+            <SystemPage />
           </Match>
         </Switch>
       </ErrorBoundary>

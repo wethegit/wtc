@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { getCacheDir } from "../cache/consts.ts";
+import { readCacheFile, writeCacheFile } from "../cache/manager.ts";
+import { CACHE } from "../cache/consts.ts";
 
 import { fetchTeamworkApiJson } from "./client.ts";
 
-const PROJECT_METADATA_CACHE_FILE = "teamwork-project-metadata.json";
 const PROJECT_METADATA_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const TeamworkProjectApiSchema = z.object({
@@ -53,9 +53,8 @@ export async function getTeamworkProjectMetadata(
   let cache: TeamworkProjectCacheFile;
 
   try {
-    cache = TeamworkProjectCacheFileSchema.parse(
-      JSON.parse(await Bun.file(`${getCacheDir()}/${PROJECT_METADATA_CACHE_FILE}`).text()),
-    );
+    const raw = await readCacheFile(CACHE.projectMetadata);
+    cache = TeamworkProjectCacheFileSchema.parse(JSON.parse(raw ?? "{}"));
   } catch {
     cache = { version: 1, projects: {} };
   }
@@ -76,10 +75,7 @@ export async function getTeamworkProjectMetadata(
     cache.projects[key] = { ...project, cachedAt: now };
     // Endpoint-specific cache for now; add a shared cache layer only when more
     // Teamwork endpoints need common invalidation behavior.
-    await Bun.write(
-      `${getCacheDir()}/${PROJECT_METADATA_CACHE_FILE}`,
-      `${JSON.stringify(cache, null, 2)}\n`,
-    );
+    await writeCacheFile(CACHE.projectMetadata, `${JSON.stringify(cache, null, 2)}\n`);
     return { project, source: "network" };
   } catch (error) {
     if (cached) return { project: { id: cached.id, name: cached.name }, source: "cache" };

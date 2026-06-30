@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /** All valid top-level route pages in the TUI. */
-export const ROUTE_PAGES = ["home", "github", "settings", "teamwork"] as const;
+export const ROUTE_PAGES = ["home", "github", "settings", "system", "teamwork"] as const;
 
 /** TUI top-level page identifier. */
 export type RoutePage = (typeof ROUTE_PAGES)[number];

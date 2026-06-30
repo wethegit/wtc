@@ -1,9 +1,8 @@
 import { appendFile, mkdir } from "node:fs/promises";
 
 import { openUrlInBrowser } from "../../utils/browser.ts";
-import { getCacheDir } from "../cache/consts.ts";
-
-const LOG_FILE = "wtc.log";
+import { getCachePath } from "../cache/manager.ts";
+import { CACHE, getCacheDir } from "../cache/consts.ts";
 
 type LogLevel = "info" | "warn" | "error";
 type LogMetadata = Record<string, unknown>;
@@ -18,7 +17,7 @@ interface LogEntry {
 }
 
 export function getLogPath(): string {
-  return `${getCacheDir()}/${LOG_FILE}`;
+  return getCachePath(CACHE.log);
 }
 
 async function writeLog(

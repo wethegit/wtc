@@ -1,9 +1,8 @@
 import { z } from "zod";
 
-import { getCacheDir } from "../cache/consts.ts";
 import { parseGitHubRemoteUrl } from "../../utils/git.ts";
-
-const TASK_BRANCHES_CACHE_FILE = "task-branches.json";
+import { readCacheFile, writeCacheFile } from "../cache/manager.ts";
+import { CACHE } from "../cache/consts.ts";
 
 const TaskBranchEntrySchema = z.object({
   branch: z.string(),
@@ -66,17 +65,13 @@ export async function setTaskBranchPrUrl(
 
 async function readCache(): Promise<TaskBranchesCacheFile> {
   try {
-    return TaskBranchesCacheFileSchema.parse(
-      JSON.parse(await Bun.file(`${getCacheDir()}/${TASK_BRANCHES_CACHE_FILE}`).text()),
-    );
+    const raw = await readCacheFile(CACHE.taskBranches);
+    return TaskBranchesCacheFileSchema.parse(JSON.parse(raw ?? "{}"));
   } catch {
     return { version: 1, repos: {} };
   }
 }
 
 async function writeCache(cache: TaskBranchesCacheFile): Promise<void> {
-  await Bun.write(
-    `${getCacheDir()}/${TASK_BRANCHES_CACHE_FILE}`,
-    `${JSON.stringify(cache, null, 2)}\n`,
-  );
+  await writeCacheFile(CACHE.taskBranches, `${JSON.stringify(cache, null, 2)}\n`);
 }

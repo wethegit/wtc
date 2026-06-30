@@ -1,13 +1,13 @@
 import { z } from "zod";
 
-import { getCacheDir } from "../cache/consts.ts";
 import { logError } from "../logs/manager.ts";
+import { readCacheFile, writeCacheFile } from "../cache/manager.ts";
+import { CACHE } from "../cache/consts.ts";
 import { getOctokit } from "./client.ts";
 import { GITHUB_RULES_BYPASS_TEAM_SLUG } from "./consts.ts";
 import { GITHUB_REPO_RULESET_PRESETS, type GitHubRepoRulesPreset } from "./repo-rules.ts";
 export type { GitHubRepoRulesPreset } from "./repo-rules.ts";
 
-const TEMPLATE_REPOS_CACHE_FILE = "github-template-repos.json";
 const TEMPLATE_REPOS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 // Applied during blank repo creation and again after creation so template-based
@@ -110,9 +110,8 @@ export interface CreatedGitHubRepo {
 export async function getGitHubTemplateRepos(owner: string): Promise<GitHubTemplateRepo[]> {
   let cache: GitHubTemplateReposCacheFile;
   try {
-    cache = GitHubTemplateReposCacheFileSchema.parse(
-      JSON.parse(await Bun.file(`${getCacheDir()}/${TEMPLATE_REPOS_CACHE_FILE}`).text()),
-    );
+    const raw = await readCacheFile(CACHE.templateRepos);
+    cache = GitHubTemplateReposCacheFileSchema.parse(JSON.parse(raw ?? "{}"));
   } catch {
     cache = { version: 1, owners: {} };
   }
@@ -145,10 +144,7 @@ export async function getGitHubTemplateRepos(owner: string): Promise<GitHubTempl
 
     cache.owners[owner] = { cachedAt: now, repos: templateRepos };
     try {
-      await Bun.write(
-        `${getCacheDir()}/${TEMPLATE_REPOS_CACHE_FILE}`,
-        `${JSON.stringify(cache, null, 2)}\n`,
-      );
+      await writeCacheFile(CACHE.templateRepos, `${JSON.stringify(cache, null, 2)}\n`);
     } catch {
       // Cache persistence is optional here because fresh template data is already loaded.
     }
