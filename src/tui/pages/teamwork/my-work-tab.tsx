@@ -33,8 +33,7 @@ export function MyWorkTab() {
   const [message, setMessage] = createSignal("Loading my tasks...");
   const scroll = usePageScroll();
   const flashOn = useFlashInterval();
-  const { localTimers, refreshLocalTimers, toggleTimer, openSelectedTask } =
-    useTaskTimer(setMessage);
+  const { timers, refreshTimers, toggleTimer, openSelectedTask } = useTaskTimer(setMessage);
   const { createPrForTask } = usePrWorkflow(setMessage);
   const { createBranchForTask } = useBranchWorkflow(setMessage, createPrForTask);
 
@@ -137,7 +136,7 @@ export function MyWorkTab() {
 
   onMount(() => {
     void loadMyWork();
-    void refreshLocalTimers();
+    void refreshTimers();
   });
 
   const user = currentUser();
@@ -158,7 +157,7 @@ export function MyWorkTab() {
               selectedTaskId={
                 selectedTask()?.projectId === group.projectId ? selectedTask()?.taskId : null
               }
-              localTimers={localTimers()}
+              timers={timers()}
               flashOn={flashOn()}
             />
           </Card>

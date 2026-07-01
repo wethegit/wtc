@@ -46,8 +46,7 @@ export function ProjectTab() {
   const [projectMessage, setProjectMessage] = createSignal("Loading project context...");
   const scroll = usePageScroll();
   const flashOn = useFlashInterval();
-  const { localTimers, refreshLocalTimers, toggleTimer, openSelectedTask } =
-    useTaskTimer(setProjectMessage);
+  const { timers, refreshTimers, toggleTimer, openSelectedTask } = useTaskTimer(setProjectMessage);
   const { createPrForTask } = usePrWorkflow(setProjectMessage);
   const { createBranchForTask } = useBranchWorkflow(setProjectMessage, createPrForTask);
 
@@ -179,7 +178,7 @@ export function ProjectTab() {
 
   onMount(() => {
     void loadProjectContext();
-    void refreshLocalTimers();
+    void refreshTimers();
   });
 
   return (
@@ -220,7 +219,7 @@ export function ProjectTab() {
                     selectedTaskId={
                       selectedTask()?.taskListId === taskList.id ? selectedTask()?.taskId : null
                     }
-                    localTimers={localTimers()}
+                    timers={timers()}
                     flashOn={flashOn()}
                   />
                 )}

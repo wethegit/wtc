@@ -1,6 +1,6 @@
 import { getGitHubCurrentUser } from "../../api/github/user.ts";
 import { writeTaskBranch } from "../../api/github/workflows.ts";
-import { startLocalTimer } from "../../api/teamwork/timers/local.ts";
+import { startTimer } from "../../api/teamwork/timers/api.ts";
 import { detectRepo, parseGitHubRemoteUrl, branchExists } from "../../utils/git.ts";
 import { ConfirmDialog } from "../components/confirm-dialog.tsx";
 import { DialogInput } from "../components/dialog-input.tsx";
@@ -79,7 +79,7 @@ export function useBranchWorkflow(
         autoClose={false}
         onConfirm={async () => {
           try {
-            await startLocalTimer(task.id, task.name);
+            await startTimer(task.id, task.name);
           } catch (error) {
             setMessage(error instanceof Error ? error.message : "Failed to start timer.");
           }

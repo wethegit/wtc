@@ -13,7 +13,6 @@ export const CACHE = {
   taskBranches: "task-branches.json",
   teamworkUser: "teamwork-user.json",
   workflowStages: "teamwork-workflow-stages.json",
-  localTimers: "teamwork-local-timers.json",
   projectMetadata: "teamwork-project-metadata.json",
   tuiState: "tui-state.json",
   updateCheck: "update-check.json",
@@ -69,12 +68,6 @@ export const CACHE_DESCRIPTORS: CacheFileDescriptor[] = [
     description: "Teamwork workflow stage names and colors",
     category: "cache",
     ttlDisplay: "7d",
-  },
-  {
-    key: "localTimers",
-    name: CACHE.localTimers,
-    description: "Unsubmitted local timer entries",
-    category: "state",
   },
   {
     key: "projectMetadata",

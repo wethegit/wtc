@@ -4,7 +4,7 @@ import { getGitHubCurrentUser } from "../../api/github/user.ts";
 import { logError, logInfo, logWarn } from "../../api/logs/manager.ts";
 import { writeTaskBranch, writeTaskPr } from "../../api/github/workflows.ts";
 import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
-import { startLocalTimer } from "../../api/teamwork/timers/local.ts";
+import { startTimer } from "../../api/teamwork/timers/api.ts";
 import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { currentBranch, detectRepo, parseGitHubRemoteUrl } from "../../utils/git.ts";
 
@@ -58,7 +58,7 @@ export async function teamworkTaskBranch(args: {
   }
 
   if (args.startTimer) {
-    await startLocalTimer(taskData.id, taskData.name);
+    await startTimer(taskData.id, taskData.name);
   }
 
   logInfo("cli.task", "task.branch.success", "Branch created", {
