@@ -107,14 +107,13 @@ export function ProjectTab() {
               : "Fetched Teamwork project metadata.",
           );
         } catch (error) {
-          } catch (error) {
-            messages.push(
-              `Failed to load project metadata: ${error instanceof Error ? error.message : String(error)}`,
-            );
-          }
-        } else {
-          messages.push("Set teamwork.projectId in Settings to load Teamwork metadata.");
+          messages.push(
+            `Failed to load project metadata: ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
+      } else {
+        messages.push("Set teamwork.projectId in Settings to load Teamwork metadata.");
+      }
 
       const results = await getPinnedTaskListTasks(config.project.teamwork.pinnedTaskLists);
       const nextPinnedTaskLists: PinnedTaskListState[] = results.map((r) => ({
