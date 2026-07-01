@@ -1,10 +1,7 @@
 import { For } from "solid-js";
 
 import type { TeamworkTask } from "../../../api/teamwork/task-list-tasks.ts";
-import {
-  type LocalTimerEntry,
-  getLocalTimerElapsedMs,
-} from "../../../api/teamwork/timers/local.ts";
+import { getTimerElapsedMs, type TeamworkTimer } from "../../../api/teamwork/timers/api.ts";
 
 import { tokens } from "../../tokens.ts";
 
@@ -18,20 +15,20 @@ export function TaskList(props: {
   tasks: readonly TeamworkTask[];
   emptyMessage: string;
   selectedTaskId?: number | null;
-  localTimers?: readonly LocalTimerEntry[];
+  timers?: readonly TeamworkTimer[];
   now?: Date;
   flashOn?: boolean;
 }) {
   const timerBadge = (taskId: number): TimerBadgeProps | null => {
-    const timers = props.localTimers;
+    const timers = props.timers;
     if (!timers) return null;
 
     const timer = timers.find((t) => t.taskId === taskId);
     if (!timer) return null;
 
     return {
-      elapsedMs: getLocalTimerElapsedMs(timer, props.now ?? new Date()),
-      running: timer.status === "running",
+      elapsedMs: getTimerElapsedMs(timer, props.now ?? new Date()),
+      running: timer.running,
       flashOn: props.flashOn,
     };
   };

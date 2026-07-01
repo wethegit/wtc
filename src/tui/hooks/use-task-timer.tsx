@@ -1,26 +1,26 @@
 import { createSignal } from "solid-js";
 
 import {
-  loadLocalTimers,
-  startLocalTimer,
-  stopLocalTimer,
-  type LocalTimerEntry,
-} from "../../api/teamwork/timers/local.ts";
+  getMyTimers,
+  startTimer,
+  stopTimer,
+  type TeamworkTimer,
+} from "../../api/teamwork/timers/api.ts";
 import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
 import { ConfirmDialog } from "../components/confirm-dialog.tsx";
 import { useDialog } from "../components/dialog.tsx";
 
 /**
- * Manages local timer state and provides shared timer toggle/open/refresh
+ * Manages Teamwork native timer state and provides shared timer toggle/open/refresh
  * operations used by multiple task-focused tabs.
  */
 export function useTaskTimer(setMessage: (msg: string) => void) {
-  const [localTimers, setLocalTimers] = createSignal<LocalTimerEntry[]>([]);
+  const [timers, setTimers] = createSignal<TeamworkTimer[]>([]);
   const dialog = useDialog();
 
-  const refreshLocalTimers = async () => {
-    setLocalTimers(await loadLocalTimers());
+  const refreshTimers = async () => {
+    setTimers(await getMyTimers());
   };
 
   const toggleTimer = async (task: { id: number; name: string } | null) => {
@@ -30,15 +30,13 @@ export function useTaskTimer(setMessage: (msg: string) => void) {
     }
 
     try {
-      const timers = localTimers();
-      const runningTimer = timers.find((t) => t.status === "running");
+      const currentTimers = timers();
+      const runningTimer = currentTimers.find((t) => t.running);
 
       if (runningTimer?.taskId === task.id) {
-        const stopped = await stopLocalTimer();
-        if (stopped) {
-          await refreshLocalTimers();
-          setMessage(`Timer stopped for task: ${task.name}`);
-        }
+        await stopTimer(runningTimer.id);
+        await refreshTimers();
+        setMessage(`Timer stopped for task: ${task.name}`);
       } else if (runningTimer) {
         dialog.replace(() => (
           <ConfirmDialog
@@ -46,15 +44,15 @@ export function useTaskTimer(setMessage: (msg: string) => void) {
             message={`Timer is already running for: ${runningTimer.taskName}`}
             confirmLabel="switch"
             onConfirm={async () => {
-              await startLocalTimer(task.id, task.name);
-              await refreshLocalTimers();
+              await startTimer(task.id, task.name);
+              await refreshTimers();
               setMessage(`Timer started for task: ${task.name} (previous paused)`);
             }}
           />
         ));
       } else {
-        await startLocalTimer(task.id, task.name);
-        await refreshLocalTimers();
+        await startTimer(task.id, task.name);
+        await refreshTimers();
         setMessage(`Timer started for task: ${task.name}`);
       }
     } catch (error) {
@@ -80,5 +78,5 @@ export function useTaskTimer(setMessage: (msg: string) => void) {
     }
   };
 
-  return { localTimers, refreshLocalTimers, toggleTimer, openSelectedTask };
+  return { timers, refreshTimers, toggleTimer, openSelectedTask };
 }

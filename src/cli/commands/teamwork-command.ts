@@ -9,11 +9,10 @@ import {
 } from "./teamwork.ts";
 import { teamworkTaskBranch, teamworkTaskPr } from "./task-workflow.ts";
 import {
-  teamworkTimerDiscard,
+  teamworkTimerDelete,
   teamworkTimerList,
   teamworkTimerStart,
   teamworkTimerStop,
-  teamworkTimerSubmit,
   teamworkTimesheetOpen,
 } from "./timers.ts";
 
@@ -172,7 +171,7 @@ const taskCommand: CommandModule = {
 
 const timerListCommand: CommandModule<{}, { json: boolean }> = {
   command: "list",
-  describe: "List local timers",
+  describe: "List timers",
   builder: (yargs) =>
     yargs.option("json", {
       type: "boolean",
@@ -204,39 +203,27 @@ const timerStopCommand: CommandModule<{}, { task: string }> = {
   handler: (argv) => teamworkTimerStop({ task: argv.task ?? "" }),
 };
 
-const timerSubmitCommand: CommandModule<{}, { task: string }> = {
-  command: "submit <task>",
-  describe: "Submit a local timer as a Teamwork time entry",
+const timerDeleteCommand: CommandModule<{}, { task: string }> = {
+  command: "delete <task>",
+  describe: "Delete a timer for a Teamwork task",
   builder: (yargs) =>
     yargs.positional("task", {
       type: "string",
       describe: "Teamwork task ID or URL",
     }) as unknown as Argv<{ task: string }>,
-  handler: (argv) => teamworkTimerSubmit({ task: argv.task ?? "" }),
-};
-
-const timerDiscardCommand: CommandModule<{}, { task: string }> = {
-  command: "discard <task>",
-  describe: "Discard a local timer without submitting",
-  builder: (yargs) =>
-    yargs.positional("task", {
-      type: "string",
-      describe: "Teamwork task ID or URL",
-    }) as unknown as Argv<{ task: string }>,
-  handler: (argv) => teamworkTimerDiscard({ task: argv.task ?? "" }),
+  handler: (argv) => teamworkTimerDelete({ task: argv.task ?? "" }),
 };
 
 const timerCommand: CommandModule = {
   command: "timer",
-  describe: "Manage local timers",
+  describe: "Manage timers",
   builder: (yargs) =>
     yargs
       .command(timerListCommand)
       .command(timerStartCommand)
       .command(timerStopCommand)
-      .command(timerSubmitCommand)
-      .command(timerDiscardCommand)
-      .demandCommand(1, "Specify a timer subcommand: list, start, stop, submit, discard"),
+      .command(timerDeleteCommand)
+      .demandCommand(1, "Specify a timer subcommand: list, start, stop, delete"),
   handler: () => {},
 };
 
