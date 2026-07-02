@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^22.0.1",
-    "@opentui/core": "^0.4.1",
+    "@opentui/core": "^0.4.2",
     "@opentui/keymap": "^0.4.1",
     "@opentui/solid": "^0.4.1",
     "solid-js": "^1.9.13",
