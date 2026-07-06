@@ -1,5 +1,39 @@
+import { z } from "zod";
+
 import { logError } from "../../logs/manager.ts";
 import { fetchTeamworkApiJson } from "../client.ts";
+
+const TeamworkTimerIntervalSchema = z.object({
+  id: z.string(),
+  from: z.string(),
+  to: z.string().nullable(),
+  duration: z.number(),
+});
+
+const TeamworkTimerSchema = z.object({
+  id: z.number(),
+  userId: z.number().nullable(),
+  taskId: z.number().nullable(),
+  projectId: z.number().nullable(),
+  taskName: z.string().nullable(),
+  projectName: z.string().nullable(),
+  description: z.string().nullable(),
+  running: z.boolean(),
+  billable: z.boolean(),
+  deleted: z.boolean(),
+  lastStartedAt: z.string(),
+  serverTime: z.string(),
+  duration: z.number(),
+  intervals: z.array(TeamworkTimerIntervalSchema),
+});
+
+const TeamworkTimersListResponseSchema = z.object({
+  timers: z.array(TeamworkTimerSchema),
+});
+
+const TeamworkTimerResponseSchema = z.object({
+  timer: TeamworkTimerSchema,
+});
 
 /**
  * A timer managed by the Teamwork native timer API.
@@ -42,8 +76,8 @@ export async function getMyTimers(params?: {
     if (params?.runningTimersOnly) searchParams.set("runningTimersOnly", "true");
     const qs = searchParams.toString();
     const path = qs ? `/me/timers.json?${qs}` : "/me/timers.json";
-    const data = (await fetchTeamworkApiJson(path)) as { timers: TeamworkTimer[] };
-    return data.timers ?? [];
+    const data = TeamworkTimersListResponseSchema.parse(await fetchTeamworkApiJson(path));
+    return data.timers;
   } catch (error) {
     logError("teamwork", "timers.getMy.error", "Failed to fetch timers", {
       error: error instanceof Error ? error.message : String(error),
@@ -61,11 +95,13 @@ export async function startTimer(taskId: number, description?: string): Promise<
     const timer: { taskId: number; description?: string } = { taskId };
     if (description) timer.description = description;
     const body = { timer };
-    const data = (await fetchTeamworkApiJson("/me/timers.json", {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: { "Content-Type": "application/json" },
-    })) as { timer: TeamworkTimer };
+    const data = TeamworkTimerResponseSchema.parse(
+      await fetchTeamworkApiJson("/me/timers.json", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
     return data.timer;
   } catch (error) {
     logError("teamwork", "timers.start.error", "Failed to start timer", {
@@ -79,11 +115,13 @@ export async function startTimer(taskId: number, description?: string): Promise<
 /** Stops a running timer by ID. */
 export async function stopTimer(timerId: number): Promise<TeamworkTimer> {
   try {
-    const data = (await fetchTeamworkApiJson(`/timers/${timerId}.json`, {
-      method: "PUT",
-      body: JSON.stringify({ timer: { running: false } }),
-      headers: { "Content-Type": "application/json" },
-    })) as { timer: TeamworkTimer };
+    const data = TeamworkTimerResponseSchema.parse(
+      await fetchTeamworkApiJson(`/timers/${timerId}.json`, {
+        method: "PUT",
+        body: JSON.stringify({ timer: { running: false } }),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
     return data.timer;
   } catch (error) {
     logError("teamwork", "timers.stop.error", "Failed to stop timer", {
