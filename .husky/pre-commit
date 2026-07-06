@@ -1,4 +1,4 @@
 bun run check
 bun run fmt
 bun run lint
-bun run lint-staged
+bun lint-staged
