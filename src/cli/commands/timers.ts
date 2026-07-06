@@ -28,6 +28,16 @@ function findTimerByTaskId(timers: readonly TeamworkTimer[], taskId: number): Te
   );
 }
 
+/**
+ * Formats existing timers as a hint block appended to "no timer found" messages.
+ *
+ * Example output:
+ * ```
+ * Existing timers:
+ *   General | Code Review (#1) — 1h 23m — running ⏱
+ *   Update README (#2) — 30m — stopped
+ * ```
+ */
 function formatExistingTimersHint(timers: readonly TeamworkTimer[]): string {
   if (timers.length === 0) return "";
   const now = new Date();
@@ -35,6 +45,14 @@ function formatExistingTimersHint(timers: readonly TeamworkTimer[]): string {
   return `\nExisting timers:\n${lines.join("\n")}`;
 }
 
+/**
+ * Formats a single timer entry line for display.
+ *
+ * Example output:
+ * ```
+ * General | Code Review (#1597639) — 1h 23m — running ⏱
+ * ```
+ */
 function formatTimerEntry(timer: TeamworkTimer, now: Date): string {
   const elapsed = getTimerElapsedMs(timer, now);
   const duration = formatTimerDuration(elapsed);
@@ -44,6 +62,18 @@ function formatTimerEntry(timer: TeamworkTimer, now: Date): string {
   return `${name} (${idLabel}) — ${duration} — ${timer.running ? "running" : "stopped"}${statusSymbol}`;
 }
 
+/**
+ * Formats the full timer list for CLI display.
+ *
+ * Running timers are sorted to the top, then sorted by most recent start time.
+ *
+ * Example output:
+ * ```
+ * Timers:
+ *   General | Code Review (#1) — 1h 23m — running ⏱
+ *   Update README (#2) — 30m — stopped
+ * ```
+ */
 function formatTimerListOutput(
   timers: readonly TeamworkTimer[],
   options: { json: boolean },
