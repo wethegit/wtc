@@ -27,7 +27,7 @@ function getNextTimerSelection(
 ): number | null {
   if (!timers.length) return null;
 
-  const currentIndex = currentId ? timers.findIndex((timer) => timer.id === currentId) : -1;
+  const currentIndex = currentId !== null ? timers.findIndex((timer) => timer.id === currentId) : -1;
   const fallbackIndex = direction === 1 ? 0 : timers.length - 1;
   const nextIndex =
     currentIndex === -1
