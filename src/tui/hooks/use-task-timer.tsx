@@ -2,6 +2,7 @@ import { createSignal } from "solid-js";
 
 import {
   getMyTimers,
+  resumeTimer,
   startTimer,
   stopTimer,
   type TeamworkTimer,
@@ -27,34 +28,56 @@ export function useTaskTimer(setMessage: (msg: string) => void) {
     }
   };
 
-  const toggleTimer = async (task: { id: number; name: string } | null) => {
+  const toggleTimer = async (task: { id: number; projectId: number; name: string } | null) => {
     if (!task) {
       setMessage("No task selected.");
+      return;
+    }
+
+    if (!task.projectId) {
+      setMessage("Selected task does not have a Teamwork project ID.");
       return;
     }
 
     try {
       const currentTimers = timers();
       const runningTimer = currentTimers.find((t) => t.running);
+      const taskTimer = currentTimers
+        .filter((t) => t.taskId === task.id)
+        .sort(
+          (a, b) => new Date(b.lastStartedAt).getTime() - new Date(a.lastStartedAt).getTime(),
+        )[0];
 
       if (runningTimer?.taskId === task.id) {
         await stopTimer(runningTimer.id);
         await refreshTimers();
-        setMessage(`Timer stopped for task: ${task.name}`);
+        setMessage(`Timer paused for task: ${task.name}`);
       } else if (runningTimer) {
         dialog.replace(() => (
           <ConfirmDialog
             title="Switch timer?"
             message={`Timer is already running for: ${runningTimer.taskName ?? (runningTimer.taskId ? `Task #${runningTimer.taskId}` : `Timer #${runningTimer.id}`)}`}
             onConfirm={async () => {
-              await startTimer(task.id, task.name);
+              if (taskTimer) {
+                await resumeTimer(taskTimer.id);
+              } else {
+                await startTimer({
+                  projectId: task.projectId,
+                  taskId: task.id,
+                  description: task.name,
+                });
+              }
               await refreshTimers();
               setMessage(`Timer started for task: ${task.name} (previous paused)`);
             }}
           />
         ));
+      } else if (taskTimer) {
+        await resumeTimer(taskTimer.id);
+        await refreshTimers();
+        setMessage(`Timer started for task: ${task.name}`);
       } else {
-        await startTimer(task.id, task.name);
+        await startTimer({ projectId: task.projectId, taskId: task.id, description: task.name });
         await refreshTimers();
         setMessage(`Timer started for task: ${task.name}`);
       }

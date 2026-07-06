@@ -58,7 +58,11 @@ export async function teamworkTaskBranch(args: {
   }
 
   if (args.startTimer) {
-    await startTimer(taskData.id, taskData.name);
+    await startTimer({
+      projectId: taskData.projectId,
+      taskId: taskData.id,
+      description: taskData.name,
+    });
   }
 
   logInfo("cli.task", "task.branch.success", "Branch created", {

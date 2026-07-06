@@ -35,7 +35,7 @@ export function MyWorkTab() {
   const flashOn = useFlashInterval();
   const { timers, refreshTimers, toggleTimer, openSelectedTask } = useTaskTimer(setMessage);
   const { createPrForTask } = usePrWorkflow(setMessage);
-  const { createBranchForTask } = useBranchWorkflow(setMessage, createPrForTask);
+  const { createBranchForTask } = useBranchWorkflow(setMessage, createPrForTask, refreshTimers);
 
   createEffect(() => {
     const sel = selectedTask();
@@ -115,7 +115,7 @@ export function MyWorkTab() {
       },
       {
         key: "ctrl+t",
-        desc: "Start/pause local timer",
+        desc: "Start/pause timer",
         group: "My Work",
         cmd: () => toggleTimer(selectedMyWorkTask()),
       },

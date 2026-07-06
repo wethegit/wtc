@@ -13,6 +13,7 @@ import {
   teamworkTimerList,
   teamworkTimerStart,
   teamworkTimerStop,
+  teamworkTimerSubmit,
   teamworkTimesheetOpen,
 } from "./timers.ts";
 
@@ -203,6 +204,17 @@ const timerStopCommand: CommandModule<{}, { task: string }> = {
   handler: (argv) => teamworkTimerStop({ task: argv.task ?? "" }),
 };
 
+const timerSubmitCommand: CommandModule<{}, { task: string }> = {
+  command: "submit <task>",
+  describe: "Submit a timer as a Teamwork time entry",
+  builder: (yargs) =>
+    yargs.positional("task", {
+      type: "string",
+      describe: "Teamwork task ID or URL",
+    }) as unknown as Argv<{ task: string }>,
+  handler: (argv) => teamworkTimerSubmit({ task: argv.task ?? "" }),
+};
+
 const timerDeleteCommand: CommandModule<{}, { task: string }> = {
   command: "delete <task>",
   describe: "Delete a timer for a Teamwork task",
@@ -222,8 +234,9 @@ const timerCommand: CommandModule = {
       .command(timerListCommand)
       .command(timerStartCommand)
       .command(timerStopCommand)
+      .command(timerSubmitCommand)
       .command(timerDeleteCommand)
-      .demandCommand(1, "Specify a timer subcommand: list, start, stop, delete"),
+      .demandCommand(1, "Specify a timer subcommand: list, start, stop, submit, delete"),
   handler: () => {},
 };
 

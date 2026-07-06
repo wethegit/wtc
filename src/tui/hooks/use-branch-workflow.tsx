@@ -10,11 +10,14 @@ import { useDialog } from "../components/dialog.tsx";
 export function useBranchWorkflow(
   setMessage: (msg: string) => void,
   onCreatePr?: (task: { id: number; name: string }) => void | Promise<void>,
+  onTimerChange?: () => void | Promise<void>,
 ) {
   const dialog = useDialog();
   let creating = false;
 
-  const createBranchForTask = async (task: { id: number; name: string } | null) => {
+  const createBranchForTask = async (
+    task: { id: number; projectId: number; name: string } | null,
+  ) => {
     if (!task) {
       setMessage("No task selected.");
       return;
@@ -66,7 +69,7 @@ export function useBranchWorkflow(
   };
 
   const showTimerStep = (
-    task: { id: number; name: string },
+    task: { id: number; projectId: number; name: string },
     defaultBranchName: string,
     repo: { owner: string; repo: string },
   ) => {
@@ -79,7 +82,12 @@ export function useBranchWorkflow(
         autoClose={false}
         onConfirm={async () => {
           try {
-            await startTimer(task.id, task.name);
+            await startTimer({
+              projectId: task.projectId,
+              taskId: task.id,
+              description: task.name,
+            });
+            await onTimerChange?.();
           } catch (error) {
             setMessage(error instanceof Error ? error.message : "Failed to start timer.");
           }
@@ -91,7 +99,7 @@ export function useBranchWorkflow(
   };
 
   const showNameStep = (
-    task: { id: number; name: string },
+    task: { id: number; projectId: number; name: string },
     defaultBranchName: string,
     repo: { owner: string; repo: string },
   ) => {
@@ -113,7 +121,7 @@ export function useBranchWorkflow(
   };
 
   const createBranchAndFinish = async (
-    task: { id: number; name: string },
+    task: { id: number; projectId: number; name: string },
     branchName: string,
     repo: { owner: string; repo: string },
   ) => {

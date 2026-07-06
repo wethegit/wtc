@@ -22,7 +22,10 @@ export async function fetchTeamworkApiJson(path: string, init: RequestInit = {})
       throw new Error(`Teamwork API responded with ${response.status}`);
     }
 
-    return await response.json();
+    if (response.status === 204) return null;
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
   } catch (error) {
     logError("teamwork", "client.fetch.error", `Teamwork API call failed: ${path}`, {
       error: error instanceof Error ? error.message : String(error),

@@ -23,7 +23,12 @@ export function TaskList(props: {
     const timers = props.timers;
     if (!timers) return null;
 
-    const timer = timers.find((t) => t.taskId === taskId);
+    const matchingTimers = timers.filter((t) => t.taskId === taskId);
+    const timer =
+      matchingTimers.find((t) => t.running) ??
+      matchingTimers.sort(
+        (a, b) => new Date(b.lastStartedAt).getTime() - new Date(a.lastStartedAt).getTime(),
+      )[0];
     if (!timer) return null;
 
     return {

@@ -14,19 +14,14 @@ Parses CLI arguments via yargs and prints output to stdout. Never contains busin
 
 ### Handler pattern
 
-Each handler function accepts a plain args object and an optional `actions` parameter for dependency injection:
+Each handler function accepts a plain args object, calls the API layer, and prints a display-safe result:
 
 ```typescript
-export async function teamworkTimerList(
-  args: { json: boolean },
-  actions = timerListActions,
-): Promise<void> {
-  const timers = await actions.loadLocalTimers();
+export async function teamworkTimerList(args: { json: boolean }): Promise<void> {
+  const timers = await getMyTimers();
   console.log(formatTimerListOutput(timers, { json: args.json }));
 }
 ```
-
-The default `actions` object wires real implementations. Tests pass custom stubs.
 
 ### Output
 

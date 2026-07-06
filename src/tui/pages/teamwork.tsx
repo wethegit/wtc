@@ -81,7 +81,7 @@ export function TeamworkPage(props: {
               { key: "^←/→", label: "tabs" },
               { key: "^T", label: "toggle" },
               { key: "^S", label: "submit" },
-              { key: "^D", label: "discard" },
+              { key: "^D", label: "delete" },
               { key: "^O", label: "timesheet" },
             ]
           : [

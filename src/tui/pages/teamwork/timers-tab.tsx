@@ -2,10 +2,12 @@ import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
 import {
+  completeTimer,
   deleteTimer,
   getMyTimers,
   getTimerElapsedMs,
   formatTimerDuration,
+  resumeTimer,
   stopTimer,
   type TeamworkTimer,
 } from "../../../api/teamwork/timers/api.ts";
@@ -69,29 +71,56 @@ export function TimersTab() {
   const selectedTimer = () =>
     sortedTimers().find((timer) => timer.id === selectedTimerId()) ?? null;
 
-  const stopSelectedTimer = async () => {
+  const toggleSelectedTimer = async () => {
     const timer = selectedTimer();
     if (!timer) {
       setMessage("No timer selected.");
       return;
     }
 
-    if (!timer.running) {
-      const timerLabel =
-        timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
-      setMessage(`Timer is already stopped: ${timerLabel}`);
+    const timerLabel =
+      timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
+    try {
+      if (timer.running) {
+        await stopTimer(timer.id);
+        await refreshTimers();
+        setMessage(`Timer paused: ${timerLabel}`);
+        return;
+      }
+
+      await resumeTimer(timer.id);
+      await refreshTimers();
+      setMessage(`Timer started: ${timerLabel}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Failed to toggle timer.");
+    }
+  };
+
+  const submitSelectedTimer = () => {
+    const timer = selectedTimer();
+    if (!timer) {
+      setMessage("No timer selected.");
       return;
     }
 
-    try {
-      await stopTimer(timer.id);
-      await refreshTimers();
-      const timerLabel =
-        timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
-      setMessage(`Timer stopped: ${timerLabel}`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Failed to stop timer.");
-    }
+    const timerLabel =
+      timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
+    dialog.replace(() => (
+      <ConfirmDialog
+        title="Submit timer?"
+        message={`Submit tracked time to Teamwork for: ${timerLabel}`}
+        confirmLabel="submit"
+        onConfirm={async () => {
+          try {
+            await completeTimer(timer.id);
+            await refreshTimers();
+            setMessage(`Timer submitted: ${timerLabel}`);
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Failed to submit timer.");
+          }
+        }}
+      />
+    ));
   };
 
   const deleteSelectedTimer = () => {
@@ -151,11 +180,17 @@ export function TimersTab() {
       },
       {
         key: "ctrl+t",
-        desc: "Stop selected timer",
+        desc: "Toggle selected timer",
         group: "Teamwork Timers",
         cmd: () => {
-          void stopSelectedTimer();
+          void toggleSelectedTimer();
         },
+      },
+      {
+        key: "ctrl+s",
+        desc: "Submit selected timer",
+        group: "Teamwork Timers",
+        cmd: submitSelectedTimer,
       },
       {
         key: "ctrl+d",

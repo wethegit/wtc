@@ -48,7 +48,11 @@ export function ProjectTab() {
   const flashOn = useFlashInterval();
   const { timers, refreshTimers, toggleTimer, openSelectedTask } = useTaskTimer(setProjectMessage);
   const { createPrForTask } = usePrWorkflow(setProjectMessage);
-  const { createBranchForTask } = useBranchWorkflow(setProjectMessage, createPrForTask);
+  const { createBranchForTask } = useBranchWorkflow(
+    setProjectMessage,
+    createPrForTask,
+    refreshTimers,
+  );
 
   createEffect(() => {
     const sel = selectedTask();
@@ -61,11 +65,12 @@ export function ProjectTab() {
     const selected = selectedTask();
     if (!selected) return null;
 
-    return (
+    const task =
       pinnedTaskLists()
         .find((taskList) => taskList.id === selected.taskListId)
-        ?.tasks.find((task) => task.id === selected.taskId) ?? null
-    );
+        ?.tasks.find((task) => task.id === selected.taskId) ?? null;
+    const projectId = resolved()?.project?.teamwork.projectId ?? null;
+    return task && projectId ? { ...task, projectId } : null;
   };
 
   const loadProjectContext = async () => {
@@ -157,7 +162,7 @@ export function ProjectTab() {
       },
       {
         key: "ctrl+t",
-        desc: "Start/pause local timer",
+        desc: "Start/pause timer",
         group: "Teamwork",
         cmd: () => toggleTimer(selectedTeamworkTask()),
       },

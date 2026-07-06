@@ -2,12 +2,14 @@ import { TEAMWORK_TIMESHEET_URL } from "../../api/teamwork/consts.ts";
 import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
 import {
-  getMyTimers,
-  startTimer,
-  stopTimer,
+  completeTimer,
   deleteTimer,
+  getMyTimers,
   getTimerElapsedMs,
   formatTimerDuration,
+  resumeTimer,
+  startTimer,
+  stopTimer,
   type TeamworkTimer,
 } from "../../api/teamwork/timers/api.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
@@ -72,7 +74,19 @@ export async function teamworkTimerList(args: { json: boolean }): Promise<void> 
 export async function teamworkTimerStart(args: { task: string }): Promise<void> {
   const ref = getTeamworkTaskReference(args.task);
   const task = await getTeamworkTaskById(ref.id);
-  await startTimer(task.id, task.name);
+  const timers = await getMyTimers({ taskId: task.id });
+  const match = findTimerByTaskId(timers, task.id);
+
+  if (match?.running) {
+    console.log(`Timer already running for: ${match.taskName ?? task.name} (#${task.id})`);
+    return;
+  }
+
+  if (match) {
+    await resumeTimer(match.id);
+  } else {
+    await startTimer({ projectId: task.projectId, taskId: task.id, description: task.name });
+  }
   console.log(`Timer started for: ${task.name} (#${task.id})`);
 }
 
@@ -94,7 +108,23 @@ export async function teamworkTimerStop(args: { task: string }): Promise<void> {
   }
 
   await stopTimer(match.id);
-  console.log(`Timer stopped for: ${match.taskName ?? `Task #${match.taskId}`} (#${match.taskId})`);
+  console.log(`Timer paused for: ${match.taskName ?? `Task #${match.taskId}`} (#${match.taskId})`);
+}
+
+export async function teamworkTimerSubmit(args: { task: string }): Promise<void> {
+  const ref = getTeamworkTaskReference(args.task);
+  const timers = await getMyTimers();
+  const match = findTimerByTaskId(timers, ref.id);
+
+  if (!match) {
+    console.log(`No timer found for task: #${ref.id}${formatExistingTimersHint(timers)}`);
+    return;
+  }
+
+  await completeTimer(match.id);
+  console.log(
+    `Timer submitted for: ${match.taskName ?? `Task #${match.taskId}`} (#${match.taskId})`,
+  );
 }
 
 export async function teamworkTimerDelete(args: { task: string }): Promise<void> {
