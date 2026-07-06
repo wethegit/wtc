@@ -48,7 +48,13 @@ export function TimersTab() {
   const dialog = useDialog();
 
   const refreshTimers = async () => {
-    setTwTimers(await getMyTimers());
+    try {
+      setTwTimers(await getMyTimers());
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Failed to refresh timers from Teamwork.",
+      );
+    }
   };
 
   const sortedTimers = () => {
@@ -71,13 +77,21 @@ export function TimersTab() {
     }
 
     if (!timer.running) {
-      setMessage(`Timer is already stopped: ${timer.taskName}`);
+      const timerLabel =
+        timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
+      setMessage(`Timer is already stopped: ${timerLabel}`);
       return;
     }
 
-    await stopTimer(timer.id);
-    await refreshTimers();
-    setMessage(`Timer stopped: ${timer.taskName}`);
+    try {
+      await stopTimer(timer.id);
+      await refreshTimers();
+      const timerLabel =
+        timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
+      setMessage(`Timer stopped: ${timerLabel}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Failed to stop timer.");
+    }
   };
 
   const deleteSelectedTimer = () => {
@@ -87,15 +101,21 @@ export function TimersTab() {
       return;
     }
 
+    const timerLabel =
+      timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
     dialog.replace(() => (
       <ConfirmDialog
         title="Delete timer?"
-        message={`Delete timer for: ${timer.taskName}`}
+        message={`Delete timer for: ${timerLabel}`}
         confirmLabel="delete"
         onConfirm={async () => {
-          await deleteTimer(timer.id);
-          await refreshTimers();
-          setMessage(`Timer deleted: ${timer.taskName}`);
+          try {
+            await deleteTimer(timer.id);
+            await refreshTimers();
+            setMessage(`Timer deleted: ${timerLabel}`);
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Failed to delete timer.");
+          }
         }}
       />
     ));
