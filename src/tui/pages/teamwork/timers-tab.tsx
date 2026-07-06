@@ -27,7 +27,8 @@ function getNextTimerSelection(
 ): number | null {
   if (!timers.length) return null;
 
-  const currentIndex = currentId !== null ? timers.findIndex((timer) => timer.id === currentId) : -1;
+  const currentIndex =
+    currentId !== null ? timers.findIndex((timer) => timer.id === currentId) : -1;
   const fallbackIndex = direction === 1 ? 0 : timers.length - 1;
   const nextIndex =
     currentIndex === -1
@@ -190,7 +191,9 @@ export function TimersTab() {
         <For each={sortedTimers()}>
           {(timer) => (
             <ListItem
-              title={timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`)}
+              title={
+                timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`)
+              }
               metadata={timerMetadata(timer)}
               selected={selectedTimerId() === timer.id}
               badge={
