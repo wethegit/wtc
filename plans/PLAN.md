@@ -139,7 +139,7 @@ Assigned Teamwork tasks for the current user with selection and basic task actio
 
 #### Phase 5.4 — [Timers and Time Tracking](teamwork/5.4-timers-and-time-tracking.md) ✅
 
-Timer overview, task timer indicators, start/pause/delete actions, timesheet access, and timer conflict confirmations. Refactored from local-only (`teamwork-local-timers.json`) to Teamwork native timer API (`POST/GET/PUT/DELETE /projects/api/v3/timers`).
+Timer overview, task timer indicators, start/pause/delete actions, timesheet access, and timer conflict confirmations. Refactored from local-only (`teamwork-local-timers.json`) to Teamwork native timer API (`GET/POST /projects/api/v3/me/timers.json`, `PUT/DELETE /projects/api/v3/me/timers/{timerId}.json`).
 
 #### Phase 5.5 — [Branch and PR Workflow](teamwork/5.5-branch-and-pr-workflow.md) ✅
 

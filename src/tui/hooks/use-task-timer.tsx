@@ -20,7 +20,11 @@ export function useTaskTimer(setMessage: (msg: string) => void) {
   const dialog = useDialog();
 
   const refreshTimers = async () => {
-    setTimers(await getMyTimers());
+    try {
+      setTimers(await getMyTimers());
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Failed to load timers.");
+    }
   };
 
   const toggleTimer = async (task: { id: number; name: string } | null) => {
@@ -41,8 +45,7 @@ export function useTaskTimer(setMessage: (msg: string) => void) {
         dialog.replace(() => (
           <ConfirmDialog
             title="Switch timer?"
-            message={`Timer is already running for: ${runningTimer.taskName}`}
-            confirmLabel="switch"
+            message={`Timer is already running for: ${runningTimer.taskName ?? (runningTimer.taskId ? `Task #${runningTimer.taskId}` : `Timer #${runningTimer.id}`)}`}
             onConfirm={async () => {
               await startTimer(task.id, task.name);
               await refreshTimers();

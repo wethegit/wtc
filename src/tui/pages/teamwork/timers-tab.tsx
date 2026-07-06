@@ -190,7 +190,7 @@ export function TimersTab() {
         <For each={sortedTimers()}>
           {(timer) => (
             <ListItem
-              title={timer.taskName ?? `Task #${timer.taskId}`}
+              title={timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`)}
               metadata={timerMetadata(timer)}
               selected={selectedTimerId() === timer.id}
               badge={

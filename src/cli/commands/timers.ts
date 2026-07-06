@@ -37,8 +37,9 @@ function formatTimerEntry(timer: TeamworkTimer, now: Date): string {
   const elapsed = getTimerElapsedMs(timer, now);
   const duration = formatTimerDuration(elapsed);
   const statusSymbol = timer.running ? " ⏱" : "";
-  const name = timer.taskName ?? `Task #${timer.taskId}`;
-  return `${name} (#${timer.taskId}) — ${duration} — ${timer.running ? "running" : "stopped"}${statusSymbol}`;
+  const name = timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
+  const idLabel = timer.taskId ? `#${timer.taskId}` : `timer #${timer.id}`;
+  return `${name} (${idLabel}) — ${duration} — ${timer.running ? "running" : "stopped"}${statusSymbol}`;
 }
 
 function formatTimerListOutput(

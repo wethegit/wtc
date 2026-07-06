@@ -58,12 +58,9 @@ export async function getMyTimers(params?: {
  */
 export async function startTimer(taskId: number, description?: string): Promise<TeamworkTimer> {
   try {
-    const body: Record<string, unknown> = {
-      timer: { taskId },
-    };
-    if (description) {
-      (body.timer as Record<string, unknown>).description = description;
-    }
+    const timer: { taskId: number; description?: string } = { taskId };
+    if (description) timer.description = description;
+    const body = { timer };
     const data = (await fetchTeamworkApiJson("/me/timers.json", {
       method: "POST",
       body: JSON.stringify(body),
