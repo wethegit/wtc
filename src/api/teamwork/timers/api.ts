@@ -112,11 +112,25 @@ export async function deleteTimer(timerId: number, hardDelete?: boolean): Promis
   }
 }
 
-/** Calculates elapsed milliseconds for a timer using `lastStartedAt` and the current time. */
+/**
+ * Calculates elapsed milliseconds for a timer.
+ * For stopped timers, returns the server-provided accumulated duration.
+ * For running timers, returns accumulated duration plus the current interval elapsed.
+ */
 export function getTimerElapsedMs(timer: TeamworkTimer, now: Date): number {
-  if (!timer.lastStartedAt) return 0;
+  // Convert server duration (in minutes) to milliseconds
+  const accumulatedMs = timer.duration * 60 * 1000;
+
+  // If timer is stopped, return only the accumulated duration
+  if (!timer.running) {
+    return accumulatedMs;
+  }
+
+  // If timer is running, add the current interval's elapsed time
+  if (!timer.lastStartedAt) return accumulatedMs;
   const start = new Date(timer.lastStartedAt).getTime();
-  return Math.max(0, now.getTime() - start);
+  const currentIntervalMs = Math.max(0, now.getTime() - start);
+  return accumulatedMs + currentIntervalMs;
 }
 
 /** Formats a timer duration as compact text for display. */
