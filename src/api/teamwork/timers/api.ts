@@ -116,7 +116,7 @@ export async function startTimer(taskId: number, description?: string): Promise<
 export async function stopTimer(timerId: number): Promise<TeamworkTimer> {
   try {
     const data = TeamworkTimerResponseSchema.parse(
-      await fetchTeamworkApiJson(`/timers/${timerId}.json`, {
+      await fetchTeamworkApiJson(`/me/timers/${timerId}.json`, {
         method: "PUT",
         body: JSON.stringify({ timer: { running: false } }),
         headers: { "Content-Type": "application/json" },
