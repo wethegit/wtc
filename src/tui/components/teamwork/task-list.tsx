@@ -1,4 +1,4 @@
-import { For } from "solid-js";
+import { createMemo, For } from "solid-js";
 
 import type { TeamworkTask } from "../../../api/teamwork/task-list-tasks.ts";
 import { getTimerElapsedMs, type TeamworkTimer } from "../../../api/teamwork/timers/api.ts";
@@ -19,16 +19,30 @@ export function TaskList(props: {
   now?: Date;
   flashOn?: boolean;
 }) {
-  const timerBadge = (taskId: number): TimerBadgeProps | null => {
-    const timers = props.timers;
-    if (!timers) return null;
+  const timerByTaskId = createMemo(() => {
+    const byTask = new Map<number, TeamworkTimer>();
 
-    const matchingTimers = timers.filter((t) => t.taskId === taskId);
-    const timer =
-      matchingTimers.find((t) => t.running) ??
-      matchingTimers.sort(
-        (a, b) => new Date(b.lastStartedAt).getTime() - new Date(a.lastStartedAt).getTime(),
-      )[0];
+    for (const timer of props.timers ?? []) {
+      if (!timer.taskId) continue;
+
+      const current = byTask.get(timer.taskId);
+      // Prefer the running timer; otherwise keep the most recently started timer for this task.
+      if (
+        !current ||
+        (timer.running && !current.running) ||
+        (!timer.running &&
+          !current.running &&
+          new Date(timer.lastStartedAt).getTime() > new Date(current.lastStartedAt).getTime())
+      ) {
+        byTask.set(timer.taskId, timer);
+      }
+    }
+
+    return byTask;
+  });
+
+  const timerBadge = (taskId: number): TimerBadgeProps | null => {
+    const timer = timerByTaskId().get(taskId);
     if (!timer) return null;
 
     return {

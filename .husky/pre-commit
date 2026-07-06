@@ -1,4 +1,4 @@
-~/.bun/bin/bun run check
-~/.bun/bin/bun run fmt
-~/.bun/bin/bun run lint
-~/.bun/bin/bun lint-staged
+bun run check
+bun run fmt
+bun run lint
+bun run lint-staged
