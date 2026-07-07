@@ -68,7 +68,7 @@ export function TaskList(props: {
               title={task.name}
               metadata={buildTaskMetadata(task)}
               selected={props.selectedTaskId === task.id}
-              badgeWhen={() => timerBadge(task.id) !== null}
+              badgeWhen={() => timerByTaskId().has(task.id)}
               badge={<TaskTimerBadge taskId={task.id} />}
             />
           );

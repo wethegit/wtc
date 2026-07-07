@@ -35,9 +35,8 @@ export async function fetchTeamworkApiJson(path: string, init: RequestInit = {})
 
     const text = await response.text();
     if (!response.ok) {
-      const detail = text.trim() ? `: ${text.slice(0, 500)}` : "";
       throw new TeamworkApiError(
-        `Teamwork API responded with ${response.status}${detail}`,
+        `Teamwork API responded with ${response.status}`,
         response.status,
         text,
       );

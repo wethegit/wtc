@@ -34,11 +34,6 @@ export function useTaskTimer(setMessage: (msg: string) => void) {
       return;
     }
 
-    if (!task.projectId) {
-      setMessage("Selected task does not have a Teamwork project ID.");
-      return;
-    }
-
     try {
       const currentTimers = timers();
       const runningTimer = currentTimers.find((t) => t.running);
