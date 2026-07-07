@@ -1,5 +1,13 @@
 # wtc
 
+## 0.3.17
+
+### Patch Changes
+
+- [#64](https://github.com/wethegit/wtc/pull/64) [`e26774e`](https://github.com/wethegit/wtc/commit/e26774ee8316039e220bafb00ec94b635e434a20) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Fixes an issue where a call to metadata that would error would stop the TUI from continuing.
+
+- [#65](https://github.com/wethegit/wtc/pull/65) [`d096352`](https://github.com/wethegit/wtc/commit/d0963524a1fcfb197204b24c3eabf2f719449191) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - Refactor timers from local to API based.
+
 ## 0.3.16
 
 ### Patch Changes
