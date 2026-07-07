@@ -2,14 +2,14 @@ import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
 import {
-  formatTimerDuration,
-  getLocalTimerElapsedMs,
-  loadLocalTimers,
-  removeLocalTimer,
-  stopLocalTimer,
-  submitLocalTimer,
-  type LocalTimerEntry,
-} from "../../../api/teamwork/timers/local.ts";
+  deleteTimer,
+  getMyTimers,
+  getTimerElapsedMs,
+  resumeTimer,
+  stopTimer,
+  submitTimer,
+  type TeamworkTimer,
+} from "../../../api/teamwork/timers/api.ts";
 import { TEAMWORK_TIMESHEET_URL } from "../../../api/teamwork/consts.ts";
 import { openUrlInBrowser } from "../../../utils/browser.ts";
 import { Card } from "../../components/layout/card.tsx";
@@ -20,15 +20,16 @@ import { useDialog } from "../../components/dialog.tsx";
 import { useFlashInterval } from "../../hooks/use-flash-interval.ts";
 import { tokens } from "../../tokens.ts";
 
-/** Cycles through local timer IDs in display order, wrapping around. */
-function getNextLocalTimerSelection(
-  timers: readonly LocalTimerEntry[],
-  currentId: string | null,
+/** Cycles through timer IDs in display order, wrapping around. */
+function getNextTimerSelection(
+  timers: readonly TeamworkTimer[],
+  currentId: number | null,
   direction: 1 | -1,
-): string | null {
+): number | null {
   if (!timers.length) return null;
 
-  const currentIndex = currentId ? timers.findIndex((timer) => timer.id === currentId) : -1;
+  const currentIndex =
+    currentId !== null ? timers.findIndex((timer) => timer.id === currentId) : -1;
   const fallbackIndex = direction === 1 ? 0 : timers.length - 1;
   const nextIndex =
     currentIndex === -1
@@ -38,93 +39,118 @@ function getNextLocalTimerSelection(
   return timers[nextIndex]?.id ?? null;
 }
 
-/** Teamwork timers tab showing local timers (running first, then stopped/pending). */
+/** Teamwork timers tab showing native timers (running first, then stopped). */
 export function TimersTab() {
-  const [localTimers, setLocalTimers] = createSignal<LocalTimerEntry[]>([]);
-  const [selectedTimerId, setSelectedTimerId] = createSignal<string | null>(null);
+  const [twTimers, setTwTimers] = createSignal<TeamworkTimer[]>([]);
+  const [selectedTimerId, setSelectedTimerId] = createSignal<number | null>(null);
   const flashOn = useFlashInterval();
   const [now, setNow] = createSignal(new Date());
-  const [message, setMessage] = createSignal("Local timers stay on this machine until submitted.");
+  const [message, setMessage] = createSignal("Timers are tracked server-side in Teamwork.");
   const dialog = useDialog();
 
   const refreshTimers = async () => {
-    setLocalTimers(await loadLocalTimers());
+    try {
+      setTwTimers(await getMyTimers());
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Failed to refresh timers from Teamwork.",
+      );
+    }
   };
 
   const sortedTimers = () => {
-    const timers = localTimers();
+    const timers = twTimers();
     return [...timers].sort((a, b) => {
-      if (a.status === "running" && b.status !== "running") return -1;
-      if (a.status !== "running" && b.status === "running") return 1;
-      return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
+      if (a.running && !b.running) return -1;
+      if (!a.running && b.running) return 1;
+      return new Date(b.lastStartedAt).getTime() - new Date(a.lastStartedAt).getTime();
     });
   };
 
   const selectedTimer = () =>
     sortedTimers().find((timer) => timer.id === selectedTimerId()) ?? null;
 
-  const stopSelectedTimer = async () => {
+  const toggleSelectedTimer = async () => {
     const timer = selectedTimer();
     if (!timer) {
-      setMessage("No local timer selected.");
+      setMessage("No timer selected.");
       return;
     }
 
-    if (timer.status !== "running") {
-      setMessage(`Timer is already stopped: ${timer.taskName}`);
-      return;
+    const timerLabel =
+      timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
+    try {
+      if (timer.running) {
+        await stopTimer(timer.id);
+        await refreshTimers();
+        setMessage(`Timer paused: ${timerLabel}`);
+        return;
+      }
+
+      await resumeTimer(timer.id);
+      await refreshTimers();
+      setMessage(`Timer started: ${timerLabel}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Failed to toggle timer.");
     }
-
-    await stopLocalTimer();
-    await refreshTimers();
-    setMessage(`Timer stopped: ${timer.taskName}`);
-  };
-
-  const discardSelectedTimer = () => {
-    const timer = selectedTimer();
-    if (!timer) {
-      setMessage("No local timer selected.");
-      return;
-    }
-
-    dialog.replace(() => (
-      <ConfirmDialog
-        title="Discard timer?"
-        message={`Discard local timer for: ${timer.taskName}`}
-        confirmLabel="discard"
-        onConfirm={async () => {
-          await removeLocalTimer(timer.id);
-          await refreshTimers();
-          setMessage(`Timer discarded: ${timer.taskName}`);
-        }}
-      />
-    ));
   };
 
   const submitSelectedTimer = () => {
     const timer = selectedTimer();
     if (!timer) {
-      setMessage("No local timer selected.");
+      setMessage("No timer selected.");
       return;
     }
 
-    const elapsedMs = getLocalTimerElapsedMs(timer, now());
-    const totalMinutes = Math.max(1, Math.ceil(elapsedMs / 60_000));
-    const durationMinutes = `${totalMinutes}m`;
-    const action = timer.status === "running" ? "Stop and submit" : "Submit";
-
+    const timerLabel =
+      timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
     dialog.replace(() => (
       <ConfirmDialog
-        title={timer.status === "running" ? "Stop and submit timer?" : "Submit timer?"}
-        message={`${action} ${durationMinutes} to Teamwork for: ${timer.taskName}`}
+        title="Submit timer?"
+        message={`Submit tracked time to Teamwork for: ${timerLabel}`}
         confirmLabel="submit"
         onConfirm={async () => {
           try {
-            const result = await submitLocalTimer(timer);
+            await submitTimer(timer);
+            setTwTimers((current) =>
+              current.filter((currentTimer) => currentTimer.id !== timer.id),
+            );
             await refreshTimers();
-            setMessage(`Timer submitted: ${result.taskName}`);
+            setMessage(`Timer submitted: ${timerLabel}`);
           } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Failed to submit timer.");
+            const errorMessage = error instanceof Error ? error.message : "Failed to submit timer.";
+            await refreshTimers();
+            setMessage(errorMessage);
+          }
+        }}
+      />
+    ));
+  };
+
+  const deleteSelectedTimer = () => {
+    const timer = selectedTimer();
+    if (!timer) {
+      setMessage("No timer selected.");
+      return;
+    }
+
+    const timerLabel =
+      timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`);
+    dialog.replace(() => (
+      <ConfirmDialog
+        title="Delete timer?"
+        message={`Delete timer for: ${timerLabel}`}
+        confirmLabel="delete"
+        onConfirm={async () => {
+          try {
+            await deleteTimer(timer.id);
+            setTwTimers((current) =>
+              current.filter((currentTimer) => currentTimer.id !== timer.id),
+            );
+            await refreshTimers();
+            setMessage(`Timer deleted: ${timerLabel}`);
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Failed to delete timer.");
           }
         }}
       />
@@ -145,39 +171,39 @@ export function TimersTab() {
     bindings: [
       {
         key: "down",
-        desc: "Next local timer",
+        desc: "Next timer",
         group: "Teamwork Timers",
         cmd: () => {
-          setSelectedTimerId((current) => getNextLocalTimerSelection(sortedTimers(), current, 1));
+          setSelectedTimerId((current) => getNextTimerSelection(sortedTimers(), current, 1));
         },
       },
       {
         key: "up",
-        desc: "Previous local timer",
+        desc: "Previous timer",
         group: "Teamwork Timers",
         cmd: () => {
-          setSelectedTimerId((current) => getNextLocalTimerSelection(sortedTimers(), current, -1));
+          setSelectedTimerId((current) => getNextTimerSelection(sortedTimers(), current, -1));
         },
       },
       {
         key: "ctrl+t",
-        desc: "Stop selected local timer",
+        desc: "Toggle selected timer",
         group: "Teamwork Timers",
         cmd: () => {
-          void stopSelectedTimer();
+          void toggleSelectedTimer();
         },
       },
       {
-        key: "ctrl+d",
-        desc: "Discard selected local timer",
-        group: "Teamwork Timers",
-        cmd: discardSelectedTimer,
-      },
-      {
         key: "ctrl+s",
-        desc: "Submit selected local timer",
+        desc: "Submit selected timer",
         group: "Teamwork Timers",
         cmd: submitSelectedTimer,
+      },
+      {
+        key: "ctrl+d",
+        desc: "Delete selected timer",
+        group: "Teamwork Timers",
+        cmd: deleteSelectedTimer,
       },
       {
         key: "ctrl+o",
@@ -195,7 +221,7 @@ export function TimersTab() {
     const selected = selectedTimerId();
     if (!timers.length) {
       setSelectedTimerId(null);
-    } else if (!selected || !timers.some((timer) => timer.id === selected)) {
+    } else if (selected === null || !timers.some((timer) => timer.id === selected)) {
       setSelectedTimerId(timers[0]?.id ?? null);
     }
   });
@@ -212,28 +238,22 @@ export function TimersTab() {
     });
   });
 
-  const timerMetadata = (timer: LocalTimerEntry): string[] => {
-    const parts: string[] = [];
-    const elapsedMs = getLocalTimerElapsedMs(timer, now());
-    parts.push(formatTimerDuration(elapsedMs));
-    return parts;
-  };
-
   return (
     <box flexDirection="column" gap={1}>
-      <Card title={localTimers().length > 0 ? "Local Timers" : "No timers"}>
+      <Card title={twTimers().length > 0 ? "Timers" : "No timers"}>
         <text fg={tokens.textDim}>{message()}</text>
 
         <For each={sortedTimers()}>
           {(timer) => (
             <ListItem
-              title={timer.taskName}
-              metadata={timerMetadata(timer)}
+              title={
+                timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`)
+              }
               selected={selectedTimerId() === timer.id}
               badge={
                 <TimerBadge
-                  elapsedMs={getLocalTimerElapsedMs(timer, now())}
-                  running={timer.status === "running"}
+                  elapsedMs={getTimerElapsedMs(timer, now())}
+                  running={timer.running}
                   flashOn={flashOn()}
                 />
               }

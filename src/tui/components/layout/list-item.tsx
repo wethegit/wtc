@@ -9,6 +9,8 @@ export interface ListItemProps {
   metadata?: readonly string[];
   selected?: boolean;
   badge?: JSX.Element;
+  /** When set, badge is only rendered when this function returns true. */
+  badgeWhen?: () => boolean;
 }
 
 /** Separator used between inline metadata segments. */
@@ -43,7 +45,7 @@ export function ListItem(props: ListItemProps) {
         </Show>
       </box>
 
-      <Show when={props.badge}>
+      <Show when={props.badgeWhen ? props.badgeWhen() : props.badge}>
         <box justifyContent="flex-end">{props.badge}</box>
       </Show>
     </box>
