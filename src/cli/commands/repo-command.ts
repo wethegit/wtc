@@ -12,6 +12,11 @@ const repoCreateCommand: CommandModule<
     description?: string;
     json?: boolean;
     rulesPreset?: string;
+    setupTeamwork?: boolean;
+    cloneDir?: string;
+    teamworkProjectId?: number;
+    generalTasks?: string;
+    reviewTask?: string;
   }
 > = {
   command: "create <name>",
@@ -40,6 +45,29 @@ const repoCreateCommand: CommandModule<
         describe: "Repository rules preset (standard or none)",
         default: "standard" as const,
       })
+      .option("setup-teamwork", {
+        type: "boolean",
+        describe: "Clone with SSH and write .wtc.yaml Teamwork project config before repo rules",
+        default: false,
+      })
+      .option("clone-dir", {
+        type: "string",
+        describe: "Parent directory for the cloned repo. Defaults to the current directory.",
+      })
+      .option("teamwork-project-id", {
+        type: "number",
+        describe: "Teamwork project ID for the generated .wtc.yaml",
+      })
+      .option("general-tasks", {
+        type: "string",
+        describe:
+          "General Tasks task-list ID or URL. Defaults to Teamwork template discovery. Pass -1 to skip.",
+      })
+      .option("review-task", {
+        type: "string",
+        describe:
+          "Code Review task ID or URL. Defaults to Teamwork template discovery. Pass -1 to skip.",
+      })
       .option("json", {
         type: "boolean",
         describe: "Print JSON output",
@@ -51,6 +79,11 @@ const repoCreateCommand: CommandModule<
       description?: string;
       json?: boolean;
       rulesPreset?: string;
+      setupTeamwork?: boolean;
+      cloneDir?: string;
+      teamworkProjectId?: number;
+      generalTasks?: string;
+      reviewTask?: string;
     }>,
   handler: (argv) =>
     repoCreate({
@@ -60,6 +93,11 @@ const repoCreateCommand: CommandModule<
       description: argv.description,
       json: argv.json ?? false,
       rulesPreset: argv.rulesPreset ?? "standard",
+      setupTeamwork: argv.setupTeamwork ?? false,
+      cloneDir: argv.cloneDir,
+      teamworkProjectId: argv.teamworkProjectId,
+      generalTasks: argv.generalTasks,
+      reviewTask: argv.reviewTask,
     }),
 };
 

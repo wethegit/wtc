@@ -1,3 +1,6 @@
+import { mkdir, stat } from "node:fs/promises";
+import { join, resolve } from "node:path";
+
 export interface GitHubRemote {
   owner: string;
   repo: string;
@@ -52,4 +55,49 @@ export async function branchExists(name: string, projectDir = process.cwd()): Pr
   } catch {
     return false;
   }
+}
+
+export async function cloneRepo(input: {
+  remoteUrl: string;
+  parentDir: string;
+  repoName: string;
+}): Promise<string> {
+  const parentDir = resolve(input.parentDir);
+  const cloneDir = await assertCloneTargetAvailable(parentDir, input.repoName);
+  await mkdir(parentDir, { recursive: true });
+  await Bun.$`git clone ${input.remoteUrl} ${cloneDir}`.quiet();
+  return cloneDir;
+}
+
+export function getCloneDir(parentDir: string, repoName: string): string {
+  return join(resolve(parentDir), repoName);
+}
+
+export async function assertCloneTargetAvailable(
+  parentDir: string,
+  repoName: string,
+): Promise<string> {
+  const cloneDir = getCloneDir(parentDir, repoName);
+  try {
+    await stat(cloneDir);
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+      return cloneDir;
+    }
+    throw error;
+  }
+  throw new Error(`Clone target already exists: ${cloneDir}`);
+}
+
+export async function commitFile(
+  relativePath: string,
+  message: string,
+  projectDir = process.cwd(),
+): Promise<void> {
+  await Bun.$`git add ${relativePath}`.cwd(projectDir).quiet();
+  await Bun.$`git commit -m ${message}`.cwd(projectDir).quiet();
+}
+
+export async function pushCurrentBranch(projectDir = process.cwd()): Promise<void> {
+  await Bun.$`git push`.cwd(projectDir).quiet();
 }
