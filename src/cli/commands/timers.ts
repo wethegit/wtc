@@ -2,7 +2,6 @@ import { TEAMWORK_TIMESHEET_URL } from "../../api/teamwork/consts.ts";
 import { getTeamworkTaskReference } from "../../api/teamwork/tasks.ts";
 import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
 import {
-  completeTimer,
   deleteTimer,
   getMyTimers,
   getTimerElapsedMs,
@@ -10,6 +9,7 @@ import {
   resumeTimer,
   startTimer,
   stopTimer,
+  submitTimer,
   type TeamworkTimer,
 } from "../../api/teamwork/timers/api.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
@@ -151,7 +151,7 @@ export async function teamworkTimerSubmit(args: { task: string }): Promise<void>
     return;
   }
 
-  await completeTimer(match.id);
+  await submitTimer(match);
   console.log(
     `Timer submitted for: ${match.taskName ?? `Task #${match.taskId}`} (#${match.taskId})`,
   );

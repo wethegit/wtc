@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { logError } from "../../logs/manager.ts";
-import { fetchTeamworkApiJson } from "../client.ts";
+import { logError, logInfo, logWarn } from "../../logs/manager.ts";
+import { fetchTeamworkApiJson, TeamworkApiError } from "../client.ts";
 
 const TeamworkIdSchema = z.union([
   z.number().int().nonnegative(),
@@ -30,8 +30,10 @@ const TeamworkTimerApiSchema = z.looseObject({
   userId: TeamworkIdSchema.optional(),
   taskId: TeamworkIdSchema.optional(),
   projectId: TeamworkIdSchema.optional(),
-  task: TeamworkRelationshipSchema.optional(),
-  project: TeamworkRelationshipSchema.optional(),
+  timeLogId: TeamworkIdSchema.optional(),
+  timelog: TeamworkRelationshipSchema.nullish(),
+  task: TeamworkRelationshipSchema.nullish(),
+  project: TeamworkRelationshipSchema.nullish(),
   description: z.string().nullable().optional(),
   running: z.boolean(),
   billable: z.boolean(),
@@ -60,6 +62,53 @@ const TeamworkTimerResponseSchema = z.object({
 type TeamworkTimerApi = z.infer<typeof TeamworkTimerApiSchema>;
 type TeamworkTimersIncluded = z.infer<typeof TeamworkTimersIncludedSchema>;
 
+async function fetchTimerApiJson(path: string, init?: RequestInit): Promise<unknown> {
+  try {
+    return await fetchTeamworkApiJson(path, init);
+  } catch (error) {
+    if (!(error instanceof TeamworkApiError) || error.status !== 503) throw error;
+    logWarn("teamwork", "timers.request.retry", "Retrying Teamwork timer request after 503", {
+      method: init?.method ?? "GET",
+      path,
+      status: error.status,
+      body: error.body,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return await fetchTeamworkApiJson(path, init);
+  }
+}
+
+function getTimerErrorMessage(
+  error: unknown,
+  fallback: string,
+  unavailableMessage = "Teamwork is temporarily unavailable. Please try again.",
+): string {
+  if (error instanceof TeamworkApiError && error.status === 503) return unavailableMessage;
+  return error instanceof z.ZodError ? "Unexpected Teamwork timer response." : fallback;
+}
+
+function getTimerLogMetadata(timer: TeamworkTimer): Record<string, unknown> {
+  const firstInterval = timer.intervals[0] ?? null;
+  const lastInterval = timer.intervals.at(-1) ?? null;
+
+  return {
+    timerId: timer.id,
+    userId: timer.userId,
+    taskId: timer.taskId,
+    projectId: timer.projectId,
+    timeLogId: timer.timeLogId,
+    running: timer.running,
+    billable: timer.billable,
+    deleted: timer.deleted,
+    duration: timer.duration,
+    lastStartedAt: timer.lastStartedAt,
+    serverTime: timer.serverTime,
+    intervalCount: timer.intervals.length,
+    firstInterval,
+    lastInterval,
+  };
+}
+
 /**
  * A timer managed by the Teamwork native timer API.
  * `duration` is the server-provided accumulated duration in seconds.
@@ -69,6 +118,7 @@ export interface TeamworkTimer {
   userId: number | null;
   taskId: number | null;
   projectId: number | null;
+  timeLogId: number | null;
   taskName: string | null;
   projectName: string | null;
   description: string | null;
@@ -100,16 +150,19 @@ function getIncludedName(
 function normalizeTimer(timer: TeamworkTimerApi, included: TeamworkTimersIncluded | undefined) {
   const taskId = timer.taskId ?? timer.task?.id ?? null;
   const projectId = timer.projectId ?? timer.project?.id ?? null;
+  // Teamwork's complete response can mark a timer deleted while still echoing running: true.
+  const running = timer.deleted ? false : timer.running;
 
   return {
     id: timer.id,
     userId: timer.userId ?? null,
     taskId,
     projectId,
+    timeLogId: timer.timeLogId ?? timer.timelog?.id ?? null,
     taskName: getIncludedName(included?.tasks, taskId),
     projectName: getIncludedName(included?.projects, projectId),
     description: timer.description ?? null,
-    running: timer.running,
+    running,
     billable: timer.billable,
     deleted: timer.deleted,
     lastStartedAt: timer.lastStartedAt,
@@ -124,7 +177,6 @@ function normalizeTimer(timer: TeamworkTimerApi, included: TeamworkTimersInclude
   } satisfies TeamworkTimer;
 }
 
-/** Fetches timers for the authenticated user. */
 export async function getMyTimers(params?: {
   taskId?: number;
   projectId?: number;
@@ -136,14 +188,22 @@ export async function getMyTimers(params?: {
     if (params?.projectId) searchParams.set("projectId", String(params.projectId));
     if (params?.runningTimersOnly) searchParams.set("runningTimersOnly", "true");
     const data = TeamworkTimersListResponseSchema.parse(
-      await fetchTeamworkApiJson(`/me/timers.json?${searchParams}`),
+      await fetchTimerApiJson(`/me/timers.json?${searchParams}`),
     );
-    return data.timers.map((timer) => normalizeTimer(timer, data.included));
+    return data.timers
+      .map((timer) => normalizeTimer(timer, data.included))
+      .filter((timer) => !timer.deleted);
   } catch (error) {
     logError("teamwork", "timers.getMy.error", "Failed to fetch timers", {
       error: error instanceof Error ? error.message : String(error),
     });
-    throw error;
+    throw new Error(
+      getTimerErrorMessage(
+        error,
+        error instanceof Error ? error.message : String(error),
+        "Teamwork is temporarily unavailable while loading timers. Please try again.",
+      ),
+    );
   }
 }
 
@@ -172,7 +232,7 @@ export async function startTimer(input: {
     if (input.description) timer.description = input.description;
 
     const data = TeamworkTimerResponseSchema.parse(
-      await fetchTeamworkApiJson("/me/timers.json", {
+      await fetchTimerApiJson("/me/timers.json", {
         method: "POST",
         body: JSON.stringify({ timer }),
         headers: { "Content-Type": "application/json" },
@@ -185,15 +245,45 @@ export async function startTimer(input: {
       projectId: input.projectId,
       error: error instanceof Error ? error.message : String(error),
     });
-    throw error;
+    throw new Error(
+      getTimerErrorMessage(
+        error,
+        error instanceof Error ? error.message : String(error),
+        "Teamwork is temporarily unavailable while starting the timer. Please try again.",
+      ),
+    );
   }
 }
 
-/** Pauses a running timer by ID. */
+async function setTimerMinimumDuration(
+  timerId: number,
+  minSeconds: number,
+): Promise<TeamworkTimer> {
+  try {
+    const data = TeamworkTimerResponseSchema.parse(
+      await fetchTimerApiJson(`/me/timers/${timerId}.json`, {
+        method: "PUT",
+        body: JSON.stringify({ timer: { seconds: minSeconds } }),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    return normalizeTimer(data.timer, data.included);
+  } catch (error) {
+    logError("teamwork", "timers.updateDuration.error", "Failed to update timer duration", {
+      timerId,
+      minSeconds,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error(
+      getTimerErrorMessage(error, error instanceof Error ? error.message : String(error)),
+    );
+  }
+}
+
 export async function stopTimer(timerId: number): Promise<TeamworkTimer> {
   try {
     const data = TeamworkTimerResponseSchema.parse(
-      await fetchTeamworkApiJson(`/me/timers/${timerId}/pause.json`, { method: "PUT" }),
+      await fetchTimerApiJson(`/me/timers/${timerId}/pause.json`, { method: "PUT" }),
     );
     return normalizeTimer(data.timer, data.included);
   } catch (error) {
@@ -201,15 +291,16 @@ export async function stopTimer(timerId: number): Promise<TeamworkTimer> {
       timerId,
       error: error instanceof Error ? error.message : String(error),
     });
-    throw error;
+    throw new Error(
+      getTimerErrorMessage(error, error instanceof Error ? error.message : String(error)),
+    );
   }
 }
 
-/** Resumes an existing timer by ID, pausing other running timers server-side. */
 export async function resumeTimer(timerId: number): Promise<TeamworkTimer> {
   try {
     const data = TeamworkTimerResponseSchema.parse(
-      await fetchTeamworkApiJson(`/me/timers/${timerId}/resume.json`, { method: "PUT" }),
+      await fetchTimerApiJson(`/me/timers/${timerId}/resume.json`, { method: "PUT" }),
     );
     return normalizeTimer(data.timer, data.included);
   } catch (error) {
@@ -217,40 +308,161 @@ export async function resumeTimer(timerId: number): Promise<TeamworkTimer> {
       timerId,
       error: error instanceof Error ? error.message : String(error),
     });
-    throw error;
+    throw new Error(
+      getTimerErrorMessage(error, error instanceof Error ? error.message : String(error)),
+    );
   }
 }
 
-/** Completes a timer, creating the Teamwork timelog entry and deleting the timer. */
 export async function completeTimer(timerId: number): Promise<TeamworkTimer> {
+  const path = `/me/timers/${timerId}/complete.json`;
+  logInfo("teamwork", "timers.complete.start", "Completing Teamwork timer", {
+    timerId,
+    method: "PUT",
+    path,
+  });
+
   try {
     const data = TeamworkTimerResponseSchema.parse(
-      await fetchTeamworkApiJson(`/me/timers/${timerId}/complete.json`, { method: "PUT" }),
+      await fetchTimerApiJson(path, { method: "PUT" }),
     );
-    return normalizeTimer(data.timer, data.included);
+    const timer = normalizeTimer(data.timer, data.included);
+    logInfo(
+      "teamwork",
+      "timers.complete.success",
+      "Completed Teamwork timer",
+      getTimerLogMetadata(timer),
+    );
+    return timer;
   } catch (error) {
     logError("teamwork", "timers.complete.error", "Failed to complete timer", {
       timerId,
+      method: "PUT",
+      path,
+      status: error instanceof TeamworkApiError ? error.status : null,
+      body: error instanceof TeamworkApiError ? error.body : null,
       error: error instanceof Error ? error.message : String(error),
     });
-    throw error;
+
+    if (error instanceof TeamworkApiError) {
+      try {
+        const searchParams = new URLSearchParams({
+          include: "tasks,projects",
+          showDeleted: "true",
+        });
+        const diagData = TeamworkTimerResponseSchema.parse(
+          await fetchTimerApiJson(`/timers/${timerId}.json?${searchParams}`),
+        );
+        const diagTimer = normalizeTimer(diagData.timer, diagData.included);
+        logInfo(
+          "teamwork",
+          "timers.complete.failureState",
+          "Fetched timer state after complete failure",
+          getTimerLogMetadata(diagTimer),
+        );
+      } catch (diagError) {
+        if (diagError instanceof TeamworkApiError && diagError.status === 404) {
+          logWarn(
+            "teamwork",
+            "timers.complete.failureStateMissing",
+            "Timer missing after complete failure",
+            { timerId },
+          );
+        } else {
+          logError(
+            "teamwork",
+            "timers.complete.failureState.error",
+            "Failed to fetch timer state after complete failure",
+            {
+              timerId,
+              error: diagError instanceof Error ? diagError.message : String(diagError),
+            },
+          );
+        }
+      }
+      throw error;
+    }
+
+    throw new Error(
+      getTimerErrorMessage(
+        error,
+        error instanceof Error ? error.message : String(error),
+        "Teamwork is temporarily unavailable while submitting the timer. Please try again.",
+      ),
+    );
   }
 }
 
-/** Deletes a timer by ID. Hard delete removes it entirely; soft delete (default) just marks it as deleted. */
-export async function deleteTimer(timerId: number, hardDelete?: boolean): Promise<void> {
+/** Submits a timer through Teamwork's native complete endpoint.
+ *
+ * Pauses first so the server finalises the duration, then checks whether it is
+ * at least 1 minute.  Teamwork's complete endpoint returns 503 when the
+ * accumulated time is too short (< 60 s) so we extend it when necessary. */
+export async function submitTimer(timer: TeamworkTimer): Promise<TeamworkTimer> {
+  logInfo(
+    "teamwork",
+    "timers.submit.start",
+    "Submitting Teamwork timer via native complete endpoint",
+    getTimerLogMetadata(timer),
+  );
+
   try {
-    await fetchTeamworkApiJson(`/me/timers/${timerId}.json`, {
+    const pausedTimer = timer.running ? await stopTimer(timer.id) : timer;
+
+    const elapsedMs = getTimerElapsedMs(pausedTimer, new Date());
+    const timerToComplete =
+      elapsedMs < 60_000 ? await setTimerMinimumDuration(pausedTimer.id, 60) : pausedTimer;
+
+    if (elapsedMs < 60_000) {
+      logInfo(
+        "teamwork",
+        "timers.submit.durationExtended",
+        "Timer duration was less than 1 minute, extended to 60 s before completing",
+        getTimerLogMetadata(timerToComplete),
+      );
+    }
+
+    return await completeTimer(timerToComplete.id);
+  } catch (error) {
+    logError("teamwork", "timers.submit.error", "Failed to submit Teamwork timer", {
+      ...getTimerLogMetadata(timer),
+      status: error instanceof TeamworkApiError ? error.status : null,
+      body: error instanceof TeamworkApiError ? error.body : null,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error(
+      error instanceof z.ZodError
+        ? "Unexpected Teamwork timer response."
+        : error instanceof TeamworkApiError && error.status === 503
+          ? "Teamwork returned an internal error while submitting the timer. Check logs for complete request diagnostics."
+          : error instanceof Error
+            ? error.message
+            : "Failed to submit timer.",
+    );
+  }
+}
+
+export async function deleteTimer(timerId: number, hardDelete = true): Promise<void> {
+  try {
+    const request: RequestInit = {
       method: "DELETE",
       body: JSON.stringify({ hardDelete: Boolean(hardDelete) }),
       headers: { "Content-Type": "application/json" },
-    });
+    };
+
+    await fetchTimerApiJson(`/me/timers/${timerId}.json`, request);
   } catch (error) {
     logError("teamwork", "timers.delete.error", "Failed to delete timer", {
       timerId,
       error: error instanceof Error ? error.message : String(error),
     });
-    throw error;
+    throw new Error(
+      getTimerErrorMessage(
+        error,
+        error instanceof Error ? error.message : String(error),
+        "Teamwork is temporarily unavailable while deleting the timer. Please try again.",
+      ),
+    );
   }
 }
 
@@ -267,7 +479,6 @@ export function getTimerElapsedMs(timer: TeamworkTimer, now: Date): number {
   return accumulatedMs + Math.max(0, now.getTime() - start);
 }
 
-/** Formats a timer duration as compact text for display. */
 export function formatTimerDuration(durationMs: number): string {
   const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
   const hours = Math.floor(totalSeconds / 3600);

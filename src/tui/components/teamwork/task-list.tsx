@@ -1,4 +1,4 @@
-import { createMemo, For } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
 
 import type { TeamworkTask } from "../../../api/teamwork/task-list-tasks.ts";
 import { getTimerElapsedMs, type TeamworkTimer } from "../../../api/teamwork/timers/api.ts";
@@ -52,19 +52,24 @@ export function TaskList(props: {
     };
   };
 
+  const TaskTimerBadge = (badgeProps: { taskId: number }) => (
+    <Show when={timerBadge(badgeProps.taskId)}>
+      {(badge: () => TimerBadgeProps) => <TimerBadge {...badge()} />}
+    </Show>
+  );
+
   return props.tasks.length ? (
     <box gap={0}>
       <For each={props.tasks}>
         {(task) => {
-          const badge = timerBadge(task.id);
-
           return (
             <ListItem
               id={`task-${props.taskListId}-${task.id}`}
               title={task.name}
               metadata={buildTaskMetadata(task)}
               selected={props.selectedTaskId === task.id}
-              badge={badge ? <TimerBadge {...badge} /> : undefined}
+              badgeWhen={() => timerBadge(task.id) !== null}
+              badge={<TaskTimerBadge taskId={task.id} />}
             />
           );
         }}

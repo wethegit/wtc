@@ -14,11 +14,11 @@ export interface TimerBadgeProps {
  * are shown in dim text. Format is "⏱ 1h 23m" or "⏱ 0m 45s".
  */
 export function TimerBadge(props: TimerBadgeProps) {
-  const formatted = formatBadgeDuration(props.elapsedMs);
+  const formatted = () => formatBadgeDuration(props.elapsedMs);
 
   return (
     <text fg={props.running ? (props.flashOn ? tokens.accent : tokens.accentSoft) : tokens.textDim}>
-      ⏱ {formatted}
+      ⏱ {formatted()}
     </text>
   );
 }

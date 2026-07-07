@@ -2,6 +2,19 @@ import { logError } from "../logs/manager.ts";
 import { createTeamworkAuthorizationHeader, getTeamworkApiToken } from "./auth.ts";
 import { TEAMWORK_API_BASE_URL } from "./consts.ts";
 
+const REQUEST_TIMEOUT_MS = 5000;
+
+export class TeamworkApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly body?: string,
+  ) {
+    super(message);
+    this.name = "TeamworkApiError";
+  }
+}
+
 /** Fetches a Teamwork v3 API endpoint using stored auth and returns the parsed JSON body. */
 export async function fetchTeamworkApiJson(path: string, init: RequestInit = {}): Promise<unknown> {
   const token = await getTeamworkApiToken();
@@ -15,16 +28,21 @@ export async function fetchTeamworkApiJson(path: string, init: RequestInit = {})
     const response = await fetch(`${TEAMWORK_API_BASE_URL}${path}`, {
       ...init,
       headers,
-      signal: init.signal ?? AbortSignal.timeout(5000),
+      signal: init.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
-
-    if (!response.ok) {
-      throw new Error(`Teamwork API responded with ${response.status}`);
-    }
 
     if (response.status === 204) return null;
 
     const text = await response.text();
+    if (!response.ok) {
+      const detail = text.trim() ? `: ${text.slice(0, 500)}` : "";
+      throw new TeamworkApiError(
+        `Teamwork API responded with ${response.status}${detail}`,
+        response.status,
+        text,
+      );
+    }
+
     return text ? JSON.parse(text) : null;
   } catch (error) {
     logError("teamwork", "client.fetch.error", `Teamwork API call failed: ${path}`, {

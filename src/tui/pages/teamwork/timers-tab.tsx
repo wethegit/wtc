@@ -2,13 +2,12 @@ import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 import { useBindings } from "@opentui/keymap/solid";
 
 import {
-  completeTimer,
   deleteTimer,
   getMyTimers,
   getTimerElapsedMs,
-  formatTimerDuration,
   resumeTimer,
   stopTimer,
+  submitTimer,
   type TeamworkTimer,
 } from "../../../api/teamwork/timers/api.ts";
 import { TEAMWORK_TIMESHEET_URL } from "../../../api/teamwork/consts.ts";
@@ -112,11 +111,16 @@ export function TimersTab() {
         confirmLabel="submit"
         onConfirm={async () => {
           try {
-            await completeTimer(timer.id);
+            await submitTimer(timer);
+            setTwTimers((current) =>
+              current.filter((currentTimer) => currentTimer.id !== timer.id),
+            );
             await refreshTimers();
             setMessage(`Timer submitted: ${timerLabel}`);
           } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Failed to submit timer.");
+            const errorMessage = error instanceof Error ? error.message : "Failed to submit timer.";
+            await refreshTimers();
+            setMessage(errorMessage);
           }
         }}
       />
@@ -140,6 +144,9 @@ export function TimersTab() {
         onConfirm={async () => {
           try {
             await deleteTimer(timer.id);
+            setTwTimers((current) =>
+              current.filter((currentTimer) => currentTimer.id !== timer.id),
+            );
             await refreshTimers();
             setMessage(`Timer deleted: ${timerLabel}`);
           } catch (error) {
@@ -231,13 +238,6 @@ export function TimersTab() {
     });
   });
 
-  const timerMetadata = (timer: TeamworkTimer): string[] => {
-    const parts: string[] = [];
-    const elapsedMs = getTimerElapsedMs(timer, now());
-    parts.push(formatTimerDuration(elapsedMs));
-    return parts;
-  };
-
   return (
     <box flexDirection="column" gap={1}>
       <Card title={twTimers().length > 0 ? "Timers" : "No timers"}>
@@ -249,7 +249,6 @@ export function TimersTab() {
               title={
                 timer.taskName ?? (timer.taskId ? `Task #${timer.taskId}` : `Timer #${timer.id}`)
               }
-              metadata={timerMetadata(timer)}
               selected={selectedTimerId() === timer.id}
               badge={
                 <TimerBadge
