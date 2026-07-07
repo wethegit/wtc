@@ -8,6 +8,14 @@ export interface TeamworkTaskReference {
   url: string;
 }
 
+/** A Teamwork task list parsed from a user-provided ID or URL. */
+export interface TeamworkTaskListReference {
+  /** Numeric Teamwork task-list ID. */
+  id: number;
+  /** Browser URL for the Teamwork task list. */
+  url: string;
+}
+
 /** Parses a user-provided task ID (e.g. "12345") or Teamwork URL into a task reference. */
 export function getTeamworkTaskReference(value: string): TeamworkTaskReference {
   const trimmed = value.trim();
@@ -34,5 +42,34 @@ export function getTeamworkTaskReference(value: string): TeamworkTaskReference {
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("Teamwork")) throw error;
     throw new Error("Teamwork task must be a numeric ID or Teamwork task URL.");
+  }
+}
+
+/** Parses a user-provided task-list ID or Teamwork task-list URL into a task-list reference. */
+export function getTeamworkTaskListReference(value: string): TeamworkTaskListReference {
+  const trimmed = value.trim();
+  if (!trimmed) throw new Error("Teamwork task-list ID or URL is required.");
+
+  if (/^\d+$/.test(trimmed)) {
+    const id = Number(trimmed);
+    if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Teamwork task-list ID is invalid.");
+
+    return { id, url: `${TEAMWORK_BASE_URL}/app/tasklists/${id}/list` };
+  }
+
+  try {
+    const url = new URL(trimmed);
+    const teamworkUrl = new URL(TEAMWORK_BASE_URL);
+    if (url.hostname !== teamworkUrl.hostname) {
+      throw new Error("Teamwork task-list URL must use the configured Teamwork site.");
+    }
+
+    const match = url.pathname.match(/\/tasklists\/(\d+)/);
+    if (!match?.[1]) throw new Error("Teamwork task-list URL must include a task-list ID.");
+
+    return { id: Number(match[1]), url: url.toString() };
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Teamwork")) throw error;
+    throw new Error("Teamwork task list must be a numeric ID or Teamwork task-list URL.");
   }
 }
