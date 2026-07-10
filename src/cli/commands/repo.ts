@@ -10,7 +10,7 @@ import {
   getTeamworkProjectBootstrapDefaults,
   TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
 } from "../../api/teamwork/task-lists.ts";
-import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
+import { getTeamworkTaskSummaryById } from "../../api/teamwork/task.ts";
 import {
   getTeamworkTaskListReference,
   getTeamworkTaskReference,
@@ -101,16 +101,10 @@ export async function repoCreate(args: {
             }
           : null;
 
-    if (!generalTaskList && !skipGeneralTasks) {
-      throw new Error(
-        "General Tasks list could not be discovered. Pass --general-tasks with a task-list ID/URL, or pass --general-tasks -1 to skip it.",
-      );
-    }
-
     const reviewTask = skipReviewTask
       ? null
       : args.reviewTask
-        ? await getTeamworkTaskById(getTeamworkTaskReference(args.reviewTask).id)
+        ? await getTeamworkTaskSummaryById(getTeamworkTaskReference(args.reviewTask).id)
         : generalTaskList
           ? (discovered.codeReviewTask ??
             (await getTeamworkCodeReviewTaskInTaskList({
@@ -118,12 +112,6 @@ export async function repoCreate(args: {
               taskListId: generalTaskList.id,
             })))
           : null;
-
-    if (!reviewTask && !skipReviewTask && !skipGeneralTasks) {
-      throw new Error(
-        "Code Review task could not be discovered. Pass --review-task with a task ID/URL, or pass --review-task -1 to skip it.",
-      );
-    }
 
     const cloneParentDir = args.cloneDir?.trim() || startDir;
     await assertCloneTargetAvailable(cloneParentDir, name);
@@ -165,11 +153,11 @@ export async function repoCreate(args: {
     if (bootstrap) console.log(`Bootstrapped WTC config: ${bootstrap.configPath}`);
     if (!generalTaskList) {
       logInfo("cli.repo", "repo.bootstrap.generalTasks.skipped", "Skipped General Tasks config");
-      console.log("Skipped General Tasks list config (--general-tasks -1).");
+      console.log("Skipped General Tasks list config.");
     }
     if (!reviewTask) {
       logInfo("cli.repo", "repo.bootstrap.reviewTask.skipped", "Skipped Code Review task config");
-      console.log("Skipped Code Review task config (--review-task -1).");
+      console.log("Skipped Code Review task config.");
     }
     if (warnings.length) {
       for (const warning of warnings) {
