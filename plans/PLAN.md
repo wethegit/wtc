@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** Phase 6.4 Local Clone + WTC Project Bootstrap planned
+- **Status:** Phase 6.4 Local Clone + WTC Project Bootstrap completed
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js
@@ -167,9 +167,9 @@ CLI `wtc repo create` command with `--template`, `--visibility`, `--description`
 
 Branch protection rulesets, repository settings, vulnerability alerts, and senior-reviewers bypass for newly created repos. Rules preset selection (`standard`/`none`) available in both TUI and CLI. Best-effort post-create setup with warnings for token permission issues.
 
-#### Phase 6.4 — [Local Clone + WTC Project Bootstrap](github/6.4-local-clone-and-wtc-project-bootstrap.md)
+#### Phase 6.4 — [Local Clone + WTC Project Bootstrap](github/6.4-local-clone-and-wtc-project-bootstrap.md) ✅
 
-Clone the newly created repo, write a `.wtc.yaml` into the cloned repo with project links and Teamwork project ID, and optionally commit and push the config so all devs get a ready-to-use WTC project.
+Clone the newly created repo, write a `.wtc.yaml` into the cloned repo with Teamwork project ID and optional Teamwork references, then commit and push the config so all devs get a ready-to-use WTC project.
 
 #### Phase 6.5 — [Teamwork Project Linking + Final Polish](github/6.5-teamwork-project-linking-and-final-polish.md)
 

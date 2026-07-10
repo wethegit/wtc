@@ -119,7 +119,9 @@ export function GitHubPage() {
 
   const triggerCreateRepo = () => {
     if (dialog.active() || isCreating()) return;
-    void startCreateRepo();
+    void startCreateRepo().catch((error: unknown) => {
+      setMessage(error instanceof Error ? error.message : "Failed to start repo creation.");
+    });
   };
 
   const showTemplateStep = (templates: GitHubTemplateRepo[]) => {
@@ -299,7 +301,20 @@ export function GitHubPage() {
             );
             return;
           }
-          void resolveTeamworkDefaults(draft, projectId);
+          void resolveTeamworkDefaults(draft, projectId).catch((error: unknown) => {
+            showTeamworkSetupError(
+              "Teamwork Discovery Failed",
+              error instanceof Error ? error.message : "Failed to discover Teamwork defaults.",
+              () => showTeamworkProjectInput(draft, value),
+              () =>
+                showCloneDirInput(draft, {
+                  teamworkProjectId: projectId,
+                  generalTaskList: null,
+                  reviewTask: null,
+                }),
+              "Skip Optional Fields",
+            );
+          });
         }}
         onCancel={() => showTeamworkSetupStep(draft)}
       />
@@ -373,6 +388,24 @@ export function GitHubPage() {
             void resolveCodeReviewTask(draft, teamworkProjectId, {
               id: ref.id,
               name: TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
+            }).catch((error: unknown) => {
+              showTeamworkSetupError(
+                "Code Review Search Failed",
+                error instanceof Error
+                  ? error.message
+                  : "Failed to search for the Code Review task.",
+                () => showGeneralTasksInput(draft, teamworkProjectId, value),
+                () =>
+                  showCloneDirInput(draft, {
+                    teamworkProjectId,
+                    generalTaskList: {
+                      id: ref.id,
+                      name: TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
+                    },
+                    reviewTask: null,
+                  }),
+                "Skip Code Review",
+              );
             });
           } catch (error) {
             showTeamworkSetupError(
@@ -532,7 +565,7 @@ export function GitHubPage() {
         cancelLabel="Back"
         autoClose={false}
         onConfirm={() => createRepo(draft)}
-        onCancel={() => showTeamworkSetupStep(draft)}
+        onCancel={() => showRulesStep(draft)}
       />
     ));
   };
@@ -617,9 +650,7 @@ export function GitHubPage() {
         fullName: repo.fullName,
       });
 
-      if (warnings.length) {
-        logWarn("tui.github", "github.repo.setup.warnings", "Setup warnings", { warnings });
-      } else {
+      if (!warnings.length) {
         logInfo("tui.github", "github.repo.setup.success", "Setup completed");
       }
 
@@ -669,7 +700,9 @@ export function GitHubPage() {
   }));
 
   onMount(() => {
-    void loadGitHubContext();
+    void loadGitHubContext().catch((error: unknown) => {
+      setMessage(error instanceof Error ? error.message : "Failed to load GitHub context.");
+    });
     setHints([
       { key: "↵", label: "create" },
       { key: "^N", label: "new repo" },
