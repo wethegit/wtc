@@ -18,7 +18,7 @@ import {
   getTeamworkProjectBootstrapDefaults,
   TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
 } from "../../api/teamwork/task-lists.ts";
-import { getTeamworkTaskById } from "../../api/teamwork/task.ts";
+import { getTeamworkTaskSummaryById } from "../../api/teamwork/task.ts";
 import {
   getTeamworkTaskListReference,
   getTeamworkTaskReference,
@@ -53,11 +53,11 @@ interface RepoBootstrapDraft {
   generalTaskList: {
     id: number;
     name: string;
-  };
+  } | null;
   reviewTask: {
     id: number;
     name: string;
-  };
+  } | null;
 }
 
 /** GitHub route for creating repositories from approved organization templates. */
@@ -337,8 +337,15 @@ export function GitHubPage() {
       showTeamworkSetupError(
         "Teamwork Discovery Failed",
         error instanceof Error ? error.message : "Failed to discover Teamwork defaults.",
-        () => showTeamworkProjectInput(draft, teamworkProjectId.toString()),
-        () => showConfirmStep({ ...draft, bootstrap: null }),
+        () => showGeneralTasksInput(draft, teamworkProjectId, ""),
+        () =>
+          showCloneDirInput(draft, {
+            teamworkProjectId,
+            generalTaskList: null,
+            reviewTask: null,
+          }),
+        "Skip Optional Fields",
+        "Enter Manually",
       );
     }
   };
@@ -351,10 +358,16 @@ export function GitHubPage() {
     dialog.replace(() => (
       <DialogInput
         title="General Tasks List"
-        label="Enter the General Tasks task-list ID or URL:"
+        label="Enter the General Tasks task-list ID or URL, or leave blank to skip:"
         initialValue={initialValue}
         confirmLabel="Next"
+        cancelLabel="Skip"
+        allowEmpty
         onConfirm={(value) => {
+          if (!value) {
+            showReviewTaskInput(draft, { teamworkProjectId, generalTaskList: null });
+            return;
+          }
           try {
             const ref = getTeamworkTaskListReference(value);
             void resolveCodeReviewTask(draft, teamworkProjectId, {
@@ -366,11 +379,12 @@ export function GitHubPage() {
               "Invalid Task List",
               error instanceof Error ? error.message : "Invalid Teamwork task-list ID or URL.",
               () => showGeneralTasksInput(draft, teamworkProjectId, value),
-              () => showConfirmStep({ ...draft, bootstrap: null }),
+              () => showReviewTaskInput(draft, { teamworkProjectId, generalTaskList: null }),
+              "Skip General Tasks",
             );
           }
         }}
-        onCancel={() => showTeamworkProjectInput(draft, teamworkProjectId.toString())}
+        onCancel={() => showReviewTaskInput(draft, { teamworkProjectId, generalTaskList: null })}
       />
     ));
   };
@@ -378,7 +392,7 @@ export function GitHubPage() {
   const resolveCodeReviewTask = async (
     draft: RepoCreationDraft,
     teamworkProjectId: number,
-    generalTaskList: RepoBootstrapDraft["generalTaskList"],
+    generalTaskList: NonNullable<RepoBootstrapDraft["generalTaskList"]>,
   ) => {
     dialog.replace(() => <LoadingDialog message="Finding Code Review task..." />);
 
@@ -397,7 +411,8 @@ export function GitHubPage() {
         "Code Review Search Failed",
         error instanceof Error ? error.message : "Failed to search for the Code Review task.",
         () => showReviewTaskInput(draft, { teamworkProjectId, generalTaskList }),
-        () => showConfirmStep({ ...draft, bootstrap: null }),
+        () => showCloneDirInput(draft, { teamworkProjectId, generalTaskList, reviewTask: null }),
+        "Skip Code Review",
       );
     }
   };
@@ -409,20 +424,27 @@ export function GitHubPage() {
     dialog.replace(() => (
       <DialogInput
         title="Code Review Task"
-        label="Enter the Code Review task ID or URL:"
+        label="Enter the Code Review task ID or URL, or leave blank to skip:"
         initialValue=""
         confirmLabel="Next"
+        cancelLabel="Skip"
+        allowEmpty
         onConfirm={(value) => {
+          if (!value) {
+            showCloneDirInput(draft, { ...base, reviewTask: null });
+            return;
+          }
           try {
             const ref = getTeamworkTaskReference(value);
-            getTeamworkTaskById(ref.id)
+            getTeamworkTaskSummaryById(ref.id)
               .then((reviewTask) => showCloneDirInput(draft, { ...base, reviewTask }))
               .catch((error: unknown) => {
                 showTeamworkSetupError(
                   "Invalid Code Review Task",
                   error instanceof Error ? error.message : "Failed to load Code Review task.",
                   () => showReviewTaskInput(draft, base),
-                  () => showConfirmStep({ ...draft, bootstrap: null }),
+                  () => showCloneDirInput(draft, { ...base, reviewTask: null }),
+                  "Skip Code Review",
                 );
               });
           } catch (error) {
@@ -430,13 +452,12 @@ export function GitHubPage() {
               "Invalid Code Review Task",
               error instanceof Error ? error.message : "Invalid Teamwork task ID or URL.",
               () => showReviewTaskInput(draft, base),
-              () => showConfirmStep({ ...draft, bootstrap: null }),
+              () => showCloneDirInput(draft, { ...base, reviewTask: null }),
+              "Skip Code Review",
             );
           }
         }}
-        onCancel={() =>
-          showGeneralTasksInput(draft, base.teamworkProjectId, base.generalTaskList.id.toString())
-        }
+        onCancel={() => showCloneDirInput(draft, { ...base, reviewTask: null })}
       />
     ));
   };
@@ -475,13 +496,15 @@ export function GitHubPage() {
     message: string,
     onBack: () => void,
     onSkip?: () => void,
+    skipLabel = "Skip Setup",
+    confirmLabel = "Go Back",
   ) => {
     dialog.replace(() => (
       <ConfirmDialog
         title={title}
         message={message}
-        confirmLabel="Go Back"
-        cancelLabel="Skip Setup"
+        confirmLabel={confirmLabel}
+        cancelLabel={skipLabel}
         autoClose={false}
         onConfirm={onBack}
         onCancel={() => (onSkip ? onSkip() : dialog.clear())}
@@ -492,8 +515,14 @@ export function GitHubPage() {
   const showConfirmStep = (draft: RepoCreationDraft) => {
     const description = draft.description ? `\nDescription: ${draft.description}` : "";
     const source = draft.template ? `from ${draft.template.fullName}` : "as a blank repo";
+    const generalTasks = draft.bootstrap?.generalTaskList
+      ? draft.bootstrap.generalTaskList.id.toString()
+      : "skipped";
+    const codeReview = draft.bootstrap?.reviewTask
+      ? `${draft.bootstrap.reviewTask.name} (#${draft.bootstrap.reviewTask.id})`
+      : "skipped";
     const bootstrap = draft.bootstrap
-      ? `\nTeamwork project: ${draft.bootstrap.teamworkProjectId}\nGeneral Tasks: ${draft.bootstrap.generalTaskList.id}\nCode Review: ${draft.bootstrap.reviewTask.name} (#${draft.bootstrap.reviewTask.id})\nClone parent: ${draft.bootstrap.cloneParentDir}`
+      ? `\nTeamwork project: ${draft.bootstrap.teamworkProjectId}\nGeneral Tasks: ${generalTasks}\nCode Review: ${codeReview}\nClone parent: ${draft.bootstrap.cloneParentDir}`
       : "\nTeamwork setup: skipped";
     dialog.replace(() => (
       <ConfirmDialog
@@ -563,7 +592,7 @@ export function GitHubPage() {
           bootstrap: {
             cloneParentDir: draft.bootstrap.cloneParentDir,
             teamworkProjectId: draft.bootstrap.teamworkProjectId,
-            reviewTaskId: draft.bootstrap.reviewTask.id,
+            reviewTaskId: draft.bootstrap.reviewTask?.id ?? null,
             generalTaskList: draft.bootstrap.generalTaskList,
           },
         });

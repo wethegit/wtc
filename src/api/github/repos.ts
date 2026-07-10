@@ -9,6 +9,7 @@ import { GITHUB_REPO_RULESET_PRESETS, type GitHubRepoRulesPreset } from "./repo-
 export type { GitHubRepoRulesPreset } from "./repo-rules.ts";
 
 const TEMPLATE_REPOS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const TEMPLATE_REPOS_CACHE_VERSION = 2;
 
 // Applied during blank repo creation and again after creation so template-based
 // repos converge on the same baseline settings.
@@ -32,7 +33,7 @@ const GitHubTemplateRepoSchema = z.object({
 });
 
 const GitHubTemplateReposCacheFileSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(TEMPLATE_REPOS_CACHE_VERSION),
   owners: z.record(
     z.string(),
     z.object({
@@ -113,7 +114,7 @@ export async function getGitHubTemplateRepos(owner: string): Promise<GitHubTempl
     const raw = await readCacheFile(CACHE.templateRepos);
     cache = GitHubTemplateReposCacheFileSchema.parse(JSON.parse(raw ?? "{}"));
   } catch {
-    cache = { version: 1, owners: {} };
+    cache = { version: TEMPLATE_REPOS_CACHE_VERSION, owners: {} };
   }
 
   const now = Date.now();
@@ -131,7 +132,7 @@ export async function getGitHubTemplateRepos(owner: string): Promise<GitHubTempl
     });
 
     const templateRepos = repos
-      .filter((repo) => repo.is_template === true)
+      .filter((repo) => repo.is_template === true && !repo.archived)
       .map((repo) => ({
         owner: repo.owner.login,
         name: repo.name,
@@ -166,7 +167,7 @@ export async function getGitHubTemplateRepo(
       repo: repoName,
     });
 
-    if (data.is_template !== true) return null;
+    if (data.is_template !== true || data.archived) return null;
 
     return {
       owner: data.owner.login,

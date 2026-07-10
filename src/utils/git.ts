@@ -12,6 +12,67 @@ export interface GitHubRemote {
 const SSH_PATTERN =
   /^(?:git@github\.com:|ssh:\/\/git@github\.com\/)([^/]+)\/([^/]+?)(?:\.git)?\/?$/;
 const HTTPS_PATTERN = /^https:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/;
+const REMOTE_HEAD_WAIT_ATTEMPTS = 30;
+const REMOTE_HEAD_WAIT_DELAY_MS = 1_000;
+
+function getErrorProperty(error: unknown, key: string): unknown {
+  if (typeof error !== "object" || error === null || !(key in error)) return undefined;
+  return Reflect.get(error, key);
+}
+
+function formatOutput(value: unknown): string | null {
+  if (typeof value === "string") return value.trim() || null;
+  if (value instanceof Uint8Array) {
+    const text = new TextDecoder().decode(value).trim();
+    return text || null;
+  }
+  return null;
+}
+
+function formatGitError(action: string, error: unknown): Error {
+  const message = error instanceof Error ? error.message : String(error);
+  const exitCode = getErrorProperty(error, "exitCode");
+  const stderr = formatOutput(getErrorProperty(error, "stderr"));
+  const stdout = formatOutput(getErrorProperty(error, "stdout"));
+  const details = [
+    typeof exitCode === "number" ? `exit code ${exitCode}` : message,
+    stderr ? `stderr: ${stderr}` : null,
+    stdout ? `stdout: ${stdout}` : null,
+  ].filter((detail): detail is string => detail !== null);
+
+  return new Error(`${action} failed: ${details.join("\n")}`);
+}
+
+async function runGitStep<T>(action: string, command: () => Promise<T>): Promise<T> {
+  try {
+    return await command();
+  } catch (error) {
+    throw formatGitError(action, error);
+  }
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForRemoteHead(remoteUrl: string): Promise<void> {
+  let lastError: string | null = null;
+  for (let attempt = 1; attempt <= REMOTE_HEAD_WAIT_ATTEMPTS; attempt += 1) {
+    try {
+      const output = await Bun.$`git ls-remote --symref ${remoteUrl} HEAD`.quiet().text();
+      if (output.includes("refs/heads/")) return;
+      lastError = "remote HEAD was not available yet";
+    } catch (error) {
+      lastError = formatGitError("Git remote readiness check", error).message;
+    }
+
+    if (attempt < REMOTE_HEAD_WAIT_ATTEMPTS) await sleep(REMOTE_HEAD_WAIT_DELAY_MS);
+  }
+
+  throw new Error(
+    `GitHub repository branch was not ready after ${REMOTE_HEAD_WAIT_ATTEMPTS}s.${lastError ? ` Last check: ${lastError}` : ""}`,
+  );
+}
 
 function matchGitHubRemote(url: string, pattern: RegExp): GitHubRemote | null {
   const match = url.match(pattern);
@@ -65,7 +126,8 @@ export async function cloneRepo(input: {
   const parentDir = resolve(input.parentDir);
   const cloneDir = await assertCloneTargetAvailable(parentDir, input.repoName);
   await mkdir(parentDir, { recursive: true });
-  await Bun.$`git clone ${input.remoteUrl} ${cloneDir}`.quiet();
+  await waitForRemoteHead(input.remoteUrl);
+  await runGitStep("Git clone", () => Bun.$`git clone ${input.remoteUrl} ${cloneDir}`.quiet());
   return cloneDir;
 }
 
@@ -94,10 +156,10 @@ export async function commitFile(
   message: string,
   projectDir = process.cwd(),
 ): Promise<void> {
-  await Bun.$`git add ${relativePath}`.cwd(projectDir).quiet();
-  await Bun.$`git commit -m ${message}`.cwd(projectDir).quiet();
+  await runGitStep("Git add", () => Bun.$`git add ${relativePath}`.cwd(projectDir).quiet());
+  await runGitStep("Git commit", () => Bun.$`git commit -m ${message}`.cwd(projectDir).quiet());
 }
 
 export async function pushCurrentBranch(projectDir = process.cwd()): Promise<void> {
-  await Bun.$`git push`.cwd(projectDir).quiet();
+  await runGitStep("Git push", () => Bun.$`git push`.cwd(projectDir).quiet());
 }
