@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { GITHUB_REPO_OWNER } from "../../api/github/consts.ts";
 import { createGitHubRepoWorkflow } from "../../api/github/repo-creation-workflow.ts";
-import { logError, logInfo, logWarn } from "../../api/logs/manager.ts";
+import { logError, logInfo } from "../../api/logs/manager.ts";
 import { createGitHubRepoWithSetup, getGitHubTemplateRepo } from "../../api/github/repos.ts";
 import { loadProjectConfig } from "../../api/config/manager.ts";
 import {
@@ -22,6 +22,10 @@ const positiveIntegerSchema = z.number().int().positive();
 
 function isExplicitSkip(value: string | undefined): boolean {
   return value?.trim() === "-1";
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 export type RepoVisibility = "private" | "public";
@@ -84,9 +88,21 @@ export async function repoCreate(args: {
     const skipGeneralTasks = isExplicitSkip(args.generalTasks);
     const skipReviewTask = isExplicitSkip(args.reviewTask);
     const hasGeneralTasksOverride = args.generalTasks !== undefined && !skipGeneralTasks;
-    const discovered = hasGeneralTasksOverride
-      ? { generalTaskList: null, codeReviewTask: null }
-      : await getTeamworkProjectBootstrapDefaults(teamworkProjectId);
+    const preflightWarnings: string[] = [];
+    let discovered: Awaited<ReturnType<typeof getTeamworkProjectBootstrapDefaults>> = {
+      generalTaskList: null,
+      codeReviewTask: null,
+    };
+
+    if (!hasGeneralTasksOverride && !skipGeneralTasks) {
+      try {
+        discovered = await getTeamworkProjectBootstrapDefaults(teamworkProjectId);
+      } catch (error) {
+        preflightWarnings.push(
+          `Teamwork optional defaults discovery skipped: ${getErrorMessage(error)}`,
+        );
+      }
+    }
     const generalTaskList = skipGeneralTasks
       ? null
       : hasGeneralTasksOverride
@@ -101,17 +117,25 @@ export async function repoCreate(args: {
             }
           : null;
 
-    const reviewTask = skipReviewTask
-      ? null
-      : args.reviewTask
-        ? await getTeamworkTaskSummaryById(getTeamworkTaskReference(args.reviewTask).id)
-        : generalTaskList
-          ? (discovered.codeReviewTask ??
-            (await getTeamworkCodeReviewTaskInTaskList({
+    let reviewTask: { id: number; name: string } | null = null;
+    if (!skipReviewTask) {
+      if (args.reviewTask) {
+        reviewTask = await getTeamworkTaskSummaryById(getTeamworkTaskReference(args.reviewTask).id);
+      } else if (generalTaskList) {
+        if (discovered.codeReviewTask) {
+          reviewTask = discovered.codeReviewTask;
+        } else {
+          try {
+            reviewTask = await getTeamworkCodeReviewTaskInTaskList({
               projectId: teamworkProjectId,
               taskListId: generalTaskList.id,
-            })))
-          : null;
+            });
+          } catch (error) {
+            preflightWarnings.push(`Code Review task discovery skipped: ${getErrorMessage(error)}`);
+          }
+        }
+      }
+    }
 
     const cloneParentDir = args.cloneDir?.trim() || startDir;
     await assertCloneTargetAvailable(cloneParentDir, name);
@@ -131,6 +155,7 @@ export async function repoCreate(args: {
         generalTaskList,
       },
     });
+    const allWarnings = [...preflightWarnings, ...warnings];
 
     logInfo("cli.repo", "repo.create.success", "Repo created", { fullName: repo.fullName });
 
@@ -143,7 +168,7 @@ export async function repoCreate(args: {
           cloneUrl: repo.cloneUrl,
           sshUrl: repo.sshUrl,
           bootstrap,
-          warnings,
+          warnings: allWarnings,
         }),
       );
       return;
@@ -159,9 +184,8 @@ export async function repoCreate(args: {
       logInfo("cli.repo", "repo.bootstrap.reviewTask.skipped", "Skipped Code Review task config");
       console.log("Skipped Code Review task config.");
     }
-    if (warnings.length) {
-      for (const warning of warnings) {
-        logWarn("cli.repo", "repo.setup.warning", warning);
+    if (allWarnings.length) {
+      for (const warning of allWarnings) {
         console.warn(`  Warning: ${warning}`);
       }
     } else {
@@ -200,7 +224,6 @@ export async function repoCreate(args: {
 
   if (warnings.length) {
     for (const warning of warnings) {
-      logWarn("cli.repo", "repo.setup.warning", warning);
       console.warn(`  Warning: ${warning}`);
     }
   } else {
