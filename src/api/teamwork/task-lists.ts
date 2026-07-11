@@ -85,13 +85,13 @@ export async function getTeamworkProjectTaskListByName(
     );
 
     for (const taskList of parsed.tasklists ?? parsed.taskLists ?? []) {
-      const name = taskList.name ?? taskList.title;
-      if (!name) throw new Error("Teamwork task-list response did not include a name.");
-      if (name !== searchTerm) continue;
+      const taskListName = taskList.name ?? taskList.title;
+      if (!taskListName) throw new Error("Teamwork task-list response did not include a name.");
+      if (taskListName !== searchTerm) continue;
 
       return {
         id: taskList.id,
-        name,
+        name: taskListName,
         projectId: taskList.projectId ?? taskList.project?.id ?? null,
       };
     }

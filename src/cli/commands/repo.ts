@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { GITHUB_REPO_OWNER } from "../../api/github/consts.ts";
 import { createGitHubRepoWorkflow } from "../../api/github/repo-creation-workflow.ts";
-import { logError, logInfo } from "../../api/logs/manager.ts";
+import { logError, logInfo, logWarn } from "../../api/logs/manager.ts";
 import { createGitHubRepoWithSetup, getGitHubTemplateRepo } from "../../api/github/repos.ts";
 import { loadProjectConfig } from "../../api/config/manager.ts";
 import {
@@ -85,9 +85,11 @@ export async function repoCreate(args: {
       );
     }
     const teamworkProjectId = positiveIntegerSchema.parse(rawProjectId);
-    const skipGeneralTasks = isExplicitSkip(args.generalTasks);
-    const skipReviewTask = isExplicitSkip(args.reviewTask);
-    const hasGeneralTasksOverride = args.generalTasks !== undefined && !skipGeneralTasks;
+    const generalTasksValue = args.generalTasks?.trim() || undefined;
+    const reviewTaskValue = args.reviewTask?.trim() || undefined;
+    const skipGeneralTasks = isExplicitSkip(generalTasksValue);
+    const skipReviewTask = isExplicitSkip(reviewTaskValue);
+    const hasGeneralTasksOverride = generalTasksValue !== undefined && !skipGeneralTasks;
     const preflightWarnings: string[] = [];
     let discovered: Awaited<ReturnType<typeof getTeamworkProjectBootstrapDefaults>> = {
       generalTaskList: null,
@@ -103,24 +105,25 @@ export async function repoCreate(args: {
         );
       }
     }
-    const generalTaskList = skipGeneralTasks
-      ? null
-      : hasGeneralTasksOverride
-        ? {
-            id: getTeamworkTaskListReference(args.generalTasks ?? "").id,
-            name: TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
-          }
-        : discovered.generalTaskList
-          ? {
-              id: discovered.generalTaskList.id,
-              name: TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
-            }
-          : null;
+    let generalTaskList: { id: number; name: string } | null = null;
+    if (!skipGeneralTasks) {
+      if (hasGeneralTasksOverride) {
+        generalTaskList = {
+          id: getTeamworkTaskListReference(generalTasksValue).id,
+          name: TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
+        };
+      } else if (discovered.generalTaskList) {
+        generalTaskList = {
+          id: discovered.generalTaskList.id,
+          name: TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
+        };
+      }
+    }
 
     let reviewTask: { id: number; name: string } | null = null;
     if (!skipReviewTask) {
-      if (args.reviewTask) {
-        reviewTask = await getTeamworkTaskSummaryById(getTeamworkTaskReference(args.reviewTask).id);
+      if (reviewTaskValue) {
+        reviewTask = await getTeamworkTaskSummaryById(getTeamworkTaskReference(reviewTaskValue).id);
       } else if (generalTaskList) {
         if (discovered.codeReviewTask) {
           reviewTask = discovered.codeReviewTask;
@@ -158,6 +161,9 @@ export async function repoCreate(args: {
     const allWarnings = [...preflightWarnings, ...warnings];
 
     logInfo("cli.repo", "repo.create.success", "Repo created", { fullName: repo.fullName });
+    for (const warning of preflightWarnings) {
+      logWarn("cli.repo", "repo.preflight.warning", warning);
+    }
 
     if (args.json) {
       console.log(

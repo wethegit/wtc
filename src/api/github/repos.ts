@@ -367,7 +367,13 @@ async function applyGitHubRepoRulesetSetup(
   if (teamWarnings.length) return teamWarnings;
   const resolvedBypassTeamId = bypassTeamId;
   if (resolvedBypassTeamId === null) {
-    return ["Repository rules bypass team lookup: GitHub did not return a team ID."];
+    const warning = "Repository rules bypass team lookup: GitHub did not return a team ID.";
+    logError("github", "repos.setup.warning", "Repository rules bypass team lookup", {
+      owner,
+      repo,
+      warning,
+    });
+    return [warning];
   }
 
   return collectGitHubSetupWarnings(owner, repo, "Repository ruleset creation", async () => {
