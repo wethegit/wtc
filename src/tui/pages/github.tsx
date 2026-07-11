@@ -4,6 +4,7 @@ import { useBindings } from "@opentui/keymap/solid";
 
 import { getGitHubAuthStatus, type GitHubAuthStatus } from "../../api/github/auth.ts";
 import { GITHUB_REPO_OWNER } from "../../api/github/consts.ts";
+import { createGitHubRepoWorkflow } from "../../api/github/repo-creation-workflow.ts";
 import {
   createGitHubRepoWithSetup,
   getGitHubTemplateRepos,
@@ -11,8 +12,20 @@ import {
   type GitHubRepoRulesPreset,
   type GitHubTemplateRepo,
 } from "../../api/github/repos.ts";
+import { loadProjectConfig } from "../../api/config/manager.ts";
+import {
+  getTeamworkCodeReviewTaskInTaskList,
+  getTeamworkProjectBootstrapDefaults,
+  TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
+} from "../../api/teamwork/task-lists.ts";
+import { getTeamworkTaskSummaryById } from "../../api/teamwork/task.ts";
+import {
+  getTeamworkTaskListReference,
+  getTeamworkTaskReference,
+} from "../../api/teamwork/tasks.ts";
 import { logInfo, logWarn, logError } from "../../api/logs/manager.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
+import { assertCloneTargetAvailable } from "../../utils/git.ts";
 import { ActionButton } from "../components/forms/action-button.tsx";
 import { Card } from "../components/layout/card.tsx";
 import { Page } from "../components/layout/page.tsx";
@@ -31,6 +44,20 @@ interface RepoCreationDraft {
   description: string;
   private: boolean;
   rulesPreset: GitHubRepoRulesPreset;
+  bootstrap: RepoBootstrapDraft | null;
+}
+
+interface RepoBootstrapDraft {
+  cloneParentDir: string;
+  teamworkProjectId: number;
+  generalTaskList: {
+    id: number;
+    name: string;
+  } | null;
+  reviewTask: {
+    id: number;
+    name: string;
+  } | null;
 }
 
 /** GitHub route for creating repositories from approved organization templates. */
@@ -92,7 +119,9 @@ export function GitHubPage() {
 
   const triggerCreateRepo = () => {
     if (dialog.active() || isCreating()) return;
-    void startCreateRepo();
+    void startCreateRepo().catch((error: unknown) => {
+      setMessage(error instanceof Error ? error.message : "Failed to start repo creation.");
+    });
   };
 
   const showTemplateStep = (templates: GitHubTemplateRepo[]) => {
@@ -139,6 +168,7 @@ export function GitHubPage() {
             description: "",
             private: true,
             rulesPreset: "standard",
+            bootstrap: null,
           })
         }
         onCancel={() => {
@@ -198,14 +228,14 @@ export function GitHubPage() {
         description: "WTC repo settings, vulnerability alerts, and protected branch rules",
         value: "standard",
         category: "Repo Rules",
-        onSelect: () => showConfirmStep({ ...draft, rulesPreset: "standard" }),
+        onSelect: () => showTeamworkSetupStep({ ...draft, rulesPreset: "standard" }),
       },
       {
         title: "none",
         description: "Create the repo without protected branch rules",
         value: "none",
         category: "Repo Rules",
-        onSelect: () => showConfirmStep({ ...draft, rulesPreset: "none" }),
+        onSelect: () => showTeamworkSetupStep({ ...draft, rulesPreset: "none" }),
       },
     ];
 
@@ -218,13 +248,319 @@ export function GitHubPage() {
     ));
   };
 
+  const showTeamworkSetupStep = (draft: RepoCreationDraft) => {
+    dialog.replace(() => (
+      <ConfirmDialog
+        title="Teamwork Setup"
+        message="Would you like to setup Teamwork linking now? WTC will clone the repo, write .wtc.yaml, commit it, and push before repo rules are applied."
+        confirmLabel="Set up"
+        cancelLabel="Skip"
+        autoClose={false}
+        onConfirm={() => startTeamworkSetup(draft)}
+        onCancel={() => showConfirmStep({ ...draft, bootstrap: null })}
+      />
+    ));
+  };
+
+  const startTeamworkSetup = async (draft: RepoCreationDraft) => {
+    dialog.replace(() => <LoadingDialog message="Loading Teamwork project config..." />);
+
+    try {
+      const config = await loadProjectConfig(process.cwd());
+      const projectId = config?.teamwork.projectId ?? null;
+      if (projectId) {
+        await resolveTeamworkDefaults(draft, projectId);
+      } else {
+        showTeamworkProjectInput(draft, "");
+      }
+    } catch (error) {
+      showTeamworkSetupError(
+        "Teamwork Setup Failed",
+        error instanceof Error ? error.message : "Failed to load Teamwork setup defaults.",
+        () => showTeamworkSetupStep(draft),
+        () => showConfirmStep({ ...draft, bootstrap: null }),
+      );
+    }
+  };
+
+  const showTeamworkProjectInput = (draft: RepoCreationDraft, initialValue: string) => {
+    dialog.replace(() => (
+      <DialogInput
+        title="Teamwork Project ID"
+        label="Enter the Teamwork project ID for this repo:"
+        initialValue={initialValue}
+        confirmLabel="Next"
+        onConfirm={(value) => {
+          const projectId = Number(value);
+          if (!Number.isInteger(projectId) || projectId <= 0) {
+            showTeamworkSetupError(
+              "Invalid Project ID",
+              "Teamwork project ID must be a positive integer.",
+              () => showTeamworkProjectInput(draft, value),
+              () => showConfirmStep({ ...draft, bootstrap: null }),
+            );
+            return;
+          }
+          void resolveTeamworkDefaults(draft, projectId).catch((error: unknown) => {
+            showTeamworkSetupError(
+              "Teamwork Discovery Failed",
+              error instanceof Error ? error.message : "Failed to discover Teamwork defaults.",
+              () => showTeamworkProjectInput(draft, value),
+              () =>
+                showCloneDirInput(draft, {
+                  teamworkProjectId: projectId,
+                  generalTaskList: null,
+                  reviewTask: null,
+                }),
+              "Skip Optional Fields",
+            );
+          });
+        }}
+        onCancel={() => showTeamworkSetupStep(draft)}
+      />
+    ));
+  };
+
+  const resolveTeamworkDefaults = async (draft: RepoCreationDraft, teamworkProjectId: number) => {
+    dialog.replace(() => <LoadingDialog message="Discovering Teamwork defaults..." />);
+
+    try {
+      const defaults = await getTeamworkProjectBootstrapDefaults(teamworkProjectId);
+      if (!defaults.generalTaskList) {
+        showGeneralTasksInput(draft, teamworkProjectId, "");
+        return;
+      }
+
+      const generalTaskList = {
+        id: defaults.generalTaskList.id,
+        name: TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
+      };
+      if (defaults.codeReviewTask) {
+        showCloneDirInput(draft, {
+          teamworkProjectId,
+          generalTaskList,
+          reviewTask: defaults.codeReviewTask,
+        });
+        return;
+      }
+
+      showReviewTaskInput(draft, {
+        teamworkProjectId,
+        generalTaskList,
+      });
+    } catch (error) {
+      showTeamworkSetupError(
+        "Teamwork Discovery Failed",
+        error instanceof Error ? error.message : "Failed to discover Teamwork defaults.",
+        () => showGeneralTasksInput(draft, teamworkProjectId, ""),
+        () =>
+          showCloneDirInput(draft, {
+            teamworkProjectId,
+            generalTaskList: null,
+            reviewTask: null,
+          }),
+        "Skip Optional Fields",
+        "Enter Manually",
+      );
+    }
+  };
+
+  const showGeneralTasksInput = (
+    draft: RepoCreationDraft,
+    teamworkProjectId: number,
+    initialValue: string,
+  ) => {
+    dialog.replace(() => (
+      <DialogInput
+        title="General Tasks List"
+        label="Enter the General Tasks task-list ID or URL, or leave blank to skip:"
+        initialValue={initialValue}
+        confirmLabel="Next"
+        cancelLabel="Skip"
+        allowEmpty
+        onConfirm={(value) => {
+          if (!value) {
+            showReviewTaskInput(draft, { teamworkProjectId, generalTaskList: null });
+            return;
+          }
+          try {
+            const ref = getTeamworkTaskListReference(value);
+            void resolveCodeReviewTask(draft, teamworkProjectId, {
+              id: ref.id,
+              name: TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
+            }).catch((error: unknown) => {
+              showTeamworkSetupError(
+                "Code Review Search Failed",
+                error instanceof Error
+                  ? error.message
+                  : "Failed to search for the Code Review task.",
+                () => showGeneralTasksInput(draft, teamworkProjectId, value),
+                () =>
+                  showCloneDirInput(draft, {
+                    teamworkProjectId,
+                    generalTaskList: {
+                      id: ref.id,
+                      name: TEAMWORK_GENERAL_TASK_LIST_DISPLAY_NAME,
+                    },
+                    reviewTask: null,
+                  }),
+                "Skip Code Review",
+              );
+            });
+          } catch (error) {
+            showTeamworkSetupError(
+              "Invalid Task List",
+              error instanceof Error ? error.message : "Invalid Teamwork task-list ID or URL.",
+              () => showGeneralTasksInput(draft, teamworkProjectId, value),
+              () => showReviewTaskInput(draft, { teamworkProjectId, generalTaskList: null }),
+              "Skip General Tasks",
+            );
+          }
+        }}
+        onCancel={() => showReviewTaskInput(draft, { teamworkProjectId, generalTaskList: null })}
+      />
+    ));
+  };
+
+  const resolveCodeReviewTask = async (
+    draft: RepoCreationDraft,
+    teamworkProjectId: number,
+    generalTaskList: NonNullable<RepoBootstrapDraft["generalTaskList"]>,
+  ) => {
+    dialog.replace(() => <LoadingDialog message="Finding Code Review task..." />);
+
+    try {
+      const reviewTask = await getTeamworkCodeReviewTaskInTaskList({
+        projectId: teamworkProjectId,
+        taskListId: generalTaskList.id,
+      });
+      if (reviewTask) {
+        showCloneDirInput(draft, { teamworkProjectId, generalTaskList, reviewTask });
+        return;
+      }
+      showReviewTaskInput(draft, { teamworkProjectId, generalTaskList });
+    } catch (error) {
+      showTeamworkSetupError(
+        "Code Review Search Failed",
+        error instanceof Error ? error.message : "Failed to search for the Code Review task.",
+        () => showReviewTaskInput(draft, { teamworkProjectId, generalTaskList }),
+        () => showCloneDirInput(draft, { teamworkProjectId, generalTaskList, reviewTask: null }),
+        "Skip Code Review",
+      );
+    }
+  };
+
+  const showReviewTaskInput = (
+    draft: RepoCreationDraft,
+    base: Pick<RepoBootstrapDraft, "teamworkProjectId" | "generalTaskList">,
+  ) => {
+    dialog.replace(() => (
+      <DialogInput
+        title="Code Review Task"
+        label="Enter the Code Review task ID or URL, or leave blank to skip:"
+        initialValue=""
+        confirmLabel="Next"
+        cancelLabel="Skip"
+        allowEmpty
+        onConfirm={(value) => {
+          if (!value) {
+            showCloneDirInput(draft, { ...base, reviewTask: null });
+            return;
+          }
+          try {
+            const ref = getTeamworkTaskReference(value);
+            getTeamworkTaskSummaryById(ref.id)
+              .then((reviewTask) => showCloneDirInput(draft, { ...base, reviewTask }))
+              .catch((error: unknown) => {
+                showTeamworkSetupError(
+                  "Invalid Code Review Task",
+                  error instanceof Error ? error.message : "Failed to load Code Review task.",
+                  () => showReviewTaskInput(draft, base),
+                  () => showCloneDirInput(draft, { ...base, reviewTask: null }),
+                  "Skip Code Review",
+                );
+              });
+          } catch (error) {
+            showTeamworkSetupError(
+              "Invalid Code Review Task",
+              error instanceof Error ? error.message : "Invalid Teamwork task ID or URL.",
+              () => showReviewTaskInput(draft, base),
+              () => showCloneDirInput(draft, { ...base, reviewTask: null }),
+              "Skip Code Review",
+            );
+          }
+        }}
+        onCancel={() => showCloneDirInput(draft, { ...base, reviewTask: null })}
+      />
+    ));
+  };
+
+  const showCloneDirInput = (
+    draft: RepoCreationDraft,
+    base: Omit<RepoBootstrapDraft, "cloneParentDir">,
+  ) => {
+    const defaultDir = process.cwd();
+    dialog.replace(() => (
+      <DialogInput
+        title="Clone Directory"
+        label="Enter the parent directory where this repo should be cloned:"
+        initialValue={defaultDir}
+        confirmLabel="Next"
+        onConfirm={(value) => {
+          const cloneParentDir = value.trim() || defaultDir;
+          assertCloneTargetAvailable(cloneParentDir, draft.name)
+            .then(() => showConfirmStep({ ...draft, bootstrap: { ...base, cloneParentDir } }))
+            .catch((error: unknown) => {
+              showTeamworkSetupError(
+                "Clone Directory Unavailable",
+                error instanceof Error ? error.message : "Clone target is not available.",
+                () => showCloneDirInput(draft, base),
+                () => showConfirmStep({ ...draft, bootstrap: null }),
+              );
+            });
+        }}
+        onCancel={() => showReviewTaskInput(draft, base)}
+      />
+    ));
+  };
+
+  const showTeamworkSetupError = (
+    title: string,
+    message: string,
+    onBack: () => void,
+    onSkip?: () => void,
+    skipLabel = "Skip Setup",
+    confirmLabel = "Go Back",
+  ) => {
+    dialog.replace(() => (
+      <ConfirmDialog
+        title={title}
+        message={message}
+        confirmLabel={confirmLabel}
+        cancelLabel={skipLabel}
+        autoClose={false}
+        onConfirm={onBack}
+        onCancel={() => (onSkip ? onSkip() : dialog.clear())}
+      />
+    ));
+  };
+
   const showConfirmStep = (draft: RepoCreationDraft) => {
     const description = draft.description ? `\nDescription: ${draft.description}` : "";
     const source = draft.template ? `from ${draft.template.fullName}` : "as a blank repo";
+    const generalTasks = draft.bootstrap?.generalTaskList
+      ? draft.bootstrap.generalTaskList.id.toString()
+      : "skipped";
+    const codeReview = draft.bootstrap?.reviewTask
+      ? `${draft.bootstrap.reviewTask.name} (#${draft.bootstrap.reviewTask.id})`
+      : "skipped";
+    const bootstrap = draft.bootstrap
+      ? `\nTeamwork project: ${draft.bootstrap.teamworkProjectId}\nGeneral Tasks: ${generalTasks}\nCode Review: ${codeReview}\nClone parent: ${draft.bootstrap.cloneParentDir}`
+      : "\nTeamwork setup: skipped";
     dialog.replace(() => (
       <ConfirmDialog
         title="Create Repository"
-        message={`Create ${GITHUB_REPO_OWNER}/${draft.name} ${source} as ${draft.private ? "private" : "public"}?\nRules: ${draft.rulesPreset}${description}`}
+        message={`Create ${GITHUB_REPO_OWNER}/${draft.name} ${source} as ${draft.private ? "private" : "public"}?\nRules: ${draft.rulesPreset}${description}${bootstrap}`}
         confirmLabel="Create"
         cancelLabel="Back"
         autoClose={false}
@@ -234,12 +570,17 @@ export function GitHubPage() {
     ));
   };
 
-  const showSuccessDialog = (repo: CreatedGitHubRepo, warnings: string[]) => {
+  const showSuccessDialog = (
+    repo: CreatedGitHubRepo,
+    warnings: string[],
+    configPath: string | null,
+  ) => {
     const warningMessage = warnings.length ? `\n\nSetup warnings:\n${warnings.join("\n")}` : "";
+    const bootstrapMessage = configPath ? `\nWTC config: ${configPath}` : "";
     dialog.replace(() => (
       <ConfirmDialog
         title="Repository Created"
-        message={`${repo.fullName}\n${repo.htmlUrl}${warningMessage}`}
+        message={`${repo.fullName}\n${repo.htmlUrl}${bootstrapMessage}${warningMessage}`}
         confirmLabel="Open"
         cancelLabel="Close"
         onConfirm={async () => {
@@ -268,32 +609,59 @@ export function GitHubPage() {
     });
 
     try {
-      const { repo, warnings } = await createGitHubRepoWithSetup({
-        owner: GITHUB_REPO_OWNER,
-        name: draft.name,
-        description: draft.description.trim() || undefined,
-        private: draft.private,
-        templateOwner: draft.template ? GITHUB_REPO_OWNER : undefined,
-        templateRepo: draft.template?.name,
-        rulesPreset: draft.rulesPreset,
-      });
+      let repo: CreatedGitHubRepo;
+      let warnings: string[];
+      let configPath: string | null = null;
+
+      if (draft.bootstrap) {
+        const result = await createGitHubRepoWorkflow({
+          owner: GITHUB_REPO_OWNER,
+          name: draft.name,
+          description: draft.description.trim() || undefined,
+          private: draft.private,
+          templateOwner: draft.template ? GITHUB_REPO_OWNER : undefined,
+          templateRepo: draft.template?.name,
+          rulesPreset: draft.rulesPreset,
+          bootstrap: {
+            cloneParentDir: draft.bootstrap.cloneParentDir,
+            teamworkProjectId: draft.bootstrap.teamworkProjectId,
+            reviewTaskId: draft.bootstrap.reviewTask?.id ?? null,
+            generalTaskList: draft.bootstrap.generalTaskList,
+          },
+        });
+        repo = result.repo;
+        warnings = result.warnings;
+        configPath = result.bootstrap?.configPath ?? null;
+      } else {
+        const result = await createGitHubRepoWithSetup({
+          owner: GITHUB_REPO_OWNER,
+          name: draft.name,
+          description: draft.description.trim() || undefined,
+          private: draft.private,
+          templateOwner: draft.template ? GITHUB_REPO_OWNER : undefined,
+          templateRepo: draft.template?.name,
+          rulesPreset: draft.rulesPreset,
+        });
+        repo = result.repo;
+        warnings = result.warnings;
+      }
 
       logInfo("tui.github", "github.repo.create.success", "Repo created", {
         fullName: repo.fullName,
       });
 
-      if (warnings.length) {
-        logWarn("tui.github", "github.repo.setup.warnings", "Setup warnings", { warnings });
-      } else {
+      if (!warnings.length) {
         logInfo("tui.github", "github.repo.setup.success", "Setup completed");
       }
 
       setMessage(
         warnings.length
           ? `Created GitHub repo with setup warnings: ${repo.fullName}`
-          : `Created GitHub repo: ${repo.fullName}`,
+          : draft.bootstrap
+            ? `Created and bootstrapped GitHub repo: ${repo.fullName}`
+            : `Created GitHub repo: ${repo.fullName}`,
       );
-      showSuccessDialog(repo, warnings);
+      showSuccessDialog(repo, warnings, configPath);
     } catch (error) {
       logError("tui.github", "github.repo.create.error", "Repo creation failed", {
         error: error instanceof Error ? error.message : String(error),
@@ -332,7 +700,9 @@ export function GitHubPage() {
   }));
 
   onMount(() => {
-    void loadGitHubContext();
+    void loadGitHubContext().catch((error: unknown) => {
+      setMessage(error instanceof Error ? error.message : "Failed to load GitHub context.");
+    });
     setHints([
       { key: "↵", label: "create" },
       { key: "^N", label: "new repo" },
