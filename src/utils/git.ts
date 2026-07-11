@@ -70,7 +70,7 @@ async function waitForRemoteHead(remoteUrl: string): Promise<void> {
   }
 
   throw new Error(
-    `GitHub repository branch was not ready after ${REMOTE_HEAD_WAIT_ATTEMPTS}s.${lastError ? ` Last check: ${lastError}` : ""}`,
+    `GitHub repository branch was not ready after ${REMOTE_HEAD_WAIT_ATTEMPTS} attempts (${REMOTE_HEAD_WAIT_DELAY_MS}ms delay).${lastError ? ` Last check: ${lastError}` : ""}`,
   );
 }
 
@@ -156,7 +156,7 @@ export async function commitFile(
   message: string,
   projectDir = process.cwd(),
 ): Promise<void> {
-  await runGitStep("Git add", () => Bun.$`git add ${relativePath}`.cwd(projectDir).quiet());
+  await runGitStep("Git add", () => Bun.$`git add -- ${relativePath}`.cwd(projectDir).quiet());
   await runGitStep("Git commit", () => Bun.$`git commit -m ${message}`.cwd(projectDir).quiet());
 }
 
