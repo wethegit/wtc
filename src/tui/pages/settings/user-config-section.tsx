@@ -41,11 +41,11 @@ export function UserConfigSection(props: {
           gap={1}
           paddingLeft={1}
           border={["left"]}
-          borderColor={tokens.accentSoft}
+          borderColor={tokens.focusBlue}
         >
           <box flexDirection="column" gap={0}>
-            <text fg={tokens.text}>Teamwork auth</text>
-            <text fg={tokens.textDim}>Status: {props.teamworkAuthStatus}</text>
+            <text fg={tokens.white}>Teamwork auth</text>
+            <text fg={tokens.white46}>Status: {props.teamworkAuthStatus}</text>
           </box>
           <TextField
             name="teamworkApiToken"
@@ -64,11 +64,11 @@ export function UserConfigSection(props: {
           gap={1}
           paddingLeft={1}
           border={["left"]}
-          borderColor={tokens.accentSoft}
+          borderColor={tokens.focusBlue}
         >
           <box flexDirection="column" gap={0}>
-            <text fg={tokens.text}>GitHub auth</text>
-            <text fg={tokens.textDim}>Status: {props.githubAuthStatus}</text>
+            <text fg={tokens.white}>GitHub auth</text>
+            <text fg={tokens.white46}>Status: {props.githubAuthStatus}</text>
           </box>
           <TextField
             name="githubApiToken"

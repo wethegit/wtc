@@ -241,7 +241,7 @@ export function TimersTab() {
   return (
     <box flexDirection="column" gap={1}>
       <Card title={twTimers().length > 0 ? "Timers" : "No timers"}>
-        <text fg={tokens.textDim}>{message()}</text>
+        <text fg={tokens.white46}>{message()}</text>
 
         <For each={sortedTimers()}>
           {(timer) => (

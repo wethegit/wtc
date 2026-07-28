@@ -18,7 +18,7 @@ export function Dashboard() {
         <ascii_font font="tiny" text="WTC" />
         <text attributes={TextAttributes.DIM}>What will you build?</text>
       </box>
-      <text fg={tokens.text}>Press ctrl/cmd+p to open the command palette.</text>
+      <text fg={tokens.white}>Press ctrl/cmd+p to open the command palette.</text>
       <text attributes={TextAttributes.DIM}>v{APP_VERSION} · Press Ctrl+C to exit</text>
     </box>
   );

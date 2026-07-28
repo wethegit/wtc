@@ -44,9 +44,9 @@ function StatusBar(props: InternalBarProps) {
       left={0}
       width="100%"
       paddingX={1}
-      backgroundColor={tokens.surfaceOverlay}
+      backgroundColor={tokens.black46}
     >
-      <text fg={tokens.textDim}>{hintsText()}</text>
+      <text fg={tokens.white46}>{hintsText()}</text>
     </box>
   );
 }

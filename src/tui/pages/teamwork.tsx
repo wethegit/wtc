@@ -97,7 +97,7 @@ export function TeamworkPage(props: {
   onCleanup(() => setHints([]));
 
   return (
-    <Page title="Teamwork" status={<text fg={tokens.textDim}>{activeTab()}</text>}>
+    <Page title="Teamwork" status={<text fg={tokens.white46}>{activeTab()}</text>}>
       <box flexDirection="column">
         <box flexDirection="row" gap={2}>
           <For each={TABS}>
@@ -106,11 +106,11 @@ export function TeamworkPage(props: {
                 border={["top", "right", "left"]}
                 borderStyle="rounded"
                 paddingX={1}
-                borderColor={activeTab() === tab.id ? tokens.borderFocus : tokens.border}
+                borderColor={activeTab() === tab.id ? tokens.focusBlue : tokens.white46}
               >
                 <text
                   attributes={activeTab() === tab.id ? TextAttributes.BOLD : undefined}
-                  fg={activeTab() === tab.id ? tokens.accent : tokens.textDim}
+                  fg={activeTab() === tab.id ? tokens.focusBlue : tokens.white46}
                 >
                   {tab.label}
                 </text>

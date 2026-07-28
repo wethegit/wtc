@@ -59,12 +59,12 @@ function DialogOverlay(props: ParentProps<{ onClose: () => void }>) {
       zIndex={3000}
       left={0}
       top={0}
-      backgroundColor={tokens.surfaceOverlay}
+      backgroundColor={tokens.black46}
     >
       <box
         width={60}
         maxWidth={dimensions().width - 4}
-        backgroundColor={tokens.bg}
+        backgroundColor={tokens.black}
         paddingY={1}
         paddingX={2}
         flexDirection="column"

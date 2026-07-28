@@ -68,11 +68,13 @@ This order can change if a page rollout exposes a better dependency order.
 
 ## Token Strategy
 
-- Treat Figma `tokens.json` as source/reference data, not runtime configuration for now.
-- Translate Figma colors into `src/tui/tokens.ts` semantic roles.
-- Add new semantic tokens only when a component needs them.
-- Keep raw colors in a palette section and make components consume semantic tokens.
-- If CSS exports include spacing/type values, translate those into TUI layout constants or semantic tokens only when reused.
+- Treat Figma `tokens.json` as the source of truth for TUI colors.
+- Keep `src/tui/tokens.ts` as a single token system that mirrors the Figma color tokens with TypeScript-friendly names.
+- Do not keep a separate brand palette or contextual aliases such as `surface`, `textDim`, or `warning`.
+- Add new color tokens only when they exist in the Figma design system or the user explicitly approves adding one.
+- OpenTUI spacing is customizable through layout props such as `padding`, `gap`, `margin`, `width`, and `height`, but the unit is terminal cells rather than pixels.
+- Use the Figma spacing scale as source values in multiples of 4 (`sm = 4`, `md = 8`, etc.) and translate to terminal-cell values per component instead of blindly applying pixel values.
+- Typography is more limited than web UI: terminal font family and rendering come from the user's terminal, but we can still control text attributes, color, casing, labels, and hierarchy.
 
 ## Icon Strategy
 

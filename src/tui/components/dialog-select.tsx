@@ -139,11 +139,11 @@ export function DialogSelect<T>(props: {
   return (
     <box paddingLeft={2} paddingRight={2} paddingTop={1} gap={1} flexDirection="column">
       <box flexDirection="row" justifyContent="space-between">
-        <text attributes={TextAttributes.BOLD} fg={tokens.text}>
+        <text attributes={TextAttributes.BOLD} fg={tokens.white}>
           {props.title}
         </text>
         <text
-          fg={tokens.textDim}
+          fg={tokens.white46}
           onMouseUp={() => (props.onCancel ? props.onCancel() : dialog.clear())}
         >
           esc
@@ -173,7 +173,7 @@ export function DialogSelect<T>(props: {
               <Show when={sectionIndex() > 0}>
                 <text> </text>
               </Show>
-              <text paddingLeft={1} fg={tokens.accent}>
+              <text paddingLeft={1} fg={tokens.focusBlue}>
                 {section.category}
               </text>
               <For each={section.options}>
@@ -182,17 +182,15 @@ export function DialogSelect<T>(props: {
                   return (
                     <box
                       backgroundColor={
-                        globalIndex === selectedIndex() ? tokens.selectionBg : undefined
+                        globalIndex === selectedIndex() ? tokens.focusBlue : undefined
                       }
                       onMouseUp={() => option.onSelect?.()}
                     >
-                      <text
-                        fg={globalIndex === selectedIndex() ? tokens.selectionText : tokens.text}
-                      >
+                      <text fg={globalIndex === selectedIndex() ? tokens.black : tokens.white}>
                         {option.title}
                       </text>
                       {option.description && (
-                        <text fg={tokens.textDim}> — {option.description}</text>
+                        <text fg={tokens.white46}> — {option.description}</text>
                       )}
                     </box>
                   );
@@ -201,9 +199,9 @@ export function DialogSelect<T>(props: {
             </box>
           )}
         </For>
-        {filtered().length === 0 && <text fg={tokens.textDim}>No matching commands</text>}
+        {filtered().length === 0 && <text fg={tokens.white46}>No matching commands</text>}
       </box>
-      <text fg={tokens.textDim}>
+      <text fg={tokens.white46}>
         ↑↓ navigate · enter select · esc {props.onCancel ? "back" : "close"}
       </text>
     </box>

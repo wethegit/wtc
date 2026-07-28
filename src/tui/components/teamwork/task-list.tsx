@@ -76,6 +76,6 @@ export function TaskList(props: {
       </For>
     </box>
   ) : (
-    <text fg={tokens.textDim}>{props.emptyMessage}</text>
+    <text fg={tokens.white46}>{props.emptyMessage}</text>
   );
 }

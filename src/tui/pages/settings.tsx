@@ -312,11 +312,11 @@ export function SettingsPage() {
     <Page
       title="Settings"
       status={
-        <text fg={hasUnsavedChanges() ? tokens.warning : tokens.textDim}>
+        <text fg={hasUnsavedChanges() ? tokens.white : tokens.white46}>
           {hasUnsavedChanges() ? "unsaved changes" : "saved"}
         </text>
       }
-      message={<text fg={error() ? tokens.danger : tokens.textDim}>{message()}</text>}
+      message={<text fg={error() ? tokens.focusBlue : tokens.white46}>{message()}</text>}
     >
       <Show when={resolved()}>
         <box flexDirection="column" gap={1}>

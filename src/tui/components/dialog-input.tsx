@@ -58,18 +58,18 @@ export function DialogInput(props: DialogInputProps) {
   return (
     <box paddingLeft={2} paddingRight={2} paddingTop={1} gap={1} flexDirection="column">
       <box flexDirection="row" justifyContent="space-between">
-        <text attributes={TextAttributes.BOLD} fg={tokens.text}>
+        <text attributes={TextAttributes.BOLD} fg={tokens.white}>
           {props.title}
         </text>
         <text
-          fg={tokens.textDim}
+          fg={tokens.white46}
           onMouseUp={() => (props.onCancel ? props.onCancel() : dialog.clear())}
         >
           esc
         </text>
       </box>
-      <text fg={tokens.textDim}>{props.label}</text>
-      <box paddingX={1} borderStyle="single" borderColor={tokens.border}>
+      <text fg={tokens.white46}>{props.label}</text>
+      <box paddingX={1} borderStyle="single" borderColor={tokens.white46}>
         <input
           value={value()}
           onInput={(v: string) => setValue(v)}
@@ -79,8 +79,8 @@ export function DialogInput(props: DialogInputProps) {
         />
       </box>
       <box flexDirection="row" justifyContent="flex-end" gap={1} paddingTop={1}>
-        <text fg={tokens.textDim}>{props.cancelLabel ?? "cancel"} · </text>
-        <text fg={tokens.textAccent}>{props.confirmLabel ?? "confirm"}</text>
+        <text fg={tokens.white46}>{props.cancelLabel ?? "cancel"} · </text>
+        <text fg={tokens.focusBlue}>{props.confirmLabel ?? "confirm"}</text>
       </box>
     </box>
   );

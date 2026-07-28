@@ -13,7 +13,7 @@ export function LoadingDialog(props: LoadingDialogProps) {
       <box flexDirection="row" justifyContent="space-between">
         <text attributes={TextAttributes.BOLD}>{props.title ?? "Loading"}</text>
       </box>
-      <text fg={tokens.textDim}>{props.message}</text>
+      <text fg={tokens.white46}>{props.message}</text>
     </box>
   );
 }

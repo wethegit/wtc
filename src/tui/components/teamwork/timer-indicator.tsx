@@ -17,7 +17,7 @@ export function TimerBadge(props: TimerBadgeProps) {
   const formatted = () => formatBadgeDuration(props.elapsedMs);
 
   return (
-    <text fg={props.running ? (props.flashOn ? tokens.accent : tokens.accentSoft) : tokens.textDim}>
+    <text fg={props.running ? (props.flashOn ? tokens.focusBlue : tokens.white65) : tokens.white46}>
       ⏱ {formatted()}
     </text>
   );

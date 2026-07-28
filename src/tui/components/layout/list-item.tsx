@@ -32,16 +32,16 @@ export function ListItem(props: ListItemProps) {
 
   return (
     <box id={props.id} flexDirection="row" gap={1}>
-      <box width={1} backgroundColor={props.selected ? tokens.accent : undefined} />
+      <box width={1} backgroundColor={props.selected ? tokens.focusBlue : undefined} />
 
       <box flexDirection="column" flexGrow={1} gap={0}>
-        <text fg={props.selected ? tokens.accent : tokens.text}>
+        <text fg={props.selected ? tokens.focusBlue : tokens.white}>
           {props.selected ? "● " : ""}
           {props.title}
         </text>
 
         <Show when={metadataLine()}>
-          <text fg={tokens.textDim}>{metadataLine()}</text>
+          <text fg={tokens.white46}>{metadataLine()}</text>
         </Show>
       </box>
 

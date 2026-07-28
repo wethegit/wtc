@@ -21,16 +21,16 @@ export function Card(props: CardProps) {
     <box
       border
       borderStyle="rounded"
-      borderColor={props.active ? tokens.borderFocus : tokens.border}
+      borderColor={props.active ? tokens.focusBlue : tokens.white46}
       padding={1}
       flexDirection="column"
       gap={1}
     >
       <Show when={props.title}>
         <box flexDirection="row" gap={1}>
-          <text fg={props.active ? tokens.accent : tokens.text}>{props.title}</text>
+          <text fg={props.active ? tokens.focusBlue : tokens.white}>{props.title}</text>
           <Show when={props.status}>
-            <text fg={tokens.textDim}>{props.status}</text>
+            <text fg={tokens.white46}>{props.status}</text>
           </Show>
         </box>
       </Show>

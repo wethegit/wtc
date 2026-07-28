@@ -144,7 +144,7 @@ export function MyWorkTab() {
   return (
     <box flexDirection="column" gap={1}>
       <Card title={`My Work${user ? ` — ${user.name}` : ""}`}>
-        <text fg={tokens.textDim}>{message()}</text>
+        <text fg={tokens.white46}>{message()}</text>
       </Card>
 
       <For each={projectGroups()}>

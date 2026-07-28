@@ -29,7 +29,7 @@ export function Page(props: PageProps) {
   return (
     <box flexDirection="column" flexGrow={1} paddingX={2} paddingY={1} gap={1}>
       <box flexDirection="row" justifyContent="space-between">
-        <text attributes={TextAttributes.BOLD} fg={props.titleColor ?? tokens.text}>
+        <text attributes={TextAttributes.BOLD} fg={props.titleColor ?? tokens.white}>
           {props.title}
         </text>
         {props.status}

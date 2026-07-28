@@ -42,21 +42,21 @@ export function UpdateDialog(props: UpdateDialogProps) {
     <box gap={1}>
       <box flexDirection="row" justifyContent="space-between">
         <text attributes={TextAttributes.BOLD}>Update Available</text>
-        <text fg={tokens.textDim} onMouseUp={() => dialog.clear()}>
+        <text fg={tokens.white46} onMouseUp={() => dialog.clear()}>
           esc
         </text>
       </box>
       <box flexDirection="row">
-        <text fg={tokens.textDim}>v{APP_VERSION}</text>
-        <text fg={tokens.textDim}> → </text>
-        <text fg={tokens.accent}>{props.latestVersion}</text>
+        <text fg={tokens.white46}>v{APP_VERSION}</text>
+        <text fg={tokens.white46}> → </text>
+        <text fg={tokens.focusBlue}>{props.latestVersion}</text>
       </box>
       <box paddingTop={1}>
-        <text fg={tokens.text}>{installCmd}</text>
+        <text fg={tokens.white}>{installCmd}</text>
       </box>
       <box flexDirection="row" justifyContent="flex-end">
-        <box paddingX={3} backgroundColor={tokens.accent} onMouseUp={() => dialog.clear()}>
-          <text fg={tokens.textInverse}>ok</text>
+        <box paddingX={3} backgroundColor={tokens.focusBlue} onMouseUp={() => dialog.clear()}>
+          <text fg={tokens.black}>ok</text>
         </box>
       </box>
     </box>

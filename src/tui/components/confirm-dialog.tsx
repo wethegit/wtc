@@ -112,13 +112,13 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
       <box flexDirection="row" justifyContent="space-between">
         <text attributes={TextAttributes.BOLD}>{props.title}</text>
         <text
-          fg={tokens.textDim}
+          fg={tokens.white46}
           onMouseUp={() => (props.onCancel ? props.onCancel() : dialog.clear())}
         >
           esc
         </text>
       </box>
-      <text fg={tokens.textDim}>{props.message}</text>
+      <text fg={tokens.white46}>{props.message}</text>
       <box flexDirection="row" justifyContent="flex-end" gap={1} paddingTop={1}>
         <Show when={hasCancel}>
           <ActionButton

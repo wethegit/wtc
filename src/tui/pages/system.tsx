@@ -36,11 +36,11 @@ function formatSize(bytes: number): string {
 function categoryColor(category: "cache" | "state" | "log") {
   switch (category) {
     case "cache":
-      return tokens.warning;
+      return tokens.white;
     case "state":
-      return tokens.info;
+      return tokens.focusBlue;
     case "log":
-      return tokens.textDim;
+      return tokens.white46;
   }
 }
 
@@ -266,11 +266,11 @@ export function SystemPage() {
   onCleanup(() => setHints([]));
 
   return (
-    <Page title="System" message={<text fg={tokens.textDim}>{message()}</text>}>
+    <Page title="System" message={<text fg={tokens.white46}>{message()}</text>}>
       <Card title="Logs">
-        <text fg={tokens.textDim}>Location: {getLogPath()}</text>
+        <text fg={tokens.white46}>Location: {getLogPath()}</text>
         <Show when={logSize() > 0}>
-          <text fg={tokens.textDim}>Size: {formatSize(logSize())}</text>
+          <text fg={tokens.white46}>Size: {formatSize(logSize())}</text>
         </Show>
         <box flexDirection="row" gap={1} paddingTop={1}>
           <ActionButton
@@ -297,17 +297,17 @@ export function SystemPage() {
               justifyContent="space-between"
               paddingY={1}
               border={["bottom"]}
-              borderColor={tokens.border}
+              borderColor={tokens.white46}
             >
               <box flexDirection="column" flexGrow={1} gap={0}>
-                <text fg={tokens.text}>{info.descriptor.name}</text>
+                <text fg={tokens.white}>{info.descriptor.name}</text>
                 <Show when={!!info.descriptor.ttlDisplay}>
-                  <text fg={tokens.textDim}> [{info.descriptor.ttlDisplay}]</text>
+                  <text fg={tokens.white46}> [{info.descriptor.ttlDisplay}]</text>
                 </Show>
                 <text fg={categoryColor(info.descriptor.category)}>{info.descriptor.category}</text>
-                <text fg={tokens.textDim}>{info.descriptor.description}</text>
+                <text fg={tokens.white46}>{info.descriptor.description}</text>
                 <Show when={info.exists}>
-                  <text fg={tokens.textDim}>Size: {formatSize(info.sizeBytes)}</text>
+                  <text fg={tokens.white46}>Size: {formatSize(info.sizeBytes)}</text>
                 </Show>
               </box>
               <Show when={info.exists}>

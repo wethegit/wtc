@@ -38,7 +38,7 @@ export function DynamicList<T>(props: DynamicListProps<T>) {
 
       <Show
         when={props.items.length > 0}
-        fallback={<text fg={tokens.textDim}>{props.emptyMessage}</text>}
+        fallback={<text fg={tokens.white46}>{props.emptyMessage}</text>}
       >
         <For each={props.items}>
           {(item, index) => (
@@ -47,7 +47,7 @@ export function DynamicList<T>(props: DynamicListProps<T>) {
               gap={1}
               paddingLeft={1}
               border={["left"]}
-              borderColor={tokens.accentSoft}
+              borderColor={tokens.focusBlue}
             >
               {props.renderItem(item, index())}
               <ActionButton

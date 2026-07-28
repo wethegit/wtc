@@ -190,17 +190,17 @@ export function ProjectTab() {
     <box flexDirection="column" gap={1}>
       <Card title={projectMetadata()?.project.name}>
         {projectMetadata() ? (
-          <text fg={tokens.textDim}>{projectMessage()}</text>
+          <text fg={tokens.white46}>{projectMessage()}</text>
         ) : (
-          <text fg={tokens.textDim}>{projectMessage()}</text>
+          <text fg={tokens.white46}>{projectMessage()}</text>
         )}
 
         {(resolved()?.project?.project.links.length ?? 0) > 0 && (
           <box flexDirection="column" gap={0}>
-            <text fg={tokens.text}>Project links</text>
+            <text fg={tokens.white}>Project links</text>
             <For each={resolved()?.project?.project.links ?? []}>
               {(link) => (
-                <text fg={tokens.textDim}>
+                <text fg={tokens.white46}>
                   {link.name}: {link.url}
                 </text>
               )}
@@ -215,7 +215,7 @@ export function ProjectTab() {
             {(taskList) => (
               <Card title={taskList.name}>
                 {taskList.message ? (
-                  <text fg={tokens.textDim}>{taskList.message}</text>
+                  <text fg={tokens.white46}>{taskList.message}</text>
                 ) : (
                   <TaskList
                     taskListId={taskList.id}

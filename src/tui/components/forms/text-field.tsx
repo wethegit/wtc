@@ -51,12 +51,12 @@ export function TextField(props: TextFieldProps) {
     <box flexDirection="column" gap={0}>
       <box flexDirection="row" gap={1}>
         <box width={1}>
-          <text fg={props.focused ? tokens.accent : tokens.textDim}>
+          <text fg={props.focused ? tokens.focusBlue : tokens.white46}>
             {props.focused ? ">" : " "}
           </text>
         </box>
         <box width={20}>
-          <text fg={props.focused ? tokens.accent : tokens.textDim}>{props.label}</text>
+          <text fg={props.focused ? tokens.focusBlue : tokens.white46}>{props.label}</text>
         </box>
         <input
           id={props.name}
@@ -71,8 +71,8 @@ export function TextField(props: TextFieldProps) {
         />
       </box>
       <box flexDirection="column" paddingLeft={23}>
-        {props.description && <text fg={tokens.textDim}>{props.description}</text>}
-        {props.error && <text fg={tokens.danger}>{props.error}</text>}
+        {props.description && <text fg={tokens.white46}>{props.description}</text>}
+        {props.error && <text fg={tokens.focusBlue}>{props.error}</text>}
       </box>
     </box>
   );

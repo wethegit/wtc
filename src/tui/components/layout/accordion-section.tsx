@@ -28,23 +28,23 @@ export function AccordionSection(props: AccordionSectionProps) {
     <box
       border
       borderStyle="rounded"
-      borderColor={tokens.border}
+      borderColor={tokens.white46}
       padding={1}
       flexDirection="column"
       gap={1}
     >
       <box flexDirection="column" gap={0} onMouseUp={props.onToggle}>
         <box flexDirection="row" gap={1}>
-          <text fg={tokens.accent}>{props.expanded ? "↓" : "→"}</text>
-          <text attributes={TextAttributes.BOLD} fg={tokens.text}>
+          <text fg={tokens.focusBlue}>{props.expanded ? "↓" : "→"}</text>
+          <text attributes={TextAttributes.BOLD} fg={tokens.white}>
             {props.title}
           </text>
           <Show when={props.status}>
-            <text fg={tokens.textDim}>{props.status}</text>
+            <text fg={tokens.white46}>{props.status}</text>
           </Show>
         </box>
         {descriptions(props.description).map((description) => (
-          <text fg={tokens.textDim}>{description}</text>
+          <text fg={tokens.white46}>{description}</text>
         ))}
       </box>
 

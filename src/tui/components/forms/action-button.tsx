@@ -40,12 +40,13 @@ export function ActionButton(props: ActionButtonProps) {
   });
 
   const background = () => {
-    if (props.focused) return tokens.warning;
-    if (props.variant === "primary") return tokens.accent;
-    return tokens.surfaceOverlay;
+    if (props.focused) return tokens.white;
+    if (props.variant === "primary") return tokens.focusBlue;
+    return tokens.black46;
   };
 
-  const foreground = () => (props.focused ? tokens.textInverse : tokens.text);
+  const foreground = () =>
+    props.focused || props.variant === "primary" ? tokens.black : tokens.white;
 
   return (
     <box

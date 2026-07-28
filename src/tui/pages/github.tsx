@@ -714,15 +714,15 @@ export function GitHubPage() {
   return (
     <Page
       title="GitHub"
-      status={<text fg={tokens.textDim}>{githubAuthStatus()}</text>}
-      message={<text fg={tokens.textDim}>{message()}</text>}
+      status={<text fg={tokens.white46}>{githubAuthStatus()}</text>}
+      message={<text fg={tokens.white46}>{message()}</text>}
     >
       <box flexDirection="column" gap={1}>
         <Card title="Repo Creation" status={GITHUB_REPO_OWNER}>
-          <text attributes={TextAttributes.BOLD} fg={tokens.accent}>
+          <text attributes={TextAttributes.BOLD} fg={tokens.focusBlue}>
             Create from template
           </text>
-          <text fg={tokens.textDim}>
+          <text fg={tokens.white46}>
             Templates and new repos are created under {GITHUB_REPO_OWNER}.
           </text>
           <ActionButton
