@@ -9,7 +9,7 @@ import {
 } from "../../api/cache/manager.ts";
 import { clearLogFile, getLogPath, logInfo, openLogFile } from "../../api/logs/manager.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
-import { ActionButton } from "../components/forms/action-button.tsx";
+import { Button } from "../components/forms/button.tsx";
 import { Card } from "../components/layout/card.tsx";
 import { Page } from "../components/layout/page.tsx";
 import { ConfirmDialog } from "../components/confirm-dialog.tsx";
@@ -273,14 +273,14 @@ export function SystemPage() {
           <text fg={tokens.white46}>Size: {formatSize(logSize())}</text>
         </Show>
         <box flexDirection="row" gap={1} paddingTop={1}>
-          <ActionButton
+          <Button
             name="open-log"
             label="open log"
             variant="primary"
             focused={isSystemFocusTarget(focusedTarget(), { type: "button", name: "open-log" })}
             onPress={openLog}
           />
-          <ActionButton
+          <Button
             name="clear-log"
             label="clear"
             focused={isSystemFocusTarget(focusedTarget(), { type: "button", name: "clear-log" })}
@@ -312,7 +312,7 @@ export function SystemPage() {
               </box>
               <Show when={info.exists}>
                 <box flexDirection="row" alignItems="center" gap={1}>
-                  <ActionButton
+                  <Button
                     name={`open-${info.descriptor.name}`}
                     label="open"
                     focused={isSystemFocusTarget(focusedTarget(), {
@@ -322,7 +322,7 @@ export function SystemPage() {
                     })}
                     onPress={() => openCacheFile(info)}
                   />
-                  <ActionButton
+                  <Button
                     name={`delete-${info.descriptor.name}`}
                     label="delete"
                     focused={isSystemFocusTarget(focusedTarget(), {
@@ -338,7 +338,7 @@ export function SystemPage() {
           )}
         </For>
         <box flexDirection="row" gap={1} paddingTop={1}>
-          <ActionButton
+          <Button
             name="clear-all-cache"
             label="clear all cache"
             variant="primary"

@@ -4,7 +4,7 @@ import { useBindings } from "@opentui/keymap/solid";
 
 import { tokens } from "../tokens.ts";
 
-import { ActionButton } from "./forms/action-button.tsx";
+import { Button } from "./forms/button.tsx";
 import { useDialog } from "./dialog.tsx";
 
 /** Props for a simple confirmation dialog. */
@@ -121,7 +121,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
       <text fg={tokens.white46}>{props.message}</text>
       <box flexDirection="row" justifyContent="flex-end" gap={1} paddingTop={1}>
         <Show when={hasCancel}>
-          <ActionButton
+          <Button
             name="cancel"
             label={props.cancelLabel ?? "cancel"}
             focused={focused() === "cancel"}
@@ -130,7 +130,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
             }}
           />
         </Show>
-        <ActionButton
+        <Button
           name="confirm"
           label={props.confirmLabel ?? "confirm"}
           variant="primary"

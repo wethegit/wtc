@@ -1,6 +1,6 @@
 import { For, Show, type JSX } from "solid-js";
 
-import { ActionButton } from "./action-button.tsx";
+import { Button } from "./button.tsx";
 import { tokens } from "../../tokens.ts";
 
 /** Props for an editable dynamic list (add/remove rows) used in Settings forms. */
@@ -29,7 +29,7 @@ export interface DynamicListProps<T> {
 export function DynamicList<T>(props: DynamicListProps<T>) {
   return (
     <box flexDirection="column" gap={1}>
-      <ActionButton
+      <Button
         name={`${props.namePrefix}-add`}
         label={props.addLabel}
         focused={props.addFocused}
@@ -50,7 +50,7 @@ export function DynamicList<T>(props: DynamicListProps<T>) {
               borderColor={tokens.focusBlue}
             >
               {props.renderItem(item, index())}
-              <ActionButton
+              <Button
                 name={`${props.namePrefix}-remove-${index()}`}
                 label="remove"
                 focused={props.removeFocused(index())}

@@ -26,7 +26,7 @@ import {
 import { logInfo, logWarn, logError } from "../../api/logs/manager.ts";
 import { openUrlInBrowser } from "../../utils/browser.ts";
 import { assertCloneTargetAvailable } from "../../utils/git.ts";
-import { ActionButton } from "../components/forms/action-button.tsx";
+import { Button } from "../components/forms/button.tsx";
 import { Card } from "../components/layout/card.tsx";
 import { Page } from "../components/layout/page.tsx";
 import { ConfirmDialog } from "../components/confirm-dialog.tsx";
@@ -725,7 +725,7 @@ export function GitHubPage() {
           <text fg={tokens.white46}>
             Templates and new repos are created under {GITHUB_REPO_OWNER}.
           </text>
-          <ActionButton
+          <Button
             name="create-github-repo"
             label={isCreating() ? "creating" : "create repo"}
             variant="primary"

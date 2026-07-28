@@ -12,7 +12,7 @@ import { getGitHubAuthStatus, setGitHubApiToken } from "../../api/github/auth.ts
 import type { GitHubAuthStatus } from "../../api/github/auth.ts";
 import { getTeamworkAuthStatus, setTeamworkApiToken } from "../../api/teamwork/auth.ts";
 import type { TeamworkAuthStatus } from "../../api/teamwork/auth.ts";
-import { ActionButton } from "../components/forms/action-button.tsx";
+import { Button } from "../components/forms/button.tsx";
 import { Page } from "../components/layout/page.tsx";
 import { useDialog } from "../components/dialog.tsx";
 import { useStatusBar } from "../components/status-bar.tsx";
@@ -388,14 +388,14 @@ export function SettingsPage() {
       </Show>
 
       <box flexDirection="row" gap={1} paddingTop={1} paddingBottom={1}>
-        <ActionButton
+        <Button
           name="save-settings"
           label={isSaving() ? "saving" : "save"}
           variant="primary"
           focused={isSettingsFocusTarget(focusedTarget(), { type: "action", name: "save" })}
           onPress={() => void save()}
         />
-        <ActionButton
+        <Button
           name="reload-settings"
           label="reload"
           focused={isSettingsFocusTarget(focusedTarget(), { type: "action", name: "reload" })}
