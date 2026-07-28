@@ -391,13 +391,14 @@ export function SettingsPage() {
         <Button
           name="save-settings"
           label={isSaving() ? "saving" : "save"}
-          variant="primary"
+          color={hasUnsavedChanges() ? "yellow" : "default"}
           focused={isSettingsFocusTarget(focusedTarget(), { type: "action", name: "save" })}
           onPress={() => void save()}
         />
         <Button
           name="reload-settings"
           label="reload"
+          color="secondary"
           focused={isSettingsFocusTarget(focusedTarget(), { type: "action", name: "reload" })}
           onPress={() => void reload()}
         />

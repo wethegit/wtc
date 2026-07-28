@@ -11,8 +11,10 @@ export interface ButtonProps {
   label: string;
   /** Whether this action is the current keyboard focus target. */
   focused?: boolean;
-  /** Whether this is the primary action in the group. */
-  variant?: "primary" | "secondary";
+  /** Whether this action is unavailable. */
+  disabled?: boolean;
+  /** Figma button color. */
+  color?: "default" | "yellow" | "secondary";
   /** Mouse/keyboard action handler. */
   onPress: () => void;
 }
@@ -32,14 +34,18 @@ export function Button(props: ButtonProps) {
   });
 
   const background = () => {
-    if (props.variant === "primary" && props.focused) return tokens.focusBlue;
-    if (props.variant === "primary") return tokens.white65;
-    if (props.focused) return tokens.white;
-    return tokens.black46;
+    if (props.disabled) return tokens.white46;
+    if (props.focused) return tokens.focusBlue;
+    if (props.color === "yellow") return tokens.wtcYellow;
+    if (props.color === "secondary") return tokens.black80;
+    return tokens.white65;
   };
 
-  const foreground = () =>
-    props.focused || props.variant === "primary" ? tokens.black : tokens.white;
+  const foreground = () => {
+    if (props.disabled || props.focused) return tokens.black;
+    if (props.color === "secondary") return tokens.white;
+    return tokens.black;
+  };
 
   return (
     <box
@@ -52,7 +58,9 @@ export function Button(props: ButtonProps) {
       alignItems="center"
       justifyContent="center"
       backgroundColor={background()}
-      onMouseUp={props.onPress}
+      onMouseUp={() => {
+        if (!props.disabled) props.onPress();
+      }}
     >
       <text fg={foreground()}>{props.label}</text>
     </box>

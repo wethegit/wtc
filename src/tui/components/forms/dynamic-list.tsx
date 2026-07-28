@@ -32,6 +32,7 @@ export function DynamicList<T>(props: DynamicListProps<T>) {
       <Button
         name={`${props.namePrefix}-add`}
         label={props.addLabel}
+        color="secondary"
         focused={props.addFocused}
         onPress={props.onAdd}
       />
@@ -53,6 +54,7 @@ export function DynamicList<T>(props: DynamicListProps<T>) {
               <Button
                 name={`${props.namePrefix}-remove-${index()}`}
                 label="remove"
+                color="secondary"
                 focused={props.removeFocused(index())}
                 onPress={() => props.onRemove(index())}
               />

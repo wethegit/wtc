@@ -728,7 +728,6 @@ export function GitHubPage() {
           <Button
             name="create-github-repo"
             label={isCreating() ? "creating" : "create repo"}
-            variant="primary"
             focused={!dialog.active()}
             onPress={triggerCreateRepo}
           />

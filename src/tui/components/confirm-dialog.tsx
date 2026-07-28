@@ -124,6 +124,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
           <Button
             name="cancel"
             label={props.cancelLabel ?? "cancel"}
+            color="secondary"
             focused={focused() === "cancel"}
             onPress={() => {
               props.onCancel?.();
@@ -133,7 +134,6 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
         <Button
           name="confirm"
           label={props.confirmLabel ?? "confirm"}
-          variant="primary"
           focused={focused() === "confirm"}
           onPress={() => {
             void confirm();

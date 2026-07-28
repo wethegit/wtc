@@ -7,11 +7,10 @@ function rgbaFromHex(hex: string, alpha = 1): RGBA {
 
 export const tokens = {
   focusBlue: rgbaFromHex("#a6edff"),
-  white46: rgbaFromHex("#ffffff", 0.46),
+  white46: rgbaFromHex("#858585"),
   white: rgbaFromHex("#ffffff"),
-  white65: rgbaFromHex("#ffffff", 0.65),
-  black46: rgbaFromHex("#000000", 0.46),
-  black65: rgbaFromHex("#000000", 0.65),
+  white65: rgbaFromHex("#797a7b"),
+  black46: rgbaFromHex("#000000"),
   black: rgbaFromHex("#000000"),
   black80: rgbaFromHex("#333333"),
   black60: rgbaFromHex("#676767"),

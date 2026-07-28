@@ -276,13 +276,13 @@ export function SystemPage() {
           <Button
             name="open-log"
             label="open log"
-            variant="primary"
             focused={isSystemFocusTarget(focusedTarget(), { type: "button", name: "open-log" })}
             onPress={openLog}
           />
           <Button
             name="clear-log"
             label="clear"
+            color="secondary"
             focused={isSystemFocusTarget(focusedTarget(), { type: "button", name: "clear-log" })}
             onPress={clearLog}
           />
@@ -315,6 +315,7 @@ export function SystemPage() {
                   <Button
                     name={`open-${info.descriptor.name}`}
                     label="open"
+                    color="secondary"
                     focused={isSystemFocusTarget(focusedTarget(), {
                       type: "file-action",
                       name: info.descriptor.name,
@@ -325,6 +326,7 @@ export function SystemPage() {
                   <Button
                     name={`delete-${info.descriptor.name}`}
                     label="delete"
+                    color="secondary"
                     focused={isSystemFocusTarget(focusedTarget(), {
                       type: "file-action",
                       name: info.descriptor.name,
@@ -341,7 +343,6 @@ export function SystemPage() {
           <Button
             name="clear-all-cache"
             label="clear all cache"
-            variant="primary"
             focused={isSystemFocusTarget(focusedTarget(), {
               type: "button",
               name: "clear-all-cache",
