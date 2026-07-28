@@ -1,5 +1,11 @@
 # wtc
 
+## 0.3.18
+
+### Patch Changes
+
+- [#74](https://github.com/wethegit/wtc/pull/74) [`5181f01`](https://github.com/wethegit/wtc/commit/5181f013b88ff9671fe60a9af46fab53a756013d) Thanks [@marlonmarcello](https://github.com/marlonmarcello)! - feature: adds cli cloning and teamwork setup
+
 ## 0.3.17
 
 ### Patch Changes
