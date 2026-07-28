@@ -32,8 +32,9 @@ export function Button(props: ButtonProps) {
   });
 
   const background = () => {
-    if (props.focused) return tokens.white;
+    if (props.variant === "primary" && props.focused) return tokens.focusBlue;
     if (props.variant === "primary") return tokens.white65;
+    if (props.focused) return tokens.white;
     return tokens.black46;
   };
 
