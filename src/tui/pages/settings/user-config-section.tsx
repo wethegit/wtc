@@ -1,6 +1,6 @@
 import type { GitHubAuthStatus } from "../../../api/github/auth.ts";
 import type { TeamworkAuthStatus } from "../../../api/teamwork/auth.ts";
-import { TextField } from "../../components/forms/text-field.tsx";
+import { Field } from "../../components/forms/field.tsx";
 import { AccordionSection } from "../../components/layout/accordion-section.tsx";
 import { tokens } from "../../tokens.ts";
 import type { SettingsFocusTarget, SettingsFormState } from "./types.ts";
@@ -26,7 +26,7 @@ export function UserConfigSection(props: {
       onToggle={props.onToggle}
     >
       <box flexDirection="column" gap={1}>
-        <TextField
+        <Field
           name="workspaceName"
           label="workspaceName"
           value={props.form.user.workspaceName}
@@ -47,11 +47,10 @@ export function UserConfigSection(props: {
             <text fg={tokens.white}>Teamwork auth</text>
             <text fg={tokens.white46}>Status: {props.teamworkAuthStatus}</text>
           </box>
-          <TextField
+          <Field
             name="teamworkApiToken"
             label="teamworkApiToken"
             value={props.form.user.teamworkApiToken}
-            width={40}
             placeholder="Paste new token"
             description="User-level secret stored outside YAML; this field clears after save."
             focused={props.isFocused({ type: "field", name: "teamworkApiToken" })}
@@ -70,11 +69,10 @@ export function UserConfigSection(props: {
             <text fg={tokens.white}>GitHub auth</text>
             <text fg={tokens.white46}>Status: {props.githubAuthStatus}</text>
           </box>
-          <TextField
+          <Field
             name="githubApiToken"
             label="githubApiToken"
             value={props.form.user.githubApiToken}
-            width={40}
             placeholder="Paste new token"
             description="User-level secret stored outside YAML; this field clears after save."
             focused={props.isFocused({ type: "field", name: "githubApiToken" })}

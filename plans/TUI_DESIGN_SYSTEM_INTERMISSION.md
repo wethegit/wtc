@@ -52,17 +52,17 @@ Use Figma naming as the target naming system, but migrate safely:
 
 ## Initial Component Order
 
-1. Button
-2. Field
-3. Page Header
-4. Page Footer
-5. Section Head
-6. Subsection Head
-7. Subsection Field Group
-8. Tab
-9. Dialog Modal
-10. List Item
-11. Icons
+1. Button — implemented, awaiting broader visual review
+2. Field — implemented, awaiting visual review
+3. Page Header — not started
+4. Page Footer — not started
+5. Section Head — not started
+6. Subsection Head — not started
+7. Subsection Field Group — not started
+8. Tab — not started
+9. Dialog Modal — not started
+10. List Item — not started
+11. Icons — not started
 
 This order can change if a page rollout exposes a better dependency order.
 
@@ -90,6 +90,132 @@ This order can change if a page rollout exposes a better dependency order.
 - Apply the system first to pages represented in the exports: Settings and Teamwork.
 - Preserve behavior while changing presentation.
 
+## Progress Checklist
+
+Use this section as the recovery point for future sessions. Update it after each reviewed component/state.
+
+### Setup
+
+- [x] Create design-system intermission plan.
+- [x] Link intermission from `plans/PLAN.md`.
+- [x] Exclude `_specs/**` from formatter, linter, and typecheck tooling.
+- [x] Add Figma component-system color tokens to `src/tui/tokens.ts`.
+- [x] Add WTC brand color tokens to `src/tui/tokens.ts`.
+- [x] Add WTC navy background token (`#101820`) to `src/tui/tokens.ts`.
+- [x] Remove old palette/contextual token aliases from `src/tui/tokens.ts`.
+- [x] Convert TUI code to use the single token system directly.
+
+### Button
+
+Source references:
+
+- Screenshot: `_specs/designs/component-system/button.png`
+- CSS requested per state from user before implementation.
+
+Implementation notes:
+
+- [x] Rename `ActionButton` to Figma-aligned `Button`.
+- [x] Move `src/tui/components/forms/action-button.tsx` to `src/tui/components/forms/button.tsx`.
+- [x] Update all imports/usages to `Button`.
+- [x] Simplify away `variant`; Button now uses color options only.
+- [x] Use background-color-only buttons; no OpenTUI borders for button styling.
+- [x] Make Settings `save` button yellow only when there are unsaved changes.
+
+Implemented states:
+
+- [x] Button default color, default state: background `white65`, text `black`.
+- [x] Button default color, focused state: background `focusBlue`, text `black`.
+- [x] Button default color, disabled state: background `white46`, text `black`.
+- [x] Button yellow color: background `wtcYellow`, text `black`.
+- [x] Button secondary color: background `black80`, text `white`.
+- [x] Button secondary shares default focused/disabled state behavior.
+
+Current Button decision:
+
+- Button colors are `default`, `yellow`, and `secondary`.
+- Focused and disabled states are shared across all colors.
+- Secondary is no longer an outlined/bordered variant because OpenTUI borders add layout height and draw as terminal glyphs.
+
+Button rollout completed so far:
+
+- [x] `ConfirmDialog` actions.
+- [x] `DynamicList` add/remove actions.
+- [x] `SettingsPage` save/reload actions.
+- [x] `SystemPage` log/cache actions.
+- [x] `GitHubPage` create repo action.
+
+Button follow-up candidates:
+
+- [ ] Review remaining page screenshots for any missing Button usage.
+- [ ] Add icon/content slot only if a future CSS state or icon spec requires it.
+- [ ] Revisit exact spacing after page-level layout components are updated.
+
+### Field
+
+- [x] Ask user for CSS for `Field` empty, focused, and filled/unfocused states.
+- [x] Rename `TextField` to Figma-aligned `Field`.
+- [x] Implement shared `Field` empty, focused, and filled/unfocused states.
+- [x] Restore full Field input borders and stretch inputs to available container width.
+- [x] Roll out to Settings fields through the shared component.
+- [ ] Review/fix until approved.
+- [ ] Ask user for CSS for next `Field` state.
+
+### Page Header
+
+- [ ] Ask user for CSS for `Page Header` default state.
+- [ ] Implement reusable page header styling.
+- [ ] Roll out through `Page` if possible.
+- [ ] Review/fix until approved.
+
+### Page Footer
+
+- [ ] Ask user for CSS for `Page Footer` default state.
+- [ ] Implement reusable page footer/status-bar styling.
+- [ ] Review/fix until approved.
+
+### Section Head
+
+- [ ] Ask user for CSS for `Section Head` default state.
+- [ ] Implement or update section heading primitive.
+- [ ] Review/fix until approved.
+
+### Subsection Head
+
+- [ ] Ask user for CSS for `Subsection Head` default state.
+- [ ] Implement or update subsection heading primitive.
+- [ ] Review/fix until approved.
+
+### Subsection Field Group
+
+- [ ] Ask user for CSS for `Subsection Field Group` default state.
+- [ ] Implement or update grouping primitive.
+- [ ] Review/fix until approved.
+
+### Tab
+
+- [ ] Ask user for CSS for `Tab` default state.
+- [ ] Implement default state.
+- [ ] Review/fix until approved.
+- [ ] Ask user for CSS for selected/focused states.
+
+### Dialog Modal
+
+- [ ] Ask user for CSS for `Dialog Modal` default state.
+- [ ] Update shared dialog components.
+- [ ] Review/fix until approved.
+
+### List Item
+
+- [ ] Ask user for CSS for `List Item` default state.
+- [ ] Update shared `ListItem`.
+- [ ] Review/fix until approved.
+
+### Icons
+
+- [ ] Confirm icon source files or glyph mapping strategy.
+- [ ] Add TUI icon map only when first needed.
+- [ ] Review/fix until approved.
+
 ## Verification
 
 After each approved component/variant pass:
@@ -99,8 +225,10 @@ After each approved component/variant pass:
 - `bun run fmt:check`
 - Manual TUI visual review against the relevant Figma export.
 
-## First Step
+## Current Checkpoint
 
-Start with `Button` default/primary state.
+Button is acceptable for now after switching from variants to color-only background buttons.
 
-Before implementation, ask for the CSS for the exact Button state being implemented.
+Field empty, focused, and filled/unfocused states are implemented in `src/tui/components/forms/field.tsx` and rolled out to Settings.
+
+Next recommended item: visual review of `Field` in Settings, then move to `Page Header` default state.

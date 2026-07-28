@@ -1,5 +1,5 @@
 import { DynamicList } from "../../components/forms/dynamic-list.tsx";
-import { TextField } from "../../components/forms/text-field.tsx";
+import { Field } from "../../components/forms/field.tsx";
 import { AccordionSection } from "../../components/layout/accordion-section.tsx";
 import type {
   ProjectLinkFormState,
@@ -39,7 +39,7 @@ export function ProjectLinksSection(props: {
         onRemove={props.onRemove}
         renderItem={(link, index) => (
           <box flexDirection="column" gap={1}>
-            <TextField
+            <Field
               name={`project-link-${index}-name`}
               label="name"
               value={link.name}
@@ -48,7 +48,7 @@ export function ProjectLinksSection(props: {
               focused={props.isFocused({ type: "projectLink", index, field: "name" })}
               onInput={(value) => props.onUpdate(index, { name: value })}
             />
-            <TextField
+            <Field
               name={`project-link-${index}-url`}
               label="url"
               value={link.url}

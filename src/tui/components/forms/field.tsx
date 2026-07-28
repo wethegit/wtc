@@ -4,8 +4,7 @@ import type { InputRenderable } from "@opentui/core";
 import { usePageScroll } from "../layout/scroll-context.tsx";
 import { tokens } from "../../tokens.ts";
 
-/** Props for the standard single-line TUI text field. */
-export interface TextFieldProps {
+export interface FieldProps {
   /** Stable field name used by forms and tests. */
   name: string;
   /** Label shown before the input. */
@@ -14,8 +13,6 @@ export interface TextFieldProps {
   value: string;
   /** Placeholder shown when the input is empty. */
   placeholder?: string;
-  /** Input width in terminal columns. */
-  width?: number;
   /** Secondary helper text shown below the input row. */
   description?: string;
   /** Validation error shown below the input row. */
@@ -26,14 +23,7 @@ export interface TextFieldProps {
   onInput: (value: string) => void;
 }
 
-/**
- * Standard labeled text input for TUI forms.
- *
- * Use this instead of hand-rolling `<text>` + `<input>` rows in feature pages so
- * labels, spacing, helper text, and validation states stay consistent across the
- * Solid TUI design system.
- */
-export function TextField(props: TextFieldProps) {
+export function Field(props: FieldProps) {
   let input: InputRenderable | undefined;
   const scroll = usePageScroll();
 
@@ -47,28 +37,47 @@ export function TextField(props: TextFieldProps) {
     }, 1);
   });
 
+  const hasValue = () => props.value.length > 0;
+  const inputTextColor = () => (props.focused || hasValue() ? tokens.white : tokens.white46);
+  const inputBorderColor = () => {
+    if (props.focused) return tokens.focusBlue;
+    return tokens.white46;
+  };
+
   return (
-    <box flexDirection="column" gap={0}>
-      <box flexDirection="row" gap={1}>
-        <box width={1}>
-          <text fg={props.focused ? tokens.focusBlue : tokens.white46}>
-            {props.focused ? ">" : " "}
-          </text>
-        </box>
+    <box flexDirection="column" gap={0} width="100%">
+      <box flexDirection="row" gap={1} width="100%" alignItems="center">
         <box width={20}>
-          <text fg={props.focused ? tokens.focusBlue : tokens.white46}>{props.label}</text>
+          <text fg={tokens.white65}>{props.label}</text>
         </box>
-        <input
-          id={props.name}
-          ref={(renderable) => {
-            input = renderable;
-          }}
-          focused={props.focused}
-          width={props.width ?? 30}
-          value={props.value}
-          placeholder={props.placeholder ?? ""}
-          onInput={props.onInput}
-        />
+        <box width={1}>
+          <text fg={tokens.focusBlue}>{props.focused ? ">" : " "}</text>
+        </box>
+        <box
+          border
+          borderStyle="single"
+          borderColor={inputBorderColor()}
+          paddingX={1}
+          flexGrow={1}
+          flexShrink={1}
+        >
+          <input
+            id={props.name}
+            ref={(renderable) => {
+              input = renderable;
+            }}
+            focused={props.focused}
+            width="auto"
+            flexGrow={1}
+            value={props.value}
+            placeholder={props.placeholder ?? ""}
+            textColor={inputTextColor()}
+            cursorColor={tokens.focusBlue}
+            backgroundColor={tokens.wtcNavy}
+            focusedBackgroundColor={tokens.wtcNavy}
+            onInput={props.onInput}
+          />
+        </box>
       </box>
       <box flexDirection="column" paddingLeft={23}>
         {props.description && <text fg={tokens.white46}>{props.description}</text>}

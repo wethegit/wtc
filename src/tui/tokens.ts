@@ -22,6 +22,7 @@ export const tokens = {
   wtcRed: rgbaFromHex("#fb5373"),
   wtcYellow: rgbaFromHex("#f9ea35"),
   wtcBlue: rgbaFromHex("#96daea"),
+  wtcNavy: rgbaFromHex("#101820"),
 } as const;
 
 export type Tokens = typeof tokens;

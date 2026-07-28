@@ -32,6 +32,7 @@ export function AccordionSection(props: AccordionSectionProps) {
       padding={1}
       flexDirection="column"
       gap={1}
+      width="100%"
     >
       <box flexDirection="column" gap={0} onMouseUp={props.onToggle}>
         <box flexDirection="row" gap={1}>

@@ -1,5 +1,5 @@
 import { DynamicList } from "../../components/forms/dynamic-list.tsx";
-import { TextField } from "../../components/forms/text-field.tsx";
+import { Field } from "../../components/forms/field.tsx";
 import { AccordionSection } from "../../components/layout/accordion-section.tsx";
 import type {
   PinnedTaskListFormState,
@@ -39,7 +39,7 @@ export function PinnedTaskListsSection(props: {
         onRemove={props.onRemove}
         renderItem={(taskList, index) => (
           <box flexDirection="column">
-            <TextField
+            <Field
               name={`pinned-task-list-${index}-name`}
               label="name"
               value={taskList.name}
@@ -48,11 +48,10 @@ export function PinnedTaskListsSection(props: {
               focused={props.isFocused({ type: "pinnedTaskList", index, field: "name" })}
               onInput={(value) => props.onUpdate(index, { name: value })}
             />
-            <TextField
+            <Field
               name={`pinned-task-list-${index}-id`}
               label="id"
               value={taskList.id}
-              width={18}
               placeholder="1597639"
               error={props.errors[`pinnedTaskLists.${index}.id`]}
               focused={props.isFocused({ type: "pinnedTaskList", index, field: "id" })}

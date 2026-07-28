@@ -27,7 +27,7 @@ function RouteErrorFallback(props: { error: unknown }) {
   const message = props.error instanceof Error ? props.error.message : "Unexpected TUI error.";
 
   return (
-    <box flexDirection="column" gap={1} padding={1} backgroundColor={tokens.black46}>
+    <box flexDirection="column" gap={1} padding={1} backgroundColor={tokens.wtcNavy}>
       <text fg={tokens.focusBlue}>Something went wrong while rendering this page.</text>
       <text fg={tokens.white46}>{message}</text>
       <text fg={tokens.white46}>Use the command palette to navigate elsewhere.</text>
@@ -222,7 +222,7 @@ function Home() {
   });
 
   return (
-    <box flexDirection="column" flexGrow={1} backgroundColor={tokens.black}>
+    <box flexDirection="column" flexGrow={1} backgroundColor={tokens.wtcNavy}>
       <ErrorBoundary fallback={RouteErrorFallback}>
         <Switch fallback={<Dashboard />}>
           <Match when={route().page === "github"}>
@@ -282,7 +282,7 @@ export async function runTUI(): Promise<void> {
 
   await render(() => <App dir={dir} initialState={initialState} />, {
     exitOnCtrlC: false,
-    backgroundColor: tokens.black,
+    backgroundColor: tokens.wtcNavy,
     useKittyKeyboard: {},
   });
 }

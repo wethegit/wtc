@@ -1,4 +1,4 @@
-import { TextField } from "../../components/forms/text-field.tsx";
+import { Field } from "../../components/forms/field.tsx";
 import { AccordionSection } from "../../components/layout/accordion-section.tsx";
 import type { SettingsFocusTarget, SettingsFormErrors, SettingsFormState } from "./types.ts";
 
@@ -21,11 +21,10 @@ export function ProjectConfigSection(props: {
       expanded={props.expanded}
       onToggle={props.onToggle}
     >
-      <TextField
+      <Field
         name="teamworkProjectId"
         label="teamworkProjectId"
         value={props.form.project.teamworkProjectId}
-        width={18}
         placeholder="12345"
         description="Leave blank until this repo is linked to Teamwork."
         error={props.errors.teamworkProjectId}
