@@ -2,7 +2,7 @@
 
 A terminal UI tool for developers to manage GitHub repos, AWS Amplify projects, and Teamwork tasks.
 
-- **Status:** Phase 6.4 Local Clone + WTC Project Bootstrap completed
+- **Status:** TUI Design System Intermission planned
 - **Package Manager:** Bun
 - **Runtime:** Bun (standalone binary distribution)
 - **TUI:** @opentui/solid + solid-js
@@ -174,6 +174,10 @@ Clone the newly created repo, write a `.wtc.yaml` into the cloned repo with Team
 #### Phase 6.5 — [Teamwork Project Linking + Final Polish](github/6.5-teamwork-project-linking-and-final-polish.md)
 
 Link the created repo into WTC project config from the old working directory. Add any remaining repo creation workflow conveniences and CLI/TUI parity gaps.
+
+### Intermission — [TUI Design System](TUI_DESIGN_SYSTEM_INTERMISSION.md)
+
+Translate the Figma component system into reusable OpenTUI Solid primitives one component and one variant/state at a time. CSS for each exact component state must be requested before implementation, and Figma component names should drive TUI component naming where practical.
 
 ### Phase 7 — AWS Amplify Hosting
 
